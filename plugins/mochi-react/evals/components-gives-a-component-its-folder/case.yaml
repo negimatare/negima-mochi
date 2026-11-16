@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: components-gives-a-component-its-folder
+context:
+  scaffold_script: fixture.sh

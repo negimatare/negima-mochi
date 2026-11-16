@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: split-writes-the-parts-and-an-index
+context:
+  scaffold_script: fixture.sh

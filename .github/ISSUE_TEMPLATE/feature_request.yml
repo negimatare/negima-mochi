@@ -1,0 +1,28 @@
+name: Idea
+description: A new workflow, reviewer, convention, or stack plugin, or a change to one.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What goes wrong or takes too long today, with an example.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What the kit should do
+      description: The behaviour you want. A rule, a check, or a step it should add.
+    validations:
+      required: true
+  - type: dropdown
+    id: plugin
+    attributes:
+      label: Plugin
+      options:
+        - mochi
+        - mochi-react
+        - mochi-python
+        - A new stack plugin
+        - Not sure

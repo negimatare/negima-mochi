@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: review-grades-an-inherited-flaw-by-its-consequence
+context:
+  scaffold_script: fixture.sh

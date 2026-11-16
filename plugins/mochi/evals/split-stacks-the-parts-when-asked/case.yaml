@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: split-stacks-the-parts-when-asked
+context:
+  scaffold_script: fixture.sh

@@ -1,0 +1,10 @@
+{
+  "name": "mochi-python",
+  "displayName": "Mochi Python (FastAPI + Cosmic Python)",
+  "version": "1.0.0",
+  "description": "Architecture, domain model, service layer, REST API, OpenAPI, persistence and testing conventions for FastAPI services built as vertical slices with Cosmic Python inside, with matching reviewers and lint/verify hooks",
+  "author": {
+    "name": "negimatare"
+  },
+  "keywords": ["python", "fastapi", "openapi", "ddd"]
+}

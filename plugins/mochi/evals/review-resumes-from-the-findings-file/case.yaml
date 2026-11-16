@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: review-resumes-from-the-findings-file
+context:
+  scaffold_script: fixture.sh

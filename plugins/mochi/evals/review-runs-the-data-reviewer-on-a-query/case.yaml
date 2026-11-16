@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: review-runs-the-data-reviewer-on-a-query
+context:
+  scaffold_script: fixture.sh

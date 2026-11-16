@@ -1,0 +1,24 @@
+{
+  "name": "negima-mochi",
+  "description": "Working principles, an area-by-area review flow, and stack conventions for React + Fluent UI and for FastAPI services, for Claude Code",
+  "owner": {
+    "name": "negimatare"
+  },
+  "plugins": [
+    {
+      "name": "mochi",
+      "source": "./plugins/mochi",
+      "description": "Language-agnostic working principles, the /mochi:* workflows, generic reviewers, and the dependency policy"
+    },
+    {
+      "name": "mochi-react",
+      "source": "./plugins/mochi-react",
+      "description": "React + Fluent UI v9 + Griffel conventions, stack reviewers, and lint/verify/skill-injection hooks; no commands of its own, it extends /mochi:*"
+    },
+    {
+      "name": "mochi-python",
+      "source": "./plugins/mochi-python",
+      "description": "FastAPI conventions (vertical slices with Cosmic Python inside, REST, OpenAPI), stack reviewers, and lint/verify/skill-injection hooks; no commands of its own, it extends /mochi:*"
+    }
+  ]
+}

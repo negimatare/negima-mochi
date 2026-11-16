@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/negimatare/negima-mochi/security/advisories/new
+    about: Report it privately, not in a public issue.
+  - name: Read how each command works
+    url: https://github.com/negimatare/negima-mochi/blob/main/docs/workflows.md
+    about: Each workflow step by step, with its branch and commit rules.

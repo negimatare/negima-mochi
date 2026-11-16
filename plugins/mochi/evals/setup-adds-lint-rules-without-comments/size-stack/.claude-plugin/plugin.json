@@ -1,0 +1,5 @@
+{
+  "name": "size-stack",
+  "version": "0.0.1",
+  "description": "Eval stub of a stack plugin for React apps: one convention that sets file-size lint rules. Loaded by mochi's setup eval cases."
+}

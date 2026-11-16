@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: setup-asks-only-what-code-cannot-tell
+context:
+  scaffold_script: fixture.sh

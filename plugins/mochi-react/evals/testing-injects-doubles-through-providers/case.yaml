@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: testing-injects-doubles-through-providers
+context:
+  scaffold_script: fixture.sh

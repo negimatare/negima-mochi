@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: service-layer-reacts-to-an-event-in-another-module
+context:
+  scaffold_script: fixture.sh

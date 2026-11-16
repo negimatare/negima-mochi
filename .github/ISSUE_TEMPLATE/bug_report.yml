@@ -1,0 +1,47 @@
+name: Bug report
+description: A command, a reviewer, or a hook did the wrong thing.
+labels: [bug]
+body:
+  - type: dropdown
+    id: plugin
+    attributes:
+      label: Plugin
+      options:
+        - mochi
+        - mochi-react
+        - mochi-python
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: The plugin version from `claude plugin list`, your Claude Code version from `claude --version`, and the model.
+      placeholder: mochi 1.0.0, Claude Code 2.1.325, Claude Opus 5.5
+    validations:
+      required: true
+  - type: textarea
+    id: request
+    attributes:
+      label: What you ran
+      description: The command and request you sent, for example `/mochi:build add a CSV export to the orders page`.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: Paste the part of the transcript that went wrong. Remove anything private first.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: project
+    attributes:
+      label: Your project
+      description: Anything about the project that matters, such as its stack, a monorepo layout, or a `CLAUDE.md` rule that conflicts.

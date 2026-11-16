@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1110 1152" width="1110" height="1152" role="img" aria-labelledby="t d">
+<title id="t">Negima Mochi: which command uses what</title>
+<desc id="d">/mochi:build → plan (when no plan file is given). /mochi:build → tidy (each slice). /mochi:build → commit (each slice and the review fixes). /mochi:build → /mochi:review (after the slices). /mochi:fix-bug → tidy (when the fix left duplication). /mochi:fix-bug → commit (the fix). plan → bar-raiser (once, plus one re-check). /mochi:pr → commit (when tracked files have uncommitted changes). /mochi:refactor → plan (one plan per group of picks). /mochi:refactor → tidy (its six checks, on the whole area). /mochi:refactor → correctness reviewer. /mochi:refactor → test reviewer. /mochi:refactor → hygiene reviewer. /mochi:refactor → data reviewer (when the area holds database access). /mochi:refactor → markup a11y reviewer (when the area holds markup and no stack plugin reviews its accessibility). /mochi:refactor → api contract reviewer (when the area is a FastAPI service). /mochi:refactor → conventions reviewer (when the area is a FastAPI service). /mochi:refactor → a11y reviewer (when the area is React + Fluent). /mochi:refactor → conventions reviewer (when the area is React + Fluent). /mochi:review → correctness reviewer. /mochi:review → test reviewer. /mochi:review → hygiene reviewer. /mochi:review → data reviewer (when an area touches database access). /mochi:review → markup a11y reviewer (when an area changes markup and no stack plugin reviews its accessibility). /mochi:review → api contract reviewer (when an area is a FastAPI service). /mochi:review → conventions reviewer (when an area is a FastAPI service). /mochi:review → a11y reviewer (when an area is React + Fluent). /mochi:review → conventions reviewer (when an area is React + Fluent). /mochi:setup-project → dependencies (when adding a dead-code tool). /mochi:split → plan (its plan format, challenge, and view). Install guard → dependencies (points the install at it). api contract reviewer → api-design. api contract reviewer → openapi. conventions reviewer → architecture. conventions reviewer → domain-model. conventions reviewer → service-layer. conventions reviewer → testing. conventions reviewer → persistence (when the service depends on SQLAlchemy). performance → dependencies (when adding the virtualizer package). /mochi:setup-project → every mochi-python convention (reads every convention). Python convention loader → every mochi-python convention (injects each one, up front or when its paths match). /mochi:setup-project → every mochi-react convention (reads every convention). conventions reviewer → every mochi-react convention (reads all seven). React convention loader → every mochi-react convention (injects each one, up front or when its paths match).</desc>
+<style>
+svg {
+  --bg: #F6F8FA; --surface: #FFFFFF; --surface-2: #F6F8FA; --surface-3: #EEF2F6;
+  --border: #CAD5E0; --border-soft: #DEE5EC;
+  --text: #27313B; --text-2: #677D91; --text-3: #9EB1C1;
+  --accent: #006FD7; --accent-strong: #0057A8; --accent-soft: #EBF4FC;
+  --green: #246645; --green-mark: #339162; --green-soft: #ECF8F2;
+  --red: #A91F15; --red-mark: #D2261A; --red-soft: #FFEFEF;
+  --orange: #AC5600; --orange-mark: #DB6D00; --orange-soft: #FFEDDB;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", Meiryo, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  svg {
+    --bg: #11161B; --surface: #192028; --surface-2: #1F2831; --surface-3: #26313B;
+    --border: #36444F; --border-soft: #2B3640;
+    --text: #E6ECF1; --text-2: #A3B4C3; --text-3: #6F8496;
+    --accent: #6BB6FF; --accent-strong: #A7D4FF; --accent-soft: #14283C;
+    --green: #8EDDB4; --green-mark: #76CFA2; --green-soft: #13291E;
+    --red: #FFA59E; --red-mark: #EF827A; --red-soft: #351B19;
+    --orange: #FFB870; --orange-mark: #FFA449; --orange-soft: #33230F;
+    color-scheme: dark;
+  }
+}
+
+svg { --c-setup-project: #2a78d6; --c-build: #eb6834; --c-fix-bug: #1baf7a; --c-refactor: #eda100; --c-review: #e87ba4; --c-pr: #008300; --c-split: #6250d6; font-family: var(--font); }
+@media (prefers-color-scheme: dark) { svg { --c-setup-project: #3987e5; --c-build: #d95926; --c-fix-bug: #199e70; --c-refactor: #c98500; --c-review: #d55181; --c-pr: #008300; --c-split: #9085e9; } }
+.grp { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.2; }
+.grp-blue { fill: var(--accent-soft); stroke: var(--accent); }
+.grp-green { fill: var(--green-soft); stroke: var(--green-mark); }
+.grp-orange { fill: var(--orange-soft); stroke: var(--orange-mark); }
+.grp-red { fill: var(--red-soft); stroke: var(--red-mark); }
+.node { fill: var(--surface); stroke: var(--border); stroke-width: 1.2; }
+.node-ext { stroke: var(--text-3); stroke-dasharray: 5 4; stroke-width: 1.5; }
+.t1 { fill: var(--text); font: 700 14px var(--font); }
+.t2 { fill: var(--text-2); font: 500 12px var(--font); }
+.tg { font: 800 11px var(--font); letter-spacing: .06em; fill: var(--text-2); }
+.tg-blue { fill: var(--accent-strong); }
+.tg-green { fill: var(--green); }
+.tg-orange { fill: var(--orange); }
+.tg-red { fill: var(--red); }
+.mono { font-family: var(--mono); font-size: 11px; }
+.ln { stroke: var(--text-2); stroke-width: 1.6; fill: none; }
+.ln-dash { stroke-dasharray: 5 4; }
+.al { fill: var(--text-2); font: 600 11px var(--font); }
+.al-halo { paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round; }
+.arrowhead { fill: var(--text-2); }
+
+.edge { fill: none; stroke-width: 1.8; transition: opacity .15s; }
+.edge.cond { stroke-dasharray: 5 4; }
+.e-shared { stroke: var(--text-3); } .ah-shared { fill: var(--text-3); }
+.e-setup-project { stroke: var(--c-setup-project); } .ah-setup-project { fill: var(--c-setup-project); }
+.e-build { stroke: var(--c-build); } .ah-build { fill: var(--c-build); }
+.e-fix-bug { stroke: var(--c-fix-bug); } .ah-fix-bug { fill: var(--c-fix-bug); }
+.e-refactor { stroke: var(--c-refactor); } .ah-refactor { fill: var(--c-refactor); }
+.e-review { stroke: var(--c-review); } .ah-review { fill: var(--c-review); }
+.e-pr { stroke: var(--c-pr); } .ah-pr { fill: var(--c-pr); }
+.e-split { stroke: var(--c-split); } .ah-split { fill: var(--c-split); }
+.dot { stroke: var(--surface); stroke-width: 2; }
+.bg { fill: var(--surface); }
+</style>
+<rect class="bg" width="100%" height="100%" rx="12"/>
+<defs><marker id="ah-setup-project" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-setup-project" d="M0 0L10 5L0 10z"/></marker><marker id="ah-build" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-build" d="M0 0L10 5L0 10z"/></marker><marker id="ah-fix-bug" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-fix-bug" d="M0 0L10 5L0 10z"/></marker><marker id="ah-refactor" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-refactor" d="M0 0L10 5L0 10z"/></marker><marker id="ah-review" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-review" d="M0 0L10 5L0 10z"/></marker><marker id="ah-pr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-pr" d="M0 0L10 5L0 10z"/></marker><marker id="ah-split" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-split" d="M0 0L10 5L0 10z"/></marker><marker id="ah-shared" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-shared" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="grp grp-blue" x="56" y="56" width="238" height="526" rx="14"/><text class="tg tg-blue" x="72" y="80">COMMANDS YOU TYPE</text>
+<rect class="grp grp-green" x="416" y="56" width="258" height="260" rx="14"/><text class="tg tg-green" x="432" y="80">SHARED SKILLS, NEVER TYPED</text>
+<rect class="grp grp-orange" x="416" y="326" width="258" height="584" rx="14"/><text class="tg tg-orange" x="432" y="350">AGENTS</text>
+<rect class="grp grp-grey" x="416" y="920" width="258" height="206" rx="14"/><text class="tg tg-grey" x="432" y="944">HOOKS, DURING ANY COMMAND</text>
+<rect class="grp grp-red" x="826" y="56" width="238" height="366" rx="14"/><text class="tg tg-red" x="842" y="80">MOCHI-PYTHON CONVENTIONS</text>
+<rect class="grp grp-red" x="826" y="432" width="238" height="366" rx="14"/><text class="tg tg-red" x="842" y="456">MOCHI-REACT CONVENTIONS</text>
+<path class="edge e-build cond" data-cmd="build" d="M280 192 C370 192, 340 118, 426 118" marker-end="url(#ah-build)"><title>/mochi:build → plan (when no plan file is given)</title></path>
+<path class="edge e-build" data-cmd="build" d="M280 192 C370 192, 340 172, 426 172" marker-end="url(#ah-build)"><title>/mochi:build → tidy (each slice)</title></path>
+<path class="edge e-build" data-cmd="build" d="M280 192 C370 192, 340 226, 426 226" marker-end="url(#ah-build)"><title>/mochi:build → commit (each slice and the review fixes)</title></path>
+<path class="edge e-build" data-cmd="build" d="M70 192 C15 192, 15 402, 66 402" marker-end="url(#ah-build)"><title>/mochi:build → /mochi:review (after the slices)</title></path>
+<path class="edge e-fix-bug cond" data-cmd="fix-bug" d="M280 262 C370 262, 340 172, 426 172" marker-end="url(#ah-fix-bug)"><title>/mochi:fix-bug → tidy (when the fix left duplication)</title></path>
+<path class="edge e-fix-bug" data-cmd="fix-bug" d="M280 262 C370 262, 340 226, 426 226" marker-end="url(#ah-fix-bug)"><title>/mochi:fix-bug → commit (the fix)</title></path>
+<path class="edge e-shared" data-cmd="shared" d="M660 118 C743.75 118, 743.75 388, 664 388" marker-end="url(#ah-shared)"><title>plan → bar-raiser (once, plus one re-check)</title></path>
+<path class="edge e-pr cond" data-cmd="pr" d="M280 472 C370 472, 340 226, 426 226" marker-end="url(#ah-pr)"><title>/mochi:pr → commit (when tracked files have uncommitted changes)</title></path>
+<path class="edge e-refactor" data-cmd="refactor" d="M280 332 C370 332, 340 118, 426 118" marker-end="url(#ah-refactor)"><title>/mochi:refactor → plan (one plan per group of picks)</title></path>
+<path class="edge e-refactor" data-cmd="refactor" d="M280 332 C370 332, 340 172, 426 172" marker-end="url(#ah-refactor)"><title>/mochi:refactor → tidy (its six checks, on the whole area)</title></path>
+<path class="edge e-refactor" data-cmd="refactor" d="M280 332 C370 332, 340 442, 426 442" marker-end="url(#ah-refactor)"><title>/mochi:refactor → correctness reviewer</title></path>
+<path class="edge e-refactor" data-cmd="refactor" d="M280 332 C370 332, 340 496, 426 496" marker-end="url(#ah-refactor)"><title>/mochi:refactor → test reviewer</title></path>
+<path class="edge e-refactor" data-cmd="refactor" d="M280 332 C370 332, 340 550, 426 550" marker-end="url(#ah-refactor)"><title>/mochi:refactor → hygiene reviewer</title></path>
+<path class="edge e-refactor cond" data-cmd="refactor" d="M280 332 C370 332, 340 604, 426 604" marker-end="url(#ah-refactor)"><title>/mochi:refactor → data reviewer (when the area holds database access)</title></path>
+<path class="edge e-refactor cond" data-cmd="refactor" d="M280 332 C370 332, 340 658, 426 658" marker-end="url(#ah-refactor)"><title>/mochi:refactor → markup a11y reviewer (when the area holds markup and no stack plugin reviews its accessibility)</title></path>
+<path class="edge e-refactor cond" data-cmd="refactor" d="M280 332 C370 332, 340 874, 426 874" marker-end="url(#ah-refactor)"><title>/mochi:refactor → api contract reviewer (when the area is a FastAPI service)</title></path>
+<path class="edge e-refactor cond" data-cmd="refactor" d="M280 332 C370 332, 340 820, 426 820" marker-end="url(#ah-refactor)"><title>/mochi:refactor → conventions reviewer (when the area is a FastAPI service)</title></path>
+<path class="edge e-refactor cond" data-cmd="refactor" d="M280 332 C370 332, 340 766, 426 766" marker-end="url(#ah-refactor)"><title>/mochi:refactor → a11y reviewer (when the area is React + Fluent)</title></path>
+<path class="edge e-refactor cond" data-cmd="refactor" d="M280 332 C370 332, 340 712, 426 712" marker-end="url(#ah-refactor)"><title>/mochi:refactor → conventions reviewer (when the area is React + Fluent)</title></path>
+<path class="edge e-review" data-cmd="review" d="M280 402 C370 402, 340 442, 426 442" marker-end="url(#ah-review)"><title>/mochi:review → correctness reviewer</title></path>
+<path class="edge e-review" data-cmd="review" d="M280 402 C370 402, 340 496, 426 496" marker-end="url(#ah-review)"><title>/mochi:review → test reviewer</title></path>
+<path class="edge e-review" data-cmd="review" d="M280 402 C370 402, 340 550, 426 550" marker-end="url(#ah-review)"><title>/mochi:review → hygiene reviewer</title></path>
+<path class="edge e-review cond" data-cmd="review" d="M280 402 C370 402, 340 604, 426 604" marker-end="url(#ah-review)"><title>/mochi:review → data reviewer (when an area touches database access)</title></path>
+<path class="edge e-review cond" data-cmd="review" d="M280 402 C370 402, 340 658, 426 658" marker-end="url(#ah-review)"><title>/mochi:review → markup a11y reviewer (when an area changes markup and no stack plugin reviews its accessibility)</title></path>
+<path class="edge e-review cond" data-cmd="review" d="M280 402 C370 402, 340 874, 426 874" marker-end="url(#ah-review)"><title>/mochi:review → api contract reviewer (when an area is a FastAPI service)</title></path>
+<path class="edge e-review cond" data-cmd="review" d="M280 402 C370 402, 340 820, 426 820" marker-end="url(#ah-review)"><title>/mochi:review → conventions reviewer (when an area is a FastAPI service)</title></path>
+<path class="edge e-review cond" data-cmd="review" d="M280 402 C370 402, 340 766, 426 766" marker-end="url(#ah-review)"><title>/mochi:review → a11y reviewer (when an area is React + Fluent)</title></path>
+<path class="edge e-review cond" data-cmd="review" d="M280 402 C370 402, 340 712, 426 712" marker-end="url(#ah-review)"><title>/mochi:review → conventions reviewer (when an area is React + Fluent)</title></path>
+<path class="edge e-setup-project cond" data-cmd="setup-project" d="M280 122 C370 122, 340 280, 426 280" marker-end="url(#ah-setup-project)"><title>/mochi:setup-project → dependencies (when adding a dead-code tool)</title></path>
+<path class="edge e-split" data-cmd="split" d="M280 542 C370 542, 340 118, 426 118" marker-end="url(#ah-split)"><title>/mochi:split → plan (its plan format, challenge, and view)</title></path>
+<path class="edge e-shared" data-cmd="shared" d="M660 982 C797.75 982, 797.75 280, 664 280" marker-end="url(#ah-shared)"><title>Install guard → dependencies (points the install at it)</title></path>
+<path class="edge e-shared" data-cmd="shared" d="M660 874 C750 874, 750 114, 836 114" marker-end="url(#ah-shared)"><title>api contract reviewer → api-design</title></path>
+<path class="edge e-shared" data-cmd="shared" d="M660 874 C750 874, 750 252, 836 252" marker-end="url(#ah-shared)"><title>api contract reviewer → openapi</title></path>
+<path class="edge e-shared" data-cmd="shared" d="M660 820 C750 820, 750 160, 836 160" marker-end="url(#ah-shared)"><title>conventions reviewer → architecture</title></path>
+<path class="edge e-shared" data-cmd="shared" d="M660 820 C750 820, 750 206, 836 206" marker-end="url(#ah-shared)"><title>conventions reviewer → domain-model</title></path>
+<path class="edge e-shared" data-cmd="shared" d="M660 820 C750 820, 750 344, 836 344" marker-end="url(#ah-shared)"><title>conventions reviewer → service-layer</title></path>
+<path class="edge e-shared" data-cmd="shared" d="M660 820 C750 820, 750 390, 836 390" marker-end="url(#ah-shared)"><title>conventions reviewer → testing</title></path>
+<path class="edge e-shared cond" data-cmd="shared" d="M660 820 C750 820, 750 298, 836 298" marker-end="url(#ah-shared)"><title>conventions reviewer → persistence (when the service depends on SQLAlchemy)</title></path>
+<path class="edge e-shared cond" data-cmd="shared" d="M840 674 C750 674, 750 280, 664 280" marker-end="url(#ah-shared)"><title>performance → dependencies (when adding the virtualizer package)</title></path>
+<path class="edge e-setup-project" data-cmd="setup-project" d="M280 122 C340 122, 320 52, 390 52 L700 52 C780 52, 766 86, 822 86" marker-end="url(#ah-setup-project)"><title>/mochi:setup-project → every mochi-python convention (reads every convention)</title></path>
+<path class="edge e-shared" data-cmd="shared" d="M660 1090 C740 1090, 746 239, 822 239" marker-end="url(#ah-shared)"><title>Python convention loader → every mochi-python convention (injects each one, up front or when its paths match)</title></path>
+<path class="edge e-setup-project" data-cmd="setup-project" d="M280 122 C340 122, 320 40, 390 40 L700 40 C780 40, 766 462, 822 462" marker-end="url(#ah-setup-project)"><title>/mochi:setup-project → every mochi-react convention (reads every convention)</title></path>
+<path class="edge e-shared" data-cmd="shared" d="M660 712 C740 712, 746 615, 822 615" marker-end="url(#ah-shared)"><title>conventions reviewer → every mochi-react convention (reads all seven)</title></path>
+<path class="edge e-shared" data-cmd="shared" d="M660 1036 C740 1036, 746 615, 822 615" marker-end="url(#ah-shared)"><title>React convention loader → every mochi-react convention (injects each one, up front or when its paths match)</title></path>
+<g class="n n-command" data-cmd="setup-project" tabindex="0" role="button" aria-label="Highlight what /mochi:setup-project uses"><rect class="node" x="70" y="96" width="210" height="52" rx="9"/><circle class="dot" cx="86" cy="122" r="6" style="fill:var(--c-setup-project)"/><text class="t1" x="100" y="119">/mochi:setup-project</text><text class="t2" x="100" y="135">Prepare a project</text></g>
+<g class="n n-command" data-cmd="build" tabindex="0" role="button" aria-label="Highlight what /mochi:build uses"><rect class="node" x="70" y="166" width="210" height="52" rx="9"/><circle class="dot" cx="86" cy="192" r="6" style="fill:var(--c-build)"/><text class="t1" x="100" y="189">/mochi:build</text><text class="t2" x="100" y="205">Plan, build, review</text></g>
+<g class="n n-command" data-cmd="fix-bug" tabindex="0" role="button" aria-label="Highlight what /mochi:fix-bug uses"><rect class="node" x="70" y="236" width="210" height="52" rx="9"/><circle class="dot" cx="86" cy="262" r="6" style="fill:var(--c-fix-bug)"/><text class="t1" x="100" y="259">/mochi:fix-bug</text><text class="t2" x="100" y="275">Reproduce, then fix</text></g>
+<g class="n n-command" data-cmd="refactor" tabindex="0" role="button" aria-label="Highlight what /mochi:refactor uses"><rect class="node" x="70" y="306" width="210" height="52" rx="9"/><circle class="dot" cx="86" cy="332" r="6" style="fill:var(--c-refactor)"/><text class="t1" x="100" y="329">/mochi:refactor</text><text class="t2" x="100" y="345">Audit an area</text></g>
+<g class="n n-command" data-cmd="review" tabindex="0" role="button" aria-label="Highlight what /mochi:review uses"><rect class="node" x="70" y="376" width="210" height="52" rx="9"/><circle class="dot" cx="86" cy="402" r="6" style="fill:var(--c-review)"/><text class="t1" x="100" y="399">/mochi:review</text><text class="t2" x="100" y="415">Review a change</text></g>
+<g class="n n-command" data-cmd="pr" tabindex="0" role="button" aria-label="Highlight what /mochi:pr uses"><rect class="node" x="70" y="446" width="210" height="52" rx="9"/><circle class="dot" cx="86" cy="472" r="6" style="fill:var(--c-pr)"/><text class="t1" x="100" y="469">/mochi:pr</text><text class="t2" x="100" y="485">Open the pull request</text></g>
+<g class="n n-command" data-cmd="split" tabindex="0" role="button" aria-label="Highlight what /mochi:split uses"><rect class="node" x="70" y="516" width="210" height="52" rx="9"/><circle class="dot" cx="86" cy="542" r="6" style="fill:var(--c-split)"/><text class="t1" x="100" y="539">/mochi:split</text><text class="t2" x="100" y="555">Cut a big plan into parts</text></g>
+<g class="n n-shared"><rect class="node" x="430" y="96" width="230" height="44" rx="9"/><text class="t1" x="444" y="115">plan</text><text class="t2" x="444" y="131">Questions, plan file, view</text></g>
+<g class="n n-shared"><rect class="node" x="430" y="150" width="230" height="44" rx="9"/><text class="t1" x="444" y="169">tidy</text><text class="t2" x="444" y="185">Clean up the change</text></g>
+<g class="n n-shared"><rect class="node" x="430" y="204" width="230" height="44" rx="9"/><text class="t1" x="444" y="223">commit</text><text class="t2" x="444" y="239">Pull, verify, commit, push</text></g>
+<g class="n n-shared"><rect class="node" x="430" y="258" width="230" height="44" rx="9"/><text class="t1" x="444" y="277">dependencies</text><text class="t2" x="444" y="293">Vet a package first</text></g>
+<g class="n n-agent"><rect class="node" x="430" y="366" width="230" height="44" rx="9"/><text class="t1" x="444" y="385">bar-raiser</text><text class="t2" x="444" y="401">Challenges the plan</text></g>
+<g class="n n-agent"><rect class="node" x="430" y="420" width="230" height="44" rx="9"/><text class="t1" x="444" y="439">correctness reviewer</text><text class="t2" x="444" y="455">Logic and errors</text></g>
+<g class="n n-agent"><rect class="node" x="430" y="474" width="230" height="44" rx="9"/><text class="t1" x="444" y="493">test reviewer</text><text class="t2" x="444" y="509">Tests that can fail</text></g>
+<g class="n n-agent"><rect class="node" x="430" y="528" width="230" height="44" rx="9"/><text class="t1" x="444" y="547">hygiene reviewer</text><text class="t2" x="444" y="563">Dead code, comments</text></g>
+<g class="n n-agent"><rect class="node" x="430" y="582" width="230" height="44" rx="9"/><text class="t1" x="444" y="601">data reviewer</text><text class="t2" x="444" y="617">Indexes, timeouts, fan-out</text></g>
+<g class="n n-agent"><rect class="node" x="430" y="636" width="230" height="44" rx="9"/><text class="t1" x="444" y="655">markup a11y reviewer</text><text class="t2" x="444" y="671">WCAG 2.2 AA, any markup</text></g>
+<g class="n n-agent"><rect class="node" x="430" y="690" width="230" height="44" rx="9"/><text class="t1" x="444" y="709">conventions reviewer</text><text class="t2" x="444" y="725">React + Fluent rules · mochi-react</text></g>
+<g class="n n-agent"><rect class="node" x="430" y="744" width="230" height="44" rx="9"/><text class="t1" x="444" y="763">a11y reviewer</text><text class="t2" x="444" y="779">WCAG 2.2 AA · mochi-react</text></g>
+<g class="n n-agent"><rect class="node" x="430" y="798" width="230" height="44" rx="9"/><text class="t1" x="444" y="817">conventions reviewer</text><text class="t2" x="444" y="833">Slices, domain, layers · mochi-python</text></g>
+<g class="n n-agent"><rect class="node" x="430" y="852" width="230" height="44" rx="9"/><text class="t1" x="444" y="871">api contract reviewer</text><text class="t2" x="444" y="887">REST + OpenAPI · mochi-python</text></g>
+<g class="n n-hook"><rect class="node" x="430" y="960" width="230" height="44" rx="9"/><text class="t1" x="444" y="979">Install guard</text><text class="t2" x="444" y="995">Asks before any install</text></g>
+<g class="n n-hook"><rect class="node" x="430" y="1014" width="230" height="44" rx="9"/><text class="t1" x="444" y="1033">React convention loader</text><text class="t2" x="444" y="1049">At session start, or on reading .tsx…</text></g>
+<g class="n n-hook"><rect class="node" x="430" y="1068" width="230" height="44" rx="9"/><text class="t1" x="444" y="1087">Python convention loader</text><text class="t2" x="444" y="1103">At session start, or on reading .py…</text></g>
+<g class="n n-stack"><rect class="node" x="840" y="96" width="210" height="36" rx="9"/><text class="t1" x="854" y="119">api-design</text></g>
+<g class="n n-stack"><rect class="node" x="840" y="142" width="210" height="36" rx="9"/><text class="t1" x="854" y="165">architecture</text></g>
+<g class="n n-stack"><rect class="node" x="840" y="188" width="210" height="36" rx="9"/><text class="t1" x="854" y="211">domain-model</text></g>
+<g class="n n-stack"><rect class="node" x="840" y="234" width="210" height="36" rx="9"/><text class="t1" x="854" y="257">openapi</text></g>
+<g class="n n-stack"><rect class="node" x="840" y="280" width="210" height="36" rx="9"/><text class="t1" x="854" y="303">persistence</text></g>
+<g class="n n-stack"><rect class="node" x="840" y="326" width="210" height="36" rx="9"/><text class="t1" x="854" y="349">service-layer</text></g>
+<g class="n n-stack"><rect class="node" x="840" y="372" width="210" height="36" rx="9"/><text class="t1" x="854" y="395">testing</text></g>
+<g class="n n-stack"><rect class="node" x="840" y="472" width="210" height="36" rx="9"/><text class="t1" x="854" y="495">architecture</text></g>
+<g class="n n-stack"><rect class="node" x="840" y="518" width="210" height="36" rx="9"/><text class="t1" x="854" y="541">components-and-styling</text></g>
+<g class="n n-stack"><rect class="node" x="840" y="564" width="210" height="36" rx="9"/><text class="t1" x="854" y="587">forms</text></g>
+<g class="n n-stack"><rect class="node" x="840" y="610" width="210" height="36" rx="9"/><text class="t1" x="854" y="633">i18n</text></g>
+<g class="n n-stack"><rect class="node" x="840" y="656" width="210" height="36" rx="9"/><text class="t1" x="854" y="679">performance</text></g>
+<g class="n n-stack"><rect class="node" x="840" y="702" width="210" height="36" rx="9"/><text class="t1" x="854" y="725">state-and-di</text></g>
+<g class="n n-stack"><rect class="node" x="840" y="748" width="210" height="36" rx="9"/><text class="t1" x="854" y="771">testing</text></g>
+</svg>

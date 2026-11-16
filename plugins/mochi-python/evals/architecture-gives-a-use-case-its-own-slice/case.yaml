@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: architecture-gives-a-use-case-its-own-slice
+context:
+  scaffold_script: fixture.sh
