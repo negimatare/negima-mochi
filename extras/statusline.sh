@@ -1,14 +1,6 @@
 #!/bin/bash
-# Status line: two rows rendered from the status-line JSON on stdin.
-#   Row 1: dir | ⎇ branch
-#   Row 2: [Model] ▓▓▓▓░░░░░░ 42% | $0.02 | ◷ 0m 2s
-# The bar and percentage show context USED, colored by that value: cyan
-# below 60%, amber 60-69%, orange 70-79%, dark red 80%+. Independently,
-# context REMAINING picks the /compact hint: none at 70%+, a suggestion at
-# 30-69%, an urgent prompt below 30%.
-# Install: ln -s "$PWD/statusline/statusline.sh" ~/.claude/statusline.sh,
-# then set statusLine.command to ~/.claude/statusline.sh in
-# ~/.claude/settings.json.
+# A two-row Claude Code status line. extras/README.md shows what it displays
+# and how to install it.
 
 input=$(cat)
 
@@ -100,8 +92,6 @@ else
     hint=" | ${color}Run /compact <goal + next step> now!${RESET}"
 fi
 
-# Filled cells use the dense shade and empty cells the light shade, both
-# in the bar color.
 filled=$(( used_int / 10 ))
 printf -v fill "%${filled}s" ""
 printf -v pad "%$(( 10 - filled ))s" ""

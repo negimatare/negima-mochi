@@ -124,6 +124,8 @@ disagree, Claude says so and asks.
   and commit rules, and a repository with a frontend and a backend.
 - [CONTRIBUTING.md](CONTRIBUTING.md): working on the kit, its layout, and its
   eval suite.
+- [extras/](extras/README.md): an optional status line that shows how full
+  the context is and when to run `/compact`.
 - [CHANGELOG.md](CHANGELOG.md): what each release changed.
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) and [SECURITY.md](SECURITY.md): how to
   take part, and how to report a vulnerability privately.
