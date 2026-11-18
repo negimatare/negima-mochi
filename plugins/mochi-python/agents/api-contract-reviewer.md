@@ -1,6 +1,6 @@
 ---
 name: 295-harken-watch
-description: "API contract reviewer: stack reviewer for FastAPI service areas (.py, openapi.json). Reviews a change from the API client's side — breaking changes, resource naming and versioning, status codes, the problem+json error shape, pagination, idempotency, auth, rate limits, health checks, request ids, and whether the OpenAPI spec documents what the code does and is committed current with its generated clients. Read-only. Spawned by the mochi review and refactor skills."
+description: "API contract reviewer: stack reviewer for FastAPI service areas (.py, openapi.json). Reviews a change from the API client's side — breaking changes, resource naming and versioning, status codes, the problem+json error shape, pagination, idempotency, auth, rate limits, health checks, request ids, and whether the OpenAPI spec documents what the code does and is committed current with its generated clients. Runs only when the area touches the HTTP surface: an endpoint or router, request or response schemas, error handlers or the error categories, auth, middleware, `create_app()`, code a route calls that raises a new or different exception, or the committed spec and its generated clients. Read-only. Spawned by the mochi review and refactor skills."
 tools: Read, Grep, Glob, Bash
 color: pink
 model: sonnet

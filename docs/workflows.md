@@ -203,7 +203,9 @@ Reviews a pull request, a branch, or uncommitted work. With no arguments, it
 reviews the current branch and its uncommitted changes. The change is split
 by stack, for example "Python, api/" and "React, web/", and the areas are
 reviewed one at a time, highest risk first. Each area gets the generic
-reviewers plus the matching stack plugin's. An area that touches a database
+reviewers plus the matching stack plugin's. A stack reviewer can name what
+it needs to run; the API contract reviewer runs only when the area touches
+the HTTP surface. An area that touches a database
 also gets the data reviewer. An area with markup gets an accessibility
 reviewer: the stack plugin's when it has one, otherwise the generic one.
 **You pick the findings to fix after each area.**
@@ -296,5 +298,6 @@ each package. In `apps/web`, the `mochi-react` hooks lint each edit and run
 `typecheck` and `test`, and the React reviewers join each review. In
 `services/api`, the `mochi-python` hooks run Ruff on each edit and the type
 checker, import-linter, and pytest from its virtualenv, and the Python
-conventions and API contract reviewers join each review. Each plugin's hooks
+conventions reviewer joins each review, with the API contract reviewer when
+the change touches the API. Each plugin's hooks
 leave the other package alone.

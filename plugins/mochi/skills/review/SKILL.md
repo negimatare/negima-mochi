@@ -94,8 +94,10 @@ yourself instead.
   database access: SQL, ORM queries or models, migrations, or schema files.
   Tell the correctness reviewer that queries and their cost are covered.
 - Every reviewer agent from an installed stack plugin whose description matches
-  the area's stack (for example a React conventions reviewer for `.tsx` files).
-  Skip stack reviewers that do not match; say which ran.
+  the area's stack (for example a React conventions reviewer for `.tsx` files)
+  and whose `Runs only when` condition, if its description gives one, holds
+  for the area's diff. When unsure whether it holds, launch it. Skip the
+  others; say which ran and which were skipped.
 - `mochi:859-static-carillon` (accessibility reviewer) when the area changes
   markup (templates, components, HTML) and none of the stack reviewers
   launched for it reviews accessibility. A stack plugin's accessibility

@@ -1,0 +1,5 @@
+{
+  "name": "route-stack",
+  "version": "0.0.1",
+  "description": "Eval stub of a stack plugin for TypeScript services: a conventions reviewer, and a contract reviewer with a condition for running. Loaded by mochi's review eval cases."
+}

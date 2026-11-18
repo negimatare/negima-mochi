@@ -18,6 +18,11 @@ Reviews and plans cost less.
 - Only blocking findings are checked against the code before the report.
   Medium and Minor findings are checked when you pick them to fix or before
   they go into a pull request comment.
+- A stack plugin's reviewer can name a condition for running, and reviews and
+  audits skip it when the condition does not hold.
+
+### mochi-python
+
 - The API contract reviewer runs only when a change touches the HTTP
   surface: endpoints, schemas, error handling, auth, middleware, code a route
   calls that raises a new exception, or the committed spec.

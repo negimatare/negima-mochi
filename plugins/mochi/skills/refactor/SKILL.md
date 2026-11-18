@@ -54,7 +54,9 @@ the name shown: a general-purpose agent does not have their instructions.
   access: SQL, ORM queries or models, migrations, or schema files. Tell the
   correctness reviewer that queries and their cost are covered.
 - Every reviewer agent from an installed stack plugin whose description
-  matches the area's stack. Say which ran.
+  matches the area's stack and whose `Runs only when` condition, if its
+  description gives one, holds for the area's files. When unsure, launch it.
+  Say which ran and which were skipped.
 - `mochi:859-static-carillon` (accessibility reviewer) when the area holds
   markup (templates, components, HTML) and none of the stack reviewers
   launched for it reviews accessibility.
