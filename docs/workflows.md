@@ -85,9 +85,10 @@ Claude reads its files.
    writes the failing tests and checks they fail because the behaviour is
    missing. Then it writes the code, runs the verification commands, tidies
    what the slice touched, commits, and pushes.
-3. **Review.** After more than one slice, Claude asks whether to review in
-   the same session or in a fresh one, and gives the command for the fresh
-   one. The branch is reviewed area by area, and **you pick the findings to
+3. **Review.** After more than one slice, Claude hands over what was built
+   and asks whether to review in the same session or in a fresh one, with
+   the commands for the fresh one: the review, which commits and pushes its
+   fixes, then `/mochi:pr`. The branch is reviewed area by area, and **you pick the findings to
    fix**. Since each slice was already tidied, the hygiene reviewer skips
    dead code and naming and checks the comments and docs. Fixes are
    committed and pushed.

@@ -44,16 +44,18 @@ approval, as above.
 
 Otherwise, run the `plan` skill when the request asks for a plan or names
 one, the change touches more than one place, the design is not obvious, or
-the request leaves the need unclear. Its
-hand-over is the **first stop**: wait for the user to approve the plan. The
-plan file holds everything the build needs, so end the hand-over by offering
-a fresh start: approve here, or run `/clear` and then
-`/mochi:build .plans/<date>-<slug>.md`, which builds it without the planning
-in context. The same command resumes it in a later session.
+the request leaves the need unclear. Skip planning only for a change
+confined to one place with an obvious design. Then state, before writing
+code, the one or two behaviours that prove it works, and go on: they form a
+single slice.
 
-Skip planning only for a change confined to one place with an obvious design.
-Then state, before writing code, the one or two behaviours that prove it works,
-and go on: they form a single slice.
+The plan's hand-over is the **first stop**: wait for the user to approve the
+plan. End the hand-over by offering a fresh start: approve here, or run
+`/clear` and then the command you give in full, which builds it without the
+planning in context — `/mochi:build .plans/<date>-<slug>.md`, followed by
+anything the request decided for the build, such as a step to skip. When the
+hand-over suggests `/mochi:split`, offer `/mochi:split .plans/<date>-<slug>.md`
+instead. The same command resumes it in a later session.
 
 ## 2. Implement slice by slice
 
@@ -91,11 +93,15 @@ something else.
 
 **First, offer a fresh session.** With more than one slice built, the
 slices fill the context the review would carry. Unless the request already
-says to review here, stop after the last slice and ask in one question:
-review here, or run `/clear` and then the command you give in full —
-`/mochi:review <branch>`, with `against <base>` for a stacked part, and
-`the tidy skill ran on every slice` when it did. Say that `/mochi:pr`
-follows the review. Wait for the answer before reviewing.
+says to review here, stop after the last slice. Give step 4's hand-over
+first, all but what the review will change, and mark the audit candidates
+there, since a fresh session will not come back to it. Then ask in one
+question: review here, or run `/clear` and then the command you give in
+full — `/mochi:review <branch>`, with `against <base>` for a stacked part,
+`the tidy skill ran on every slice` when it did, and `commit and push each
+area's fixes`. Give the command after it too: `/mochi:pr`, or
+`/mochi:pr <base>` for a stacked part. Wait for the answer before
+reviewing.
 
 To review here, run `/mochi:review` on the feature branch. When the `tidy` skill
 ran on every slice, tell it so; not when the user skipped it. For a stacked
@@ -107,7 +113,9 @@ so.
 
 ## 4. Hand over
 
-Report, briefly:
+When step 3 already gave this hand-over before the review, report only what
+the review changed, the findings left open, and the next step. Otherwise
+report, briefly:
 
 - what was built, against the plan's Acceptance;
 - the feature branch and its commits, all pushed;
