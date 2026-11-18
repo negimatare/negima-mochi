@@ -87,9 +87,9 @@ something else.
 
 ## 3. Review and fix
 
-Run `/mochi:review` on the feature branch without asking first. For a
-stacked part, review it against its base, so that the review sees only this
-part. Its report for each area is the **second stop**: the user picks which
+Run `/mochi:review` on the feature branch without asking first. When the
+`tidy` skill ran on every slice, tell it so; not when the user skipped it. For a stacked part, review it
+against its base, so that the review sees only this part. Its report for each area is the **second stop**: the user picks which
 findings to fix. Fix those, rerun the verification commands, run the `commit`
 skill with "review fixes; push", and move to the next area when the user says
 so.

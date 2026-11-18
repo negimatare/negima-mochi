@@ -51,6 +51,14 @@ they stand, and skip the checks that only apply to a diff.
 - **Scaffolding**: `tmp`, `new`, `V2`, plan-step numbers, or ticket ids in
   names or comments; commented-out code; leftover debug logging.
 
+## After tidy
+
+When you are told the `tidy` skill already ran on every commit of the change,
+it has removed dead code and fixed naming. Skip the dead-code grep sweep and
+the naming checks; still run the `Dead-code check` when the `CLAUDE.md` has
+one, and check comments, claims in prose, rename leftovers, and scaffolding.
+End with `Scoped after tidy: no dead-code sweep.`
+
 ## Others own
 
 Logic and security (correctness-reviewer), tests (test-reviewer), stack

@@ -86,7 +86,10 @@ yourself instead.
 
 - Always: `mochi:117649-despondent-pyre` (correctness reviewer),
   `mochi:049-abject-testament` (test reviewer), and
-  `mochi:2401-penitent-tangent` (hygiene reviewer).
+  `mochi:2401-penitent-tangent` (hygiene reviewer). When the caller says the
+  `tidy` skill already ran on every commit of the change, as `/mochi:build`
+  does, tell the hygiene reviewer so: tidy has removed dead code and fixed
+  naming, so it checks only what tidy does not.
 - `mochi:031-exuberant-witness` (data reviewer) when the area's diff touches
   database access: SQL, ORM queries or models, migrations, or schema files.
   Tell the correctness reviewer that queries and their cost are covered.

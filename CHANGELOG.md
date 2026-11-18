@@ -12,6 +12,9 @@ Reviews and plans cost less.
 
 ### mochi
 
+- In `/mochi:build`, the hygiene reviewer skips the dead-code sweep and the
+  naming checks, which the tidy step already covered on every slice. It
+  still checks comments, docs, rename leftovers, and scaffolding.
 - Only blocking findings are checked against the code before the report.
   Medium and Minor findings are checked when you pick them to fix or before
   they go into a pull request comment.

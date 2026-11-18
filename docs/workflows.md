@@ -86,7 +86,8 @@ Claude reads its files.
    missing. Then it writes the code, runs the verification commands, tidies
    what the slice touched, commits, and pushes.
 3. **Review.** The branch is reviewed area by area, and **you pick the
-   findings to fix**. Fixes are committed and pushed.
+   findings to fix**. Since each slice was already tidied, the hygiene
+   reviewer skips dead code and naming and checks the comments and docs. Fixes are committed and pushed.
 4. **Hand over.** Claude reports what was built, the commits, the tests, and
    the manual checks left. Next: `/mochi:pr`.
 

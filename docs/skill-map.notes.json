@@ -54,7 +54,7 @@
     "refactor -> mochi-python:api-contract-reviewer": { "when": "the area is a FastAPI service" },
     "review -> correctness-reviewer": {},
     "review -> test-reviewer": {},
-    "review -> hygiene-reviewer": {},
+    "review -> hygiene-reviewer": { "note": "scoped to comments and docs when the tidy skill already ran, as in build" },
     "review -> data-reviewer": { "when": "an area touches database access" },
     "review -> markup-a11y-reviewer": { "when": "an area changes markup and no stack plugin reviews its accessibility" },
     "review -> mochi-react:conventions-reviewer": { "when": "an area is React + Fluent" },
