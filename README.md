@@ -167,7 +167,7 @@ docs/                   workflows.md, the skill map (svg, html, notes)
 docs/readme/            images for this README
 extras/                 an optional context status line
 scripts/                skill-map.mjs: draws and checks the skill map
-.github/                the Skill map workflow, Dependabot, issue and pull request templates
+.github/                the Skill map and CodeQL workflows, Dependabot, issue and pull request templates
 ```
 
 </details>
