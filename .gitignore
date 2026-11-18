@@ -3,3 +3,6 @@ plugins/*/evals/results/
 
 # Claude Code keeps each person's own permissions here.
 .claude/settings.local.json
+
+# The mochi review and refactor findings files, kept across sessions.
+.reviews/
