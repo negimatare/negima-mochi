@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # main has a cart total; the discount-rounding branch adds a discount that
-# subtracts the percentage as an amount, and a test that cannot catch it.
+# subtracts the percentage as an amount, a test that cannot catch it, and an
+# export nothing uses.
 set -euo pipefail
 git init -q -b main
 git config user.name eval && git config user.email eval@example.invalid
@@ -24,6 +25,8 @@ import { total } from "./cart";
 /** Total after a percentage discount, e.g. 10 for 10% off. */
 export const discountedTotal = (prices: number[], percent: number): number =>
     total(prices) - percent;
+
+export const DISCOUNT_RULES_VERSION = 2;
 X
 cat > src/discount.test.ts <<'X'
 import { strictEqual } from "node:assert";
