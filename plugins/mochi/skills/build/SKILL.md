@@ -1,6 +1,6 @@
 ---
 name: build
-description: Take a change from request (or from an approved plan file in .plans/) to a pushed feature branch in one flow — plan (when the change needs one and has none), implement slice by slice (test first, tidy, commit, push), then review area by area and fix — stopping for the user only to approve the plan and to pick which findings to fix. Never pushes the default branch or opens the pull request. Use when the user asks to build, implement, or ship a feature or change end to end.
+description: Take a change from request (or from an approved plan file in .plans/) to a pushed feature branch in one flow — plan (when the change needs one and has none), implement slice by slice (test first, tidy, commit, push), then review area by area and fix — stopping for the user only to approve the plan, to choose whether to review in a fresh session, and to pick which findings to fix. Never pushes the default branch or opens the pull request. Use when the user asks to build, implement, or ship a feature or change end to end.
 argument-hint: "[what to build, or a .plans/ file path, plus anything already decided]"
 disable-model-invocation: true
 ---
@@ -45,9 +45,11 @@ approval, as above.
 Otherwise, run the `plan` skill when the request asks for a plan or names
 one, the change touches more than one place, the design is not obvious, or
 the request leaves the need unclear. Its
-hand-over is the **first stop**: wait for the user to approve the plan. If the
-user stops there, they resume later with
-`/mochi:build .plans/<date>-<slug>.md`.
+hand-over is the **first stop**: wait for the user to approve the plan. The
+plan file holds everything the build needs, so end the hand-over by offering
+a fresh start: approve here, or run `/clear` and then
+`/mochi:build .plans/<date>-<slug>.md`, which builds it without the planning
+in context. The same command resumes it in a later session.
 
 Skip planning only for a change confined to one place with an obvious design.
 Then state, before writing code, the one or two behaviours that prove it works,
@@ -87,9 +89,18 @@ something else.
 
 ## 3. Review and fix
 
-Run `/mochi:review` on the feature branch without asking first. When the
-`tidy` skill ran on every slice, tell it so; not when the user skipped it. For a stacked part, review it
-against its base, so that the review sees only this part. Its report for each area is the **second stop**: the user picks which
+**First, offer a fresh session.** With more than one slice built, the
+slices fill the context the review would carry. Unless the request already
+says to review here, stop after the last slice and ask in one question:
+review here, or run `/clear` and then the command you give in full —
+`/mochi:review <branch>`, with `against <base>` for a stacked part, and
+`the tidy skill ran on every slice` when it did. Say that `/mochi:pr`
+follows the review. Wait for the answer before reviewing.
+
+To review here, run `/mochi:review` on the feature branch. When the `tidy` skill
+ran on every slice, tell it so; not when the user skipped it. For a stacked
+part, review it against its base, so that the review sees only this part.
+Its report for each area is the **second stop**: the user picks which
 findings to fix. Fix those, rerun the verification commands, run the `commit`
 skill with "review fixes; push", and move to the next area when the user says
 so.

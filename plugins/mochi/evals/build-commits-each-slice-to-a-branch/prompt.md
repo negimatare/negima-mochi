@@ -6,4 +6,4 @@ timeout_seconds: 1800
 allowed_tools: [Read, Glob, Grep, Skill, Agent, Bash, Write, Edit]
 ---
 
-/mochi:build .plans/20261102-member-discount.md
+/mochi:build .plans/20261102-member-discount.md Review it in this session.

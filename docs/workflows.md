@@ -85,14 +85,19 @@ Claude reads its files.
    writes the failing tests and checks they fail because the behaviour is
    missing. Then it writes the code, runs the verification commands, tidies
    what the slice touched, commits, and pushes.
-3. **Review.** The branch is reviewed area by area, and **you pick the
-   findings to fix**. Since each slice was already tidied, the hygiene
-   reviewer skips dead code and naming and checks the comments and docs. Fixes are committed and pushed.
+3. **Review.** After more than one slice, Claude asks whether to review in
+   the same session or in a fresh one, and gives the command for the fresh
+   one. The branch is reviewed area by area, and **you pick the findings to
+   fix**. Since each slice was already tidied, the hygiene reviewer skips
+   dead code and naming and checks the comments and docs. Fixes are
+   committed and pushed.
 4. **Hand over.** Claude reports what was built, the commits, the tests, and
    the manual checks left. Next: `/mochi:pr`.
 
 The plan stays in `.plans/`. To read it, share it, or build it in another
-session, stop after step 1 and resume later:
+session, stop after step 1 and resume later. A fresh session costs less: the
+build starts without the planning in its context, which is why Claude offers
+it when you approve the plan:
 
 ```
 /mochi:build .plans/20261105-csv-export.md

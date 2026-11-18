@@ -59,7 +59,7 @@ local commands, and it only runs tools installed in your project.
 | Command | Use it to | It stops for you to |
 |---|---|---|
 | `/mochi:setup-project [folder]` | Prepare a project or package | Approve its `CLAUDE.md` |
-| `/mochi:build <request or plan>` | Build a feature or change | Approve the plan, then pick review findings |
+| `/mochi:build <request or plan>` | Build a feature or change | Approve the plan, choose where to review, then pick review findings |
 | `/mochi:refactor <area> [goal]` | Improve code without changing behaviour | Pick candidates, then approve each plan |
 | `/mochi:fix-bug <report>` | Fix a bug, test first | Confirm the cause and the fix |
 | `/mochi:review [PR or branch]` | Review any change | Pick findings after each area |

@@ -22,6 +22,10 @@ Reviews and plans cost less.
 - Only blocking findings are checked against the code before the report.
   Medium and Minor findings are checked when you pick them to fix or before
   they go into a pull request comment.
+- `/mochi:build` offers a fresh session at its two long stops: when you
+  approve the plan, and before reviewing more than one slice. It gives the
+  command to run after `/clear`, so the next step starts without the
+  previous one in its context.
 - The bar-raiser's re-check continues the same agent instead of starting a
   new one that reads the code again.
 - Every agent makes the reads it can name up front in its first turn, in
