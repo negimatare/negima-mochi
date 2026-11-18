@@ -1,14 +1,29 @@
-<p align="center">
-  <img src="docs/banner.png" alt="Negima Mochi: small requests, well-engineered changes. A smiling mochi in a belt ring, circled by reviewer drones.">
-</p>
+<div align="center">
 
-Claude Code plugins that turn a short request into the way a careful engineer
-works: plan first, write the failing test, keep the change tidy, review it
-area by area, and commit with a message that says why.
+<img src="docs/readme/banner.png" alt="Negima Mochi: small requests, well-engineered changes. A smiling mochi in a belt ring, circled by reviewer drones." width="100%">
+
+# Negima Mochi
+
+**Small requests. Well-engineered changes.**
+
+![Claude Code](https://img.shields.io/badge/Claude%20Code-plugins-f0a830?style=flat-square)
+![React](https://img.shields.io/badge/React-Fluent%20UI%20v9-52c41a?style=flat-square)
+![FastAPI](https://img.shields.io/badge/FastAPI-Cosmic%20Python-efe3c8?style=flat-square)
+![Hooks](https://img.shields.io/badge/hooks-local%20only-2b3a55?style=flat-square)
+
+</div>
+
+<br>
+
+The kit turns a short request into the way a careful engineer works:
+plan first, write the failing test, keep the change tidy,
+review it area by area, and commit with a message that says why.
 
 You write `/mochi:build add a CSV export to the orders page`. The kit
 supplies the rest: the questions to ask, the standard to hold the code to,
 and the points where it stops for you.
+
+---
 
 ## What a session looks like
 
@@ -28,6 +43,8 @@ correctness, tests, hygiene, and your stack's conventions. A small area gets
 one quick reviewer for the first three. Each finding is
 graded 🔴 Critical, 🟠 High, 🟡 Medium, or 🔵 Minor, and you pick which to
 fix. `/mochi:pr` then drafts the pull request.
+
+---
 
 ## Install
 
@@ -54,6 +71,8 @@ real verification commands and checks that each one works.
 The kit adds no MCP servers, hosted review, or CI changes. Its hooks run
 local commands, and it only runs tools installed in your project.
 
+---
+
 ## Commands
 
 | Command | Use it to | It stops for you to |
@@ -78,6 +97,8 @@ Dashed lines run only when a condition holds. Open
 [docs/skill-map.html](docs/skill-map.html) in a browser to hover a command, read
 each condition, and see the same links as a table.
 
+---
+
 ## In the background
 
 - Every session starts with the working principles in context, and a new
@@ -93,6 +114,8 @@ each condition, and see the same links as a table.
   project's virtualenv: Ruff `--fix` on each edit, and the type checker
   (pyright or mypy), the import-linter contracts, and pytest before Claude
   ends a turn.
+
+---
 
 ## Reviewers
 
@@ -113,12 +136,56 @@ role next to the name.
 | `686-ebullient-prism` | Slices, domain model, layers, and tests in FastAPI services | `mochi-python` |
 | `295-harken-watch` | The API contract: breaking changes, errors, pagination, OpenAPI | `mochi-python` |
 
-## Where the rules come from
+---
+
+## Under the hood
+
+<details>
+<summary><b>Where the rules come from</b></summary>
 
 The most specific source wins: your project's `CLAUDE.md`, then the stack
 plugin, then the [mochi principles](plugins/mochi/principles.md). Existing
 code counts only for consistency, never as the quality bar. When two sources
 disagree, Claude says so and asks.
+
+</details>
+
+<details>
+<summary><b>Structure</b></summary>
+
+```
+.claude/                settings.json: redraws the skill map after Claude edits under plugins/
+.claude-plugin/         marketplace.json: the three plugins of the negima-mochi marketplace
+plugins/                one folder per plugin: mochi, mochi-react, mochi-python
+  mochi/principles.md   the working principles every session starts with
+  */skills/             a workflow or a convention per folder, each a SKILL.md
+  */agents/             the reviewers
+  */hooks/, */scripts/  hooks.json and the Node scripts it runs: loading conventions,
+                        lint, verify, the dependency check, the session banner
+  */evals/              claude plugin eval cases, each with a fixture.sh and graders
+docs/                   workflows.md, the skill map (svg, html, notes)
+docs/readme/            images for this README
+extras/                 an optional context status line
+scripts/                skill-map.mjs: draws and checks the skill map
+.github/                the Skill map workflow, Dependabot, issue and pull request templates
+```
+
+</details>
+
+<details>
+<summary><b>Development</b></summary>
+
+```bash
+claude --plugin-dir ./plugins/mochi --plugin-dir ./plugins/mochi-react --plugin-dir ./plugins/mochi-python
+```
+
+This loads the plugins from the checkout without installing them.
+[CONTRIBUTING.md](CONTRIBUTING.md) covers validating, the skill map, and the
+eval suite.
+
+</details>
+
+---
 
 ## More
 
@@ -132,6 +199,16 @@ disagree, Claude says so and asks.
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) and [SECURITY.md](SECURITY.md): how to
   take part, and how to report a vulnerability privately.
 
-## License
+---
 
-[MIT](LICENSE)
+## Credits
+
+- **Reviewer names**: the Forerunner monitors of Halo. Halo is a trademark of
+  Microsoft; this project is not affiliated with it.
+- **Commit messages**: [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).
+- **Skill layout**: the [Agent Skills specification](https://agentskills.io/specification).
+- **FastAPI domain model**: after *Architecture Patterns with Python* by Harry
+  Percival and Bob Gregory, known as [Cosmic Python](https://www.cosmicpython.com/).
+
+Released under the [MIT License](LICENSE). Made by
+[negimatare](https://github.com/negimatare).
