@@ -6,9 +6,9 @@ a new release where the kit is installed, run
 `claude plugin update <plugin>@negima-mochi` for each installed plugin, and
 restart Claude Code.
 
-## Unreleased
+## 1.1.0 — 2026-11-18
 
-Reviews and plans cost less.
+Reviews, plans, and builds cost less.
 
 ### mochi
 
@@ -28,13 +28,20 @@ Reviews and plans cost less.
   previous one in its context.
 - The bar-raiser's re-check continues the same agent instead of starting a
   new one that reads the code again.
-- Every agent makes the reads it can name up front in its first turn, in
-  parallel.
+- The reviewers and the bar-raiser make the reads they can name up front in
+  their first turn, in parallel.
 - A stack plugin's reviewer can name a condition for running, and reviews and
   audits skip it when the condition does not hold.
 
+### mochi-react
+
+- The conventions and accessibility reviewers make the reads they can name
+  up front in their first turn, in parallel.
+
 ### mochi-python
 
+- The conventions and API contract reviewers make the reads they can name
+  up front in their first turn, in parallel.
 - The API contract reviewer runs only when a change touches the HTTP
   surface: endpoints, schemas, error handling, auth, middleware, code a route
   calls that raises a new exception, or the committed spec.
