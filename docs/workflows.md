@@ -207,10 +207,11 @@ also gets the data reviewer. An area with markup gets an accessibility
 reviewer: the stack plugin's when it has one, otherwise the generic one.
 **You pick the findings to fix after each area.**
 
-Claude checks every finding against the code before you see it. When a
-reviewer says a test cannot fail, and the test runs without a build or a
-service, Claude proves it: it removes the guard in a copy, runs the test, and
-puts the file back. When your branch is behind the pull request or its
+Claude checks every blocking finding against the code before you see it.
+Medium and Minor findings are shown as the reviewers reported them, and
+checked before they are fixed or posted. When a reviewer says a test cannot
+fail, and the test runs without a build or a service, Claude proves it: it
+removes the guard in a copy, runs the test, and puts the file back. When your branch is behind the pull request or its
 upstream, Claude says so and asks before pulling.
 
 Each finding carries a [grade](#grades), and the report lists the most severe
@@ -228,8 +229,8 @@ To check code as it stands, with no change to review, use `/mochi:refactor`.
 
 ### Grades
 
-Reviews and refactor audits grade every finding by its consequence, after
-Claude has checked it against the code:
+Reviews and refactor audits grade every finding by its consequence. The
+blocking ones are checked against the code first:
 
 | Grade | Means | In a refactor audit |
 |---|---|---|

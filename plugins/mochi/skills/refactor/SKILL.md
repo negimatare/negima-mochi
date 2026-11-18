@@ -68,9 +68,12 @@ While they run, apply the checks of the tidy skill
 instead of to a change: duplication, naming, shotgun surgery, dead code,
 tests, file size.
 
-For every finding, whatever its severity, open the cited code and confirm
-the claim, as `/mochi:review` does. Drop a finding that does not hold, saying
-why in one line.
+Confirm the findings as `/mochi:review` does: open the cited code of every
+`must` now, and drop a finding that does not hold, saying why in one line.
+The `imo` and `nit` findings are confirmed when the user picks the candidate
+they belong to, before it is planned. One that reads as a `must` the
+reviewer under-graded, such as wrong behaviour, is checked now, like a
+`must`.
 
 ## 4. Group into candidates
 
@@ -122,10 +125,16 @@ change. The `Open:` line counts the bugs, the open candidates, and the later
 items per grade.
 
 Show the user the `Open:` counts, the bugs, the candidates in rank order, each
-line starting with its grade, and the dropped findings in one line each. This
+line starting with its grade, and the dropped findings in one line each. Say
+in one line that the findings behind Medium and Minor items are as the
+reviewers reported them and are checked when the user picks a candidate. This
 is the **first stop**: the user picks the candidates.
 
 ## 5. Plan
+
+First confirm the `imo` and `nit` findings behind the picked candidates
+against the code. A candidate left with no finding that holds is marked
+`[~]` with the reason, and the user hears why.
 
 Group the picked candidates: candidates that can be accepted or reverted
 without each other get separate plans. Run the `plan` skill once per group,

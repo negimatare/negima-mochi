@@ -116,11 +116,17 @@ Nothing else — they read what they need.
 
 ## 5. Verify before reporting
 
-- For every finding, whatever its severity, open the cited code and confirm
-  the claim. Drop a finding that does not hold, and say in one line why it
-  was dropped. A claim the code cannot settle (a table size, a query plan)
-  keeps its `?`.
-- When a finding says a test cannot fail or a guard has no test, and the
+Verify in depth what would block merging; the rest waits until it is picked.
+
+- For every `must` finding, open the cited code and confirm the claim. Drop
+  a finding that does not hold, and say in one line why it was dropped. A
+  claim the code cannot settle (a table size, a query plan) keeps its `?`.
+- Report `imo` and `nit` findings as the reviewer gave them, without opening
+  their code now: they are confirmed in the fix round when the user picks
+  them, and before they go into a pull request comment. One that reads as a
+  `must` the reviewer under-graded is checked now, like a `must`. The
+  mechanism check below still applies to the fix each of them proposes.
+- When a `must` finding says a test cannot fail or a guard has no test, and the
   project's `CLAUDE.md` gives a test command that runs that test without a
   build or a service, prove it. First run only the tests of that file as
   they are; if they do not pass, skip the proof. Otherwise save a copy of the
@@ -130,7 +136,7 @@ Nothing else — they read what they need.
   pass confirm the finding; an assertion that fails drops it. A run that
   errors before asserting proves nothing. Say which findings were proven
   this way and which were not run.
-- Recheck any number or fact a severity rests on (a probability, a size, a
+- Recheck any number or fact a `must` rests on (a probability, a size, a
   call count) and re-grade the finding if it is wrong.
 - Merge findings that point at the same line and the same problem; keep the
   highest severity.
@@ -144,9 +150,9 @@ Nothing else — they read what they need.
 ## 6. Grade, report, and record
 
 Reviewers label findings `must` (blocks merging), `imo` (a recommendation), or
-`nit` (optional), with a trailing `?` when unsure. Turn each finding that
-survived verification into a grade, by its consequence in the code you just
-read:
+`nit` (optional), with a trailing `?` when unsure. Turn each `must` that
+survived verification, and each `imo` and `nit`, into a grade, by its
+consequence in the code:
 
 | Grade | From | When |
 |---|---|---|
@@ -185,11 +191,15 @@ findings of every area per grade; update it with the checkboxes.
 Then show the user, in this order: one line on what the area does well, the
 `Open:` counts, the findings grouped 🔴 Critical → 🟠 High → 🟡 Medium →
 🔵 Minor with each line starting with its grade, and the dropped findings in
-one line each. Do not paste the reviewers' full output.
+one line each. Say in one line that the Medium and Minor findings are as the
+reviewers reported them and are checked against the code before any is
+fixed. Do not paste the reviewers' full output.
 
 ## 7. Fix round
 
-Fix what the user picks, offering the Critical and High findings first. After
+Fix what the user picks, offering the Critical and High findings first.
+Before fixing a Medium or Minor finding, confirm it as step 5 does for a
+`must`; one that does not hold is marked `[~]` with the reason. After
 the fixes, run the verification commands listed in the project's `CLAUDE.md`,
 update the checkboxes and the `Open:` line in the findings file, and move to
 the next area only when the user says so.
@@ -200,7 +210,9 @@ When the change is a pull request, end the report by offering once to post
 the open findings on it as one comment. The comment holds the scope reviewed,
 one line on what works, then the findings grouped by grade like the report,
 each with its ID, `path:line`, problem, and fix, and anything the pull request
-description gets wrong. Show the user the full comment and post it only after
+description gets wrong. Confirm each Medium or Minor finding it includes,
+as the fix round does, unless you already confirmed it in this session, and
+leave out one that does not hold. Show the user the full comment and post it only after
 they approve it, even when they asked for the comment themselves. Post it with
 `gh pr comment <n> --body-file <file>`, give the user its URL, and record the
 URL and its id on the findings file's `PR comment:` line, so a later session

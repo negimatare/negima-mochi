@@ -6,6 +6,19 @@ a new release where the kit is installed, run
 `claude plugin update <plugin>@negima-mochi` for each installed plugin, and
 restart Claude Code.
 
+## Unreleased
+
+Reviews and plans cost less.
+
+### mochi
+
+- Only blocking findings are checked against the code before the report.
+  Medium and Minor findings are checked when you pick them to fix or before
+  they go into a pull request comment.
+- The API contract reviewer runs only when a change touches the HTTP
+  surface: endpoints, schemas, error handling, auth, middleware, code a route
+  calls that raises a new exception, or the committed spec.
+
 ## 1.0.0 — 2026-11-16
 
 The first release.
