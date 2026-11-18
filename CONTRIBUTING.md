@@ -24,7 +24,10 @@ The kit follows the Claude Code plugin layout and the
   (`plan`, `tidy`, `commit`) and a stack plugin's conventions set
   `user-invocable: false`, so they stay out of the `/` menu.
 - **Reviewers are agents** in `agents/`. An agent names the plugin files it
-  reads with `${CLAUDE_PLUGIN_ROOT}`.
+  reads with `${CLAUDE_PLUGIN_ROOT}`. The quick reviewer applies the
+  correctness, test, and hygiene reviewers' sections by their headings ("You
+  own", "Severity", "After tidy", "Others own", "Output"): renaming one means
+  editing `agents/quick-reviewer.md` too.
 - **An agent's colour is its role**, the same in every plugin, so the
   reviewers of one step never share one: purple plan, red correctness, green
   tests, yellow hygiene, orange data, cyan accessibility, blue stack

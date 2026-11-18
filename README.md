@@ -24,7 +24,8 @@ touched, then commits and pushes the slice to a feature branch. Nothing goes
 to the default branch.
 
 When the slices are done, reviewers go through the branch one area at a time:
-correctness, tests, hygiene, and your stack's conventions. Each finding is
+correctness, tests, hygiene, and your stack's conventions. A small area gets
+one quick reviewer for the first three. Each finding is
 graded 🔴 Critical, 🟠 High, 🟡 Medium, or 🔵 Minor, and you pick which to
 fix. `/mochi:pr` then drafts the pull request.
 
@@ -101,6 +102,7 @@ role next to the name.
 | Agent | Checks | Plugin |
 |---|---|---|
 | `05-032-mendicant-bias` | The plan, before code is written | `mochi` |
+| `001-shamed-instrument` | Quick: correctness, tests, and hygiene in one pass, for a small area | `mochi` |
 | `117649-despondent-pyre` | Correctness: logic, error paths, security | `mochi` |
 | `049-abject-testament` | Tests: the most protection at the least cost | `mochi` |
 | `2401-penitent-tangent` | Hygiene: dead code, stale comments, rename leftovers | `mochi` |

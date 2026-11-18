@@ -203,7 +203,10 @@ Reviews a pull request, a branch, or uncommitted work. With no arguments, it
 reviews the current branch and its uncommitted changes. The change is split
 by stack, for example "Python, api/" and "React, web/", and the areas are
 reviewed one at a time, highest risk first. Each area gets the generic
-reviewers plus the matching stack plugin's. A stack reviewer can name what
+reviewers plus the matching stack plugin's. An area under 80 changed lines
+that reaches no database, auth check, route, or published API gets one quick
+reviewer in place of the correctness, test, and hygiene reviewers; ask for a
+full review to get all three. A stack reviewer can name what
 it needs to run; the API contract reviewer runs only when the area touches
 the HTTP surface. An area that touches a database
 also gets the data reviewer. An area with markup gets an accessibility

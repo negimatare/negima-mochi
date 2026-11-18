@@ -12,6 +12,10 @@ Reviews and plans cost less.
 
 ### mochi
 
+- A small area, under 80 changed lines and reaching no database, auth
+  check, route, or published API, gets one quick reviewer,
+  `001-shamed-instrument`, in place of the correctness, test, and hygiene
+  reviewers. Ask for a full review to get all three.
 - In `/mochi:build`, the hygiene reviewer skips the dead-code sweep and the
   naming checks, which the tidy step already covered on every slice. It
   still checks comments, docs, rename leftovers, and scaffolding.
