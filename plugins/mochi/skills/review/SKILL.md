@@ -80,11 +80,11 @@ Write the area's diff to one file so reviewers do not each recompute it:
 (append `git diff -- <area files>` for uncommitted work).
 
 Then pick the tier. Count the area's changed lines, added plus removed, with
-`git diff --numstat` (committed and uncommitted), leaving out lockfiles and
-generated files. The area is **small** under 80 lines when its diff reaches
+`git diff --numstat` over the same ranges and files as the diff file,
+leaving out lockfiles and generated files. The area is **small** under 80 lines when its diff reaches
 no trust boundary: database access, auth or permissions, a route or request
-handler, or what a published package exports (as the hygiene reviewer
-defines one). An area the user asks a full review for is never small. Say in
+handler, or what a published package exports (as the "Libraries" item of
+`${CLAUDE_PLUGIN_ROOT}/agents/hygiene-reviewer.md` defines one). An area the user asks a full review for is never small. Say in
 one line which tier each area got, and why.
 
 Launch these agents in parallel, in one message, each with `subagent_type`
