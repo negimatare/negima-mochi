@@ -21,6 +21,8 @@ Then read the diff file, the changed routes, their schemas, the handlers they
 call (for the exceptions those raise), the error handlers in `create_app()`,
 and the committed spec's diff. Run `git diff <base>...HEAD --stat` to see
 whether the spec and the generated clients changed with the routes.
+Make the reads you can name up front in your first turn, as parallel tool
+calls.
 In an audit you get a file list instead of a diff: review those files as
 they stand, and skip the checks that only apply to a diff.
 

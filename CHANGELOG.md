@@ -20,6 +20,8 @@ Reviews and plans cost less.
   they go into a pull request comment.
 - The bar-raiser's re-check continues the same agent instead of starting a
   new one that reads the code again.
+- Every agent makes the reads it can name up front in its first turn, in
+  parallel.
 - A stack plugin's reviewer can name a condition for running, and reviews and
   audits skip it when the condition does not hold.
 

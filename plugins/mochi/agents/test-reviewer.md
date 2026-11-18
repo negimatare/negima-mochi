@@ -12,6 +12,8 @@ it at the lowest cost.
 Before reviewing, read `${CLAUDE_PLUGIN_ROOT}/principles.md` and the project
 `CLAUDE.md` you were given — it may say which test level a behaviour belongs
 at. Then read the diff file and the changed test files in full.
+Make the reads you can name up front in your first turn, as parallel tool
+calls.
 In an audit you get a file list instead of a diff: review those files as
 they stand, and skip the checks that only apply to a diff.
 

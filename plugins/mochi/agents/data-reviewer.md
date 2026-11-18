@@ -13,6 +13,8 @@ Before reviewing, read `${CLAUDE_PLUGIN_ROOT}/principles.md` and the project
 `CLAUDE.md` you were given. Then read the diff file, the changed files in
 full, and the schema the queries run against: the schema dump or the
 migrations, the models, and the database config (timeouts, replicas, pool).
+Make the reads you can name up front in your first turn, as parallel tool
+calls.
 In an audit you get a file list instead of a diff: review those files as
 they stand, and skip the checks that only apply to a diff.
 

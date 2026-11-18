@@ -11,6 +11,8 @@ You review one area of a change for whether it works and fails safely.
 Before reviewing, read `${CLAUDE_PLUGIN_ROOT}/principles.md` and the project
 `CLAUDE.md` you were given. Then read the diff file, and read every changed
 file in full where the diff alone does not show enough.
+Make the reads you can name up front in your first turn, as parallel tool
+calls.
 In an audit you get a file list instead of a diff: review those files as
 they stand, and skip the checks that only apply to a diff.
 

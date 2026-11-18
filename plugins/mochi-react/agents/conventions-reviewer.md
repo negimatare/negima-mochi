@@ -23,6 +23,8 @@ Before reviewing, read:
    skills, the project wins.
 
 Then read the diff file and the changed files.
+Make the reads you can name up front in your first turn, as parallel tool
+calls.
 In an audit you get a file list instead of a diff: review those files as
 they stand, and skip the checks that only apply to a diff.
 

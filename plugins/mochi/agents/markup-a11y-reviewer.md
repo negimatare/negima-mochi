@@ -11,6 +11,8 @@ You review the accessibility of the markup in one area, whatever renders it.
 Read the project `CLAUDE.md` you were given, the diff file, and the changed
 templates or components in full. Open the parent that renders a component
 when the accessible name, the error, or the focus behaviour depends on it.
+Make the reads you can name up front in your first turn, as parallel tool
+calls.
 In an audit you get a file list instead of a diff: review those files as
 they stand, and skip the checks that only apply to a diff.
 
