@@ -8,6 +8,7 @@ permissions:
   contents: read
 jobs:
   check:
+    name: Skill map
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
