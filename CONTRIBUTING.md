@@ -161,3 +161,9 @@ create a `refs/heads/main` file that `file_exists` can see.
 - On macOS, `/usr/bin/git` is a shim the sandbox blocks. Put a git the
   sandbox can read first on `PATH`, such as Homebrew's. Each case's
   `git-worked` grader fails a run where the shim ran instead.
+- Run the evals from a path of plain ASCII characters. Under a folder with
+  other characters in its name, Claude quotes the paths it runs, which
+  breaks graders that match a command line, such as
+  `split-writes-the-parts-and-an-index`'s `renders-part-1`, and the
+  sandbox can deny reading the plugin. Copy `plugins/` to `$TMPDIR` and
+  point `eval_kit` at the copy.
