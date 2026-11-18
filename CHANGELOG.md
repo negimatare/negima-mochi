@@ -18,6 +18,8 @@ Reviews and plans cost less.
 - Only blocking findings are checked against the code before the report.
   Medium and Minor findings are checked when you pick them to fix or before
   they go into a pull request comment.
+- The bar-raiser's re-check continues the same agent instead of starting a
+  new one that reads the code again.
 - A stack plugin's reviewer can name a condition for running, and reviews and
   audits skip it when the condition does not hold.
 

@@ -122,9 +122,11 @@ the plan`, the plan path, and the project `CLAUDE.md` path. Then:
   hold, saying why in one line.
 - Apply the fixes that hold to the plan.
 - If there was at least one `must`, send the revised plan back to the
-  bar-raiser **once** (task description `bar-raiser — re-check`), asking only
-  whether those concerns are resolved. Anything still open after that goes to
-  the user as an open question — there is no further round.
+  bar-raiser **once**, asking only whether those concerns are resolved.
+  Continue the same agent with SendMessage, since it has already read the
+  code; launch a new one (task description `bar-raiser — re-check`) only
+  when it cannot be continued. Anything still open after that goes to the
+  user as an open question — there is no further round.
 
 ## 5. Render the view
 
