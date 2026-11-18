@@ -2,7 +2,7 @@
   "order": {
     "command": ["setup-project", "build", "fix-bug", "refactor", "review", "pr", "split"],
     "shared": ["plan", "tidy", "commit", "dependencies"],
-    "agent": ["bar-raiser", "correctness-reviewer", "test-reviewer", "hygiene-reviewer", "data-reviewer", "markup-a11y-reviewer", "mochi-react:conventions-reviewer", "mochi-react:a11y-reviewer", "mochi-python:conventions-reviewer", "mochi-python:api-contract-reviewer"],
+    "agent": ["bar-raiser", "quick-reviewer", "correctness-reviewer", "test-reviewer", "hygiene-reviewer", "data-reviewer", "markup-a11y-reviewer", "mochi-react:conventions-reviewer", "mochi-react:a11y-reviewer", "mochi-python:conventions-reviewer", "mochi-python:api-contract-reviewer"],
     "hook": ["ask-before-adding-dependency", "mochi-react:inject-matching-skills", "mochi-python:inject-matching-skills"]
   },
   "nodes": {
@@ -17,6 +17,7 @@
     "commit": { "sub": "Pull, verify, commit, push" },
     "dependencies": { "sub": "Vet a package first" },
     "bar-raiser": { "title": "bar-raiser", "sub": "Challenges the plan" },
+    "quick-reviewer": { "sub": "Small change, one pass" },
     "correctness-reviewer": { "sub": "Logic and errors" },
     "test-reviewer": { "sub": "Tests that can fail" },
     "hygiene-reviewer": { "sub": "Dead code, comments" },
@@ -52,9 +53,10 @@
     "refactor -> mochi-react:a11y-reviewer": { "when": "the area is React + Fluent" },
     "refactor -> mochi-python:conventions-reviewer": { "when": "the area is a FastAPI service" },
     "refactor -> mochi-python:api-contract-reviewer": { "when": "the area is a FastAPI service with an HTTP surface" },
-    "review -> correctness-reviewer": {},
-    "review -> test-reviewer": {},
-    "review -> hygiene-reviewer": { "note": "scoped to comments and docs when the tidy skill already ran, as in build" },
+    "review -> quick-reviewer": { "when": "an area is under 80 lines and reaches no trust boundary" },
+    "review -> correctness-reviewer": { "when": "an area is not small, or the user asks for a full review" },
+    "review -> test-reviewer": { "when": "an area is not small, or the user asks for a full review" },
+    "review -> hygiene-reviewer": { "when": "an area is not small, or the user asks for a full review; scoped when the tidy skill already ran" },
     "review -> data-reviewer": { "when": "an area touches database access" },
     "review -> markup-a11y-reviewer": { "when": "an area changes markup and no stack plugin reviews its accessibility" },
     "review -> mochi-react:conventions-reviewer": { "when": "an area is React + Fluent" },

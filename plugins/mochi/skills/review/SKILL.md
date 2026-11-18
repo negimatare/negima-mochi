@@ -79,17 +79,27 @@ Write the area's diff to one file so reviewers do not each recompute it:
 `git diff <base>...HEAD -- <area files> > "$TMPDIR/review-<area>.diff"`
 (append `git diff -- <area files>` for uncommitted work).
 
+Then pick the tier. Count the area's changed lines, added plus removed, with
+`git diff --numstat` (committed and uncommitted), leaving out lockfiles and
+generated files. The area is **small** under 80 lines when its diff reaches
+no trust boundary: database access, auth or permissions, a route or request
+handler, or what a published package exports (as the hygiene reviewer
+defines one). An area the user asks a full review for is never small. Say in
+one line which tier each area got, and why.
+
 Launch these agents in parallel, in one message, each with `subagent_type`
 set to the name shown: a general-purpose agent does not have their
-instructions. Launch them however small the diff; never review the area
-yourself instead.
+instructions. Never review the area yourself instead, however small.
 
-- Always: `mochi:117649-despondent-pyre` (correctness reviewer),
+- A small area: `mochi:001-shamed-instrument` (quick reviewer), which applies
+  the correctness, test, and hygiene checklists in one pass.
+- Any other area: `mochi:117649-despondent-pyre` (correctness reviewer),
   `mochi:049-abject-testament` (test reviewer), and
-  `mochi:2401-penitent-tangent` (hygiene reviewer). When the caller says the
-  `tidy` skill already ran on every commit of the change, as `/mochi:build`
-  does, tell the hygiene reviewer so: tidy has removed dead code and fixed
-  naming, so it checks only what tidy does not.
+  `mochi:2401-penitent-tangent` (hygiene reviewer).
+- When the caller says the `tidy` skill already ran on every commit of the
+  change, as `/mochi:build` does, tell the hygiene or quick reviewer so: tidy
+  has removed dead code and fixed naming, so it checks only what tidy does
+  not.
 - `mochi:031-exuberant-witness` (data reviewer) when the area's diff touches
   database access: SQL, ORM queries or models, migrations, or schema files.
   Tell the correctness reviewer that queries and their cost are covered.

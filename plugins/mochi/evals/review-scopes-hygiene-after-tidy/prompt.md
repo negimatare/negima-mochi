@@ -1,5 +1,5 @@
 ---
-description: A review told that the tidy skill already ran on every commit, as /mochi:build tells it, passes that on to the hygiene reviewer, which skips its dead-code sweep, and the correctness reviewer still catches a percentage discount applied as an amount.
+description: A review told that the tidy skill already ran on every commit, as /mochi:build tells it, passes that on to the reviewer that covers hygiene, the quick reviewer on this small branch, which skips its dead-code sweep and still catches a percentage discount applied as an amount.
 tags: [review, hygiene]
 max_turns: 40
 timeout_seconds: 1200
