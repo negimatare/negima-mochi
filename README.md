@@ -1,54 +1,59 @@
 <div align="center">
 
-<img src="docs/readme/banner.png" alt="Negima Mochi: small requests, well-engineered changes. A smiling mochi in a belt ring, circled by reviewer drones." width="100%">
+<img src="docs/readme/banner.png" alt="Negima Mochi: any idea, well-crafted solutions. A pixel-art mochi types at a desk beside a checklist, a green status light, a cup of coffee and a sleeping cat." width="100%">
 
 # Negima Mochi
 
-**Small requests. Well-engineered changes.**
+**Any idea. Well-crafted solutions.**
 
-![Claude Code](https://img.shields.io/badge/Claude%20Code-plugins-f0a830?style=flat-square)
-![React](https://img.shields.io/badge/React-Fluent%20UI%20v9-52c41a?style=flat-square)
-![FastAPI](https://img.shields.io/badge/FastAPI-Cosmic%20Python-efe3c8?style=flat-square)
-![Hooks](https://img.shields.io/badge/hooks-local%20only-2b3a55?style=flat-square)
+[![Latest release](https://img.shields.io/github/v/release/negimatare/negima-mochi?style=flat-square&label=release&color=efe3c8)](https://github.com/negimatare/negima-mochi/releases/latest)
+[![Licence](https://img.shields.io/github/license/negimatare/negima-mochi?style=flat-square&label=licence&color=c9a0dc)](LICENSE)
+[![Skill map](https://img.shields.io/github/actions/workflow/status/negimatare/negima-mochi/skill-map.yml?branch=main&style=flat-square&label=skill%20map)](https://github.com/negimatare/negima-mochi/actions/workflows/skill-map.yml)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/negimatare/negima-mochi/codeql.yml?branch=main&style=flat-square&label=CodeQL)](https://github.com/negimatare/negima-mochi/actions/workflows/codeql.yml)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-3%20plugins-f0a830?style=flat-square)](#install)
 
 </div>
 
 <br>
 
-The kit turns a short request into the way a careful engineer works:
-plan first, write the failing test, keep the change tidy,
-review it area by area, and commit with a message that says why.
+Bring Mochi an idea, however rough. It pours a coffee, pins a checklist to
+the wall and keeps its hands off the keyboard until the plan holds. Then it
+writes the test first, waits for the light to turn green and asks a row of
+strict reviewers to look before the pull request opens. The cat sleeps
+through all of it.
 
-You write `/mochi:build add a CSV export to the orders page`. The kit
-supplies the rest: the questions to ask, the standard to hold the code to,
-and the points where it stops for you.
+You type `/mochi:build add a CSV export to the orders page`. The kit gives
+Claude the questions to ask, the quality standard for the code and the points
+where it must stop for your decision.
 
 ---
 
-## What a session looks like
+## How it works
 
-Claude asks one round of questions, then writes a plan to `.plans/` with
-acceptance scenarios, verified facts, and the slices it will build. A
-bar-raiser agent challenges the plan before any code exists. Claude opens an
-HTML view of it, with a data-flow diagram and, for frontend changes, each
-screen before and after, and you approve it.
-
-Each slice starts with a test that fails for the right reason. Claude writes
-the code, runs your project's typecheck, lint, and tests, tidies what it
-touched, then commits and pushes the slice to a feature branch. Nothing goes
-to the default branch.
-
-When the slices are done, reviewers go through the branch one area at a time:
-correctness, tests, hygiene, and your stack's conventions. A small area gets
-one quick reviewer for the first three. Each finding is
-graded 🔴 Critical, 🟠 High, 🟡 Medium, or 🔵 Minor, and you pick which to
-fix. `/mochi:pr` then drafts the pull request.
+1. **Plan.** Claude asks one round of questions. Then it writes a plan to
+   `.plans/`, with acceptance scenarios, verified facts and the slices to build.
+2. **Challenge.** A bar-raiser agent examines the plan before Claude writes
+   code.
+3. **Approve.** Claude opens an HTML view of the plan with a data-flow
+   diagram. For a frontend change, the view also shows each screen before and
+   after the change. You approve the plan.
+4. **Build.** Each slice starts with a test that fails because the behaviour
+   does not exist yet. Claude writes the code and runs the typecheck, lint and
+   tests of your project. Then it tidies the code that it changed. It commits
+   each slice and pushes it to a feature branch. It never pushes to the default
+   branch.
+5. **Review.** Reviewers examine the branch one area at a time: correctness,
+   tests, hygiene and the conventions of your stack. For a small area, one
+   quick reviewer does the first three. Each finding has a grade: 🔴 Critical,
+   🟠 High, 🟡 Medium or 🔵 Minor. You select the findings to fix.
+6. **Pull request.** Run `/mochi:pr`. It writes the pull request and opens it
+   as a draft.
 
 ---
 
 ## Install
 
-From the project you want to use it in:
+Run these commands in the project where you want to use the kit:
 
 ```bash
 claude plugin marketplace add negimatare/negima-mochi
@@ -57,19 +62,22 @@ claude plugin install mochi-react@negima-mochi --scope local   # React + Fluent 
 claude plugin install mochi-python@negima-mochi --scope local  # FastAPI services only
 ```
 
-`--scope local` keeps the install in your gitignored
-`.claude/settings.local.json`, so teammates are unaffected. Then run
-`/mochi:setup-project` once. It writes a short `CLAUDE.md` with the project's
-real verification commands and checks that each one works.
+The `--scope local` option writes the install to
+`.claude/settings.local.json`. Git ignores this file, so the install has no
+effect on your team.
 
-| Plugin | What it adds |
+Then run `/mochi:setup-project` one time. This command writes a short
+`CLAUDE.md` with the commands that your project really uses for verification.
+It also makes sure that each command works.
+
+| Plugin | Contents |
 |---|---|
-| `mochi` | The workflows, the working principles, generic reviewers, and a dependency policy. Works with any language. |
-| `mochi-react` | Conventions, reviewers, and lint and test hooks for React with Fluent UI v9 and Griffel. It has no commands; it joins the `mochi` workflows. |
-| `mochi-python` | Conventions, reviewers, and lint and test hooks for FastAPI services: vertical slices with a Cosmic Python domain model inside, REST rules, and a committed OpenAPI spec. It has no commands; it joins the `mochi` workflows. |
+| `mochi` | The workflows, the working principles, the generic reviewers and a dependency policy. It works with all languages. |
+| `mochi-react` | Conventions, reviewers, and lint and test hooks for React with Fluent UI v9 and Griffel. It has no commands. It extends the `mochi` workflows. |
+| `mochi-python` | Conventions, reviewers, and lint and test hooks for FastAPI services: vertical slices (each with a Cosmic Python domain model inside), REST rules and a committed OpenAPI spec. It has no commands. It extends the `mochi` workflows. |
 
-The kit adds no MCP servers, hosted review, or CI changes. Its hooks run
-local commands, and it only runs tools installed in your project.
+The kit adds no MCP servers, no hosted review and no CI changes. Its hooks run
+only local commands. It uses only the tools that your project has installed.
 
 ---
 
@@ -77,64 +85,66 @@ local commands, and it only runs tools installed in your project.
 
 | Command | Use it to | It stops for you to |
 |---|---|---|
-| `/mochi:setup-project [folder]` | Prepare a project or package | Approve its `CLAUDE.md` |
-| `/mochi:build <request or plan>` | Build a feature or change | Approve the plan, choose where to review, then pick review findings |
-| `/mochi:refactor <area> [goal]` | Improve code without changing behaviour | Pick candidates, then approve each plan |
+| `/mochi:setup-project [folder]` | Prepare a project or a package | Approve its `CLAUDE.md` |
+| `/mochi:build <request or plan>` | Build a feature or a change | Approve the plan, select where to review, then select the review findings |
+| `/mochi:refactor <area> [goal]` | Improve code without a change in behaviour | Select the candidates, then approve each plan |
 | `/mochi:fix-bug <report>` | Fix a bug, test first | Confirm the cause and the fix |
-| `/mochi:review [PR or branch]` | Review any change | Pick findings after each area |
-| `/mochi:pr` | Open the pull request, or restack a stacked part | Approve the body and its comments, and any force-push |
-| `/mochi:split <plan>` | Cut a plan that is too big into parts, one pull request each | Accept the parts, built in order or stacked |
+| `/mochi:review [PR or branch]` | Review any change | Select the findings after each area |
+| `/mochi:pr` | Open the pull request, or restack one part of a stack | Approve the body, its comments and each force-push |
+| `/mochi:split <plan>` | Divide a plan that is too big into parts, with one pull request for each part | Accept the parts, and select: in order or stacked |
 
-Write requests the way you would brief a colleague, including what is already
-decided and what to skip. [docs/workflows.md](docs/workflows.md) walks
-through each command.
+Write a request as you write a brief for a colleague. Include the decisions
+that you made and the work to skip. [docs/workflows.md](docs/workflows.md)
+gives the steps of each command.
 
-### What each command runs
+### The skills and agents of each command
 
-![Which command runs which skill, agent, and convention](docs/skill-map.svg)
+![The skills, agents and conventions that each command runs](docs/skill-map.svg)
 
-Dashed lines run only when a condition holds. Open
-[docs/skill-map.html](docs/skill-map.html) in a browser to hover a command, read
-each condition, and see the same links as a table.
+A dashed line shows a link that applies only when a condition is true. Open
+[docs/skill-map.html](docs/skill-map.html) in a browser. Move the pointer onto
+a command to see its links. Move the pointer onto a line to see its condition.
+The page also shows all links in a table.
 
 ---
 
-## In the background
+## Automatic behaviour
 
-- Every session starts with the working principles in context, and a new
-  one opens with a banner from one of the reviewer monitors. Set
-  `MOCHI_BANNER=0` to hide it.
-- A command that adds or upgrades a package asks for permission first and
-  points Claude at the dependency policy. Installs from the lockfile pass.
-- In React + Fluent packages, `mochi-react` adds its conventions to context
-  when a session starts there, or, in a session started elsewhere, when Claude
-  touches a file one covers. It runs ESLint `--fix` on each edit, and runs
-  `typecheck` and `test` before Claude ends a turn.
-- In FastAPI packages, `mochi-python` does the same with the tools in the
-  project's virtualenv: Ruff `--fix` on each edit, and the type checker
-  (pyright or mypy), the import-linter contracts, and pytest before Claude
-  ends a turn.
+- Each session starts with the working principles in its context. A new
+  session shows a banner from one of the reviewer monitors. To hide the
+  banner, set `MOCHI_BANNER=0`.
+- Before a command adds or upgrades a package, the kit asks for permission. The
+  prompt tells you the checks of the dependency policy. An install from the
+  lockfile does not need permission.
+- In a React + Fluent UI package, `mochi-react` adds its conventions to the
+  context. It does this when a session starts in the package, or when Claude
+  reads, writes or edits a file that a convention covers. It runs ESLint `--fix`
+  after each edit. Before Claude ends a turn, it runs `typecheck` and `test`.
+- In a FastAPI package, `mochi-python` does the same with the tools in the
+  virtualenv of your project. It runs Ruff `--fix` after each edit. Before
+  Claude ends a turn, it runs the type checker (pyright or mypy), the
+  import-linter contracts and pytest.
 
 ---
 
 ## Reviewers
 
-Each reviewer is named after a Forerunner monitor; the transcript shows its
-role next to the name.
+Each reviewer has the name of a Forerunner monitor. The transcript shows the
+role of the reviewer next to its name.
 
 | Agent | Checks | Plugin |
 |---|---|---|
-| `05-032-mendicant-bias` | The plan, before code is written | `mochi` |
-| `001-shamed-instrument` | Quick: correctness, tests, and hygiene in one pass, for a small area | `mochi` |
-| `117649-despondent-pyre` | Correctness: logic, error paths, security | `mochi` |
-| `049-abject-testament` | Tests: the most protection at the least cost | `mochi` |
-| `2401-penitent-tangent` | Hygiene: dead code, stale comments, rename leftovers | `mochi` |
-| `031-exuberant-witness` | Data: indexes, statement timeouts, query fan-out, migrations | `mochi` |
-| `859-static-carillon` | Accessibility of any markup, when no stack plugin reviews it | `mochi` |
-| `343-guilty-spark` | React, Fluent UI, and Griffel conventions lint cannot check | `mochi-react` |
-| `000-tragic-solitude` | Accessibility gaps lint cannot see | `mochi-react` |
-| `686-ebullient-prism` | Slices, domain model, layers, and tests in FastAPI services | `mochi-python` |
-| `295-harken-watch` | The API contract: breaking changes, errors, pagination, OpenAPI | `mochi-python` |
+| `05-032-mendicant-bias` | The plan, before Claude writes code | `mochi` |
+| `001-shamed-instrument` | Correctness, tests and hygiene in one quick pass, for a small area | `mochi` |
+| `117649-despondent-pyre` | Correctness: logic, error paths and security | `mochi` |
+| `049-abject-testament` | Tests: the most protection for the lowest cost | `mochi` |
+| `2401-penitent-tangent` | Hygiene: dead code, comments that do not agree with the code, and rename leftovers | `mochi` |
+| `031-exuberant-witness` | Data: indexes, statement timeouts, query fan-out and migrations | `mochi` |
+| `859-static-carillon` | Accessibility of all markup, when no stack plugin reviews it | `mochi` |
+| `343-guilty-spark` | React, Fluent UI and Griffel conventions that lint cannot check | `mochi-react` |
+| `000-tragic-solitude` | Accessibility problems that lint cannot find | `mochi-react` |
+| `686-ebullient-prism` | Slices, domain model, layers and tests in FastAPI services | `mochi-python` |
+| `295-harken-watch` | The API contract: breaking changes, errors, pagination and OpenAPI | `mochi-python` |
 
 ---
 
@@ -143,10 +153,16 @@ role next to the name.
 <details>
 <summary><b>Where the rules come from</b></summary>
 
-The most specific source wins: your project's `CLAUDE.md`, then the stack
-plugin, then the [mochi principles](plugins/mochi/principles.md). Existing
-code counts only for consistency, never as the quality bar. When two sources
-disagree, Claude says so and asks.
+When two sources have different rules, the first source in this list has
+priority:
+
+1. The `CLAUDE.md` of your project.
+2. The stack plugin.
+3. The [mochi principles](plugins/mochi/principles.md).
+
+Claude uses the current code only for consistency, and never as the quality
+standard. When two sources do not agree, Claude tells you and asks for a
+decision.
 
 </details>
 
@@ -154,17 +170,17 @@ disagree, Claude says so and asks.
 <summary><b>Structure</b></summary>
 
 ```
-.claude/                settings.json: redraws the skill map after Claude edits under plugins/
+.claude/                settings.json: draws the skill map again after Claude writes or edits a file in plugins/
 .claude-plugin/         marketplace.json: the three plugins of the negima-mochi marketplace
-plugins/                one folder per plugin: mochi, mochi-react, mochi-python
-  mochi/principles.md   the working principles every session starts with
-  */skills/             a workflow or a convention per folder, each a SKILL.md
+plugins/                one folder for each plugin: mochi, mochi-react, mochi-python
+  mochi/principles.md   the working principles at the start of each session
+  */skills/             one workflow or convention in each folder, as a SKILL.md
   */agents/             the reviewers
-  */hooks/, */scripts/  hooks.json and the Node scripts it runs: loading conventions,
-                        lint, verify, the dependency check, the session banner
+  */hooks/, */scripts/  hooks.json and its Node scripts: they load conventions, run lint and
+                        verification, check new dependencies and show the session banner
   */evals/              claude plugin eval cases, each with a fixture.sh and graders
-docs/                   workflows.md, the skill map (svg, html, notes)
-docs/readme/            images for this README
+docs/                   workflows.md and the skill map (svg, html, notes)
+docs/readme/            the images of this README
 extras/                 an optional context status line
 scripts/                skill-map.mjs: draws and checks the skill map
 .github/                the Skill map and CodeQL workflows, Dependabot, issue and pull request templates
@@ -175,13 +191,14 @@ scripts/                skill-map.mjs: draws and checks the skill map
 <details>
 <summary><b>Development</b></summary>
 
+To load the plugins from the checkout without an install, run:
+
 ```bash
 claude --plugin-dir ./plugins/mochi --plugin-dir ./plugins/mochi-react --plugin-dir ./plugins/mochi-python
 ```
 
-This loads the plugins from the checkout without installing them.
-[CONTRIBUTING.md](CONTRIBUTING.md) covers validating, the skill map, and the
-eval suite.
+[CONTRIBUTING.md](CONTRIBUTING.md) tells you how to validate the plugins,
+update the skill map and run the eval suite.
 
 </details>
 
@@ -189,26 +206,26 @@ eval suite.
 
 ## More
 
-- [docs/workflows.md](docs/workflows.md): each command step by step, branch
-  and commit rules, and a repository with a frontend and a backend.
-- [CONTRIBUTING.md](CONTRIBUTING.md): working on the kit, its layout, and its
-  eval suite.
-- [extras/](extras/README.md): an optional status line that shows how full
-  the context is and when to run `/compact`.
-- [CHANGELOG.md](CHANGELOG.md): what each release changed.
-- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) and [SECURITY.md](SECURITY.md): how to
-  take part, and how to report a vulnerability privately.
+- [docs/workflows.md](docs/workflows.md): the steps of each command, the rules
+  for branches and commits, and a repository with a frontend and a backend.
+- [extras/](extras/README.md): an optional status line. It shows how full the
+  context is and when to run `/compact`.
+- [CHANGELOG.md](CHANGELOG.md): the changes in each release.
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): the rules of behaviour for all participants.
+- [CONTRIBUTING.md](CONTRIBUTING.md): how to work on the kit, its layout and
+  its eval suite.
+- [SECURITY.md](SECURITY.md): how to report a vulnerability privately.
 
 ---
 
 ## Credits
 
 - **Reviewer names**: the Forerunner monitors of Halo. Halo is a trademark of
-  Microsoft; this project is not affiliated with it.
+  Microsoft. This project has no affiliation with Microsoft.
 - **Commit messages**: [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).
 - **Skill layout**: the [Agent Skills specification](https://agentskills.io/specification).
-- **FastAPI domain model**: after *Architecture Patterns with Python* by Harry
-  Percival and Bob Gregory, known as [Cosmic Python](https://www.cosmicpython.com/).
+- **FastAPI domain model**: based on *Architecture Patterns with Python* by Harry
+  Percival and Bob Gregory, also known as [Cosmic Python](https://www.cosmicpython.com/).
 
 Released under the [MIT License](LICENSE). Made by
 [negimatare](https://github.com/negimatare).

@@ -1,41 +1,53 @@
 # Extras
 
-Optional pieces that go with the kit but are not part of any plugin.
-Installing the plugins does not install them.
+These files are optional. They are in the kit repository, but they are not
+part of a plugin, so the plugin install does not include them.
 
 ## Status line
 
-`statusline.sh` is a two-row
+`statusline.sh` is a
 [status line](https://docs.claude.com/en/docs/claude-code/statusline) for
-Claude Code:
+Claude Code. It has two rows:
 
 ```
 negima-mochi | ⎇ feat/order-exports
 [Opus] ▓▓▓▓░░░░░░ 45% | $0.42 | ◷ 2m 5s | Consider /compact <goal + next step>
 ```
 
-The first row is the folder and the git branch, or the commit when HEAD is
-detached. The second is the model, the context used, the session cost, and
-how long the session has run.
+- The first row shows the folder and the git branch. When HEAD is detached,
+  it shows the commit.
+- The second row shows the model, the context used, the cost of the session
+  and the duration of the session.
 
-The bar and the percentage show how much of the context window is used. Their
-colour changes as it fills: cyan below 60%, amber from 60%, orange from 70%,
-and red from 80%. Below 70% remaining, a hint suggests `/compact`; below 30%,
-it tells you to run it now.
+The bar and the percentage show how much of the context window is full. Their
+colour changes with the percentage used:
 
-It needs `bash` and `jq`. To install it, link it from a checkout:
+| Used | Colour |
+|---|---|
+| Less than 60% | Cyan |
+| 60% to 69% | Amber |
+| 70% to 79% | Orange |
+| 80% or more | Red |
 
-```bash
-ln -s "$PWD/extras/statusline.sh" ~/.claude/statusline.sh
-```
+When less than 70% of the context is free, a hint tells you to think about
+`/compact`. When less than 30% is free, the hint tells you to run `/compact`
+immediately.
 
-Then point Claude Code at it in `~/.claude/settings.json`:
+The status line needs `bash` and `jq`. To install it:
 
-```json
-{
-  "statusLine": {
-    "type": "command",
-    "command": "~/.claude/statusline.sh"
-  }
-}
-```
+1. Link the script from a checkout:
+
+   ```bash
+   ln -s "$PWD/extras/statusline.sh" ~/.claude/statusline.sh
+   ```
+
+2. Add the script to `~/.claude/settings.json`:
+
+   ```json
+   {
+     "statusLine": {
+       "type": "command",
+       "command": "~/.claude/statusline.sh"
+     }
+   }
+   ```
