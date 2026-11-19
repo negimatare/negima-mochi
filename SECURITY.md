@@ -2,25 +2,31 @@
 
 ## Supported versions
 
-Only the latest release of `mochi`, `mochi-react`, and `mochi-python` gets
-fixes. Run `claude plugin update <plugin>@negima-mochi` to get it.
+Only the latest release of `mochi`, `mochi-react` and `mochi-python` gets
+fixes. To get the latest release, run
+`claude plugin update <plugin>@negima-mochi`.
 
-## What counts
+## Scope
 
 The kit runs on your machine with your permissions. Its hooks run local
-commands, and its skills tell Claude which commands to run. Report anything
-that lets the kit:
+commands, and its skills tell Claude which commands to run. Report a problem
+that lets the kit do one of these actions:
 
-- run a command you did not approve, or one from a file it should only read
-- skip the dependency policy's permission prompt
-- push to the default branch, or force-push without asking
-- send code, secrets, or files anywhere outside your machine
+- Run a command that you did not approve.
+- Obey an instruction in a file that it reads as data.
+- Bypass the permission prompt of the dependency policy.
+- Push to the default branch.
+- Force-push without your approval.
+- Send code, secrets or files to a location outside your machine.
 
 ## Report a vulnerability
 
-Please do not open a public issue. Use
-[private vulnerability reporting](https://github.com/negimatare/negima-mochi/security/advisories/new)
-instead: open the **Security** tab and choose **Report a vulnerability**.
+Do not open a public issue. Use
+[private vulnerability reporting](https://github.com/negimatare/negima-mochi/security/advisories/new).
+This link opens the report form.
 
-Include the plugin and its version, your Claude Code version, and the steps
-or the request that shows the problem.
+Include these items:
+
+- The plugin and its version.
+- Your Claude Code version.
+- The steps or the request that shows the problem.

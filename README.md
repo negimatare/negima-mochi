@@ -38,9 +38,10 @@ where it must stop for your decision.
    diagram. For a frontend change, the view also shows each screen before and
    after the change. You approve the plan.
 4. **Build.** Each slice starts with a test that fails because the behaviour
-   is missing. Claude writes the code and runs the typecheck, lint and tests of
-   your project. Then it tidies the code that it changed. It commits each slice and
-   pushes it to a feature branch. It never pushes to the default branch.
+   does not exist yet. Claude writes the code and runs the typecheck, lint and
+   tests of your project. Then it tidies the code that it changed. It commits
+   each slice and pushes it to a feature branch. It never pushes to the default
+   branch.
 5. **Review.** Reviewers examine the branch one area at a time: correctness,
    tests, hygiene and the conventions of your stack. For a small area, one
    quick reviewer does the first three. Each finding has a grade: 🔴 Critical,
@@ -90,7 +91,7 @@ only local commands. It uses only the tools that your project has installed.
 | `/mochi:fix-bug <report>` | Fix a bug, test first | Confirm the cause and the fix |
 | `/mochi:review [PR or branch]` | Review any change | Select the findings after each area |
 | `/mochi:pr` | Open the pull request, or restack one part of a stack | Approve the body, its comments and each force-push |
-| `/mochi:split <plan>` | Divide a plan that is too big into parts, with one pull request for each part | Accept the parts, and select: in order or as a stack |
+| `/mochi:split <plan>` | Divide a plan that is too big into parts, with one pull request for each part | Accept the parts, and select: in order or stacked |
 
 Write a request as you write a brief for a colleague. Include the decisions
 that you made and the work to skip. [docs/workflows.md](docs/workflows.md)
@@ -117,8 +118,8 @@ The page also shows all links in a table.
   lockfile does not need permission.
 - In a React + Fluent UI package, `mochi-react` adds its conventions to the
   context. It does this when a session starts in the package, or when Claude
-  reads or edits a file that a convention covers. It runs ESLint `--fix` after each
-  edit. Before Claude ends a turn, it runs `typecheck` and `test`.
+  reads, writes or edits a file that a convention covers. It runs ESLint `--fix`
+  after each edit. Before Claude ends a turn, it runs `typecheck` and `test`.
 - In a FastAPI package, `mochi-python` does the same with the tools in the
   virtualenv of your project. It runs Ruff `--fix` after each edit. Before
   Claude ends a turn, it runs the type checker (pyright or mypy), the
@@ -169,7 +170,7 @@ decision.
 <summary><b>Structure</b></summary>
 
 ```
-.claude/                settings.json: draws the skill map again after Claude edits a file in plugins/
+.claude/                settings.json: draws the skill map again after Claude writes or edits a file in plugins/
 .claude-plugin/         marketplace.json: the three plugins of the negima-mochi marketplace
 plugins/                one folder for each plugin: mochi, mochi-react, mochi-python
   mochi/principles.md   the working principles at the start of each session
@@ -207,12 +208,12 @@ update the skill map and run the eval suite.
 
 - [docs/workflows.md](docs/workflows.md): the steps of each command, the rules
   for branches and commits, and a repository with a frontend and a backend.
-- [CONTRIBUTING.md](CONTRIBUTING.md): how to work on the kit, its layout and
-  its eval suite.
 - [extras/](extras/README.md): an optional status line. It shows how full the
   context is and when to run `/compact`.
 - [CHANGELOG.md](CHANGELOG.md): the changes in each release.
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): the rules of behaviour for all participants.
+- [CONTRIBUTING.md](CONTRIBUTING.md): how to work on the kit, its layout and
+  its eval suite.
 - [SECURITY.md](SECURITY.md): how to report a vulnerability privately.
 
 ---
