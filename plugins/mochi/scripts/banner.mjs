@@ -1,7 +1,9 @@
 // `systemMessage` reaches the person but not Claude's context, so the banner
 // costs no tokens.
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { homedir, tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 if (process.env.MOCHI_BANNER === '0') process.exit(0);
 let input;
@@ -89,17 +91,19 @@ const pythonMonitors = [
   ['295 HARKEN WATCH', 'Your clients never read your code, only your contract. I read it for them.'],
 ];
 
+const readJson = (file) => {
+  try {
+    return JSON.parse(readFileSync(file, 'utf8'));
+  } catch {
+    return undefined;
+  }
+};
+
 const projectDir = process.env.CLAUDE_PROJECT_DIR || input.cwd || '.';
 const usesReactFluent = () => {
-  const manifest = join(projectDir, 'package.json');
-  if (!existsSync(manifest)) return false;
-  try {
-    const pkg = JSON.parse(readFileSync(manifest, 'utf8'));
-    const deps = { ...pkg?.dependencies, ...pkg?.devDependencies, ...pkg?.peerDependencies };
-    return Boolean(deps.react && deps['@fluentui/react-components']);
-  } catch {
-    return false;
-  }
+  const pkg = readJson(join(projectDir, 'package.json'));
+  const deps = { ...pkg?.dependencies, ...pkg?.devDependencies, ...pkg?.peerDependencies };
+  return Boolean(deps.react && deps['@fluentui/react-components']);
 };
 
 // A dependency string such as "fastapi[standard]>=0.115", or a Poetry key.
@@ -109,10 +113,65 @@ const usesFastApi = () => {
   return /(["'])fastapi(?:\[[^\]]*\])?\s*(?:[<>=!~;,]|\1)|^\s*fastapi\s*=/im.test(readFileSync(manifest, 'utf8'));
 };
 
+// A stack plugin shows only when Claude Code installed it for this project,
+// at user scope or at the project or local scope of this folder.
+const STACK_PLUGINS = ['mochi-react', 'mochi-python'];
+const pluginRoot = resolve(process.env.CLAUDE_PLUGIN_ROOT || fileURLToPath(new URL('..', import.meta.url)));
+const installedVersions = () => {
+  const own = [['mochi', readJson(join(pluginRoot, '.claude-plugin', 'plugin.json'))?.version]];
+  const configDir = process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.claude');
+  const plugins = readJson(join(configDir, 'plugins', 'installed_plugins.json'))?.plugins ?? {};
+  // Version 1 of the file has one object for each key, not a list.
+  const installs = (key) => (Array.isArray(plugins[key]) ? plugins[key] : []);
+  const mochiKey = Object.keys(plugins).find(
+    (key) => key.startsWith('mochi@') && installs(key).some((entry) => resolve(entry.installPath ?? '') === pluginRoot),
+  );
+  if (!mochiKey) return own.filter(([, version]) => version);
+  const marketplace = mochiKey.slice('mochi@'.length);
+  const scopeOrder = ['local', 'project', 'user'];
+  const forThisProject = (name) =>
+    installs(`${name}@${marketplace}`)
+      .filter((entry) => !entry.projectPath || resolve(entry.projectPath) === resolve(projectDir))
+      .sort((a, b) => scopeOrder.indexOf(a.scope) - scopeOrder.indexOf(b.scope))[0]?.version;
+  return [...own, ...STACK_PLUGINS.map((name) => [name, forThisProject(name)])].filter(([, version]) => version);
+};
+
+// A failed request is cached too, so an offline machine does not wait at
+// each start.
+const RELEASES_URL = 'https://api.github.com/repos/negimatare/negima-mochi/releases/latest';
+const CHECK_INTERVAL_MS = 12 * 60 * 60 * 1000;
+const latestRelease = async () => {
+  if (process.env.MOCHI_UPDATE_CHECK === '0') return undefined;
+  const cacheFile = join(process.env.CLAUDE_PLUGIN_DATA || tmpdir(), 'negima-mochi-latest-release.json');
+  const cached = readJson(cacheFile);
+  const age = Date.now() - cached?.checkedAt;
+  if (age >= 0 && age < CHECK_INTERVAL_MS) return cached.version;
+  let version = cached?.version;
+  try {
+    const response = await fetch(RELEASES_URL, {
+      headers: { accept: 'application/vnd.github+json', 'user-agent': 'negima-mochi' },
+      signal: AbortSignal.timeout(1500),
+    });
+    if (response.ok) version = String((await response.json()).tag_name ?? '').replace(/^v/, '') || version;
+  } catch {}
+  try {
+    mkdirSync(dirname(cacheFile), { recursive: true });
+    writeFileSync(cacheFile, JSON.stringify({ checkedAt: Date.now(), version }));
+  } catch {}
+  return version;
+};
+
+const isOlder = (installed, latest) => {
+  const [a, b] = [installed, latest].map((version) => version.split('.').map((part) => parseInt(part, 10) || 0));
+  const index = [0, 1, 2].find((i) => a[i] !== b[i]);
+  return index !== undefined && a[index] < b[index];
+};
+
 // A to Z become Mathematical Sans-Serif Bold Italic (U+1D63C onwards).
 const boldItalic = (text) =>
   [...text].map((c) => (c >= 'A' && c <= 'Z' ? String.fromCodePoint(0x1d63c + c.charCodeAt(0) - 65) : c)).join('');
 
+const TEXT_WIDTH = 46;
 const width = (line) => [...line].length;
 const wrap = (text, max) =>
   text.split(' ').reduce((lines, word) => {
@@ -128,11 +187,27 @@ const [name, line] = pool[Math.floor(Math.random() * pool.length)];
 // Each cell's reset also drops the grey Claude Code gives hook messages, so
 // the text sets its own colours, readable on dark and light themes alike.
 const paint = (code, text) => (plain ? text : `\x1b[${code}m${text}${RESET}`);
+const versions = installedVersions();
+const latest = await latestRelease();
+// One line keeps the text as high as the art. The arrows and the latest
+// version at the end have the same colour, so the end tells what an arrow means.
+const ORANGE = '38;2;255;140;0';
+const outdated = versions.filter(([, version]) => latest && isOlder(version, latest));
+const label = (plugin) => plugin.replace(/^mochi-/, '').replace(/^./, (letter) => letter.toUpperCase());
+const versionLine =
+  versions
+    .map(([plugin, version]) => {
+      const text = paint('2', `${label(plugin)} ${version}`);
+      return latest && isOlder(version, latest) ? `${text} ${paint(`1;${ORANGE}`, '↑')}` : text;
+    })
+    .join(paint('2', ' · ')) +
+  (outdated.length ? `  ${paint(`1;${ORANGE}`, '↑')}${paint(ORANGE, ` ${latest} `)}${paint(`3;${ORANGE}`, 'latest')}` : '');
 const right = [
   boldItalic('N E G I M A   M O C H I'),
+  ...(versionLine ? [versionLine] : []),
   '',
   paint('38;2;98;180;74', name),
-  ...wrap(`"${line}"`, 46).map((text) => paint('2', text)),
+  ...wrap(`"${line}"`, TEXT_WIDTH).map((text) => paint('2', text)),
 ];
 const height = Math.max(ICON.length, right.length);
 const iconTop = Math.floor((height - ICON.length) / 2);
@@ -143,4 +218,6 @@ const rows = Array.from({ length: height }, (_, i) => {
 });
 
 // An empty line above and below sets the art apart from the hook's label.
-process.stdout.write(JSON.stringify({ systemMessage: `\n\n${rows.join('\n')}\n\n` }));
+// The exit ends a connect that the fetch timeout left open, which would hold
+// the session start for up to 10 s.
+process.stdout.write(JSON.stringify({ systemMessage: `\n\n${rows.join('\n')}\n\n` }), () => process.exit(0));

@@ -6,6 +6,15 @@ a new release where the kit is installed, run
 `claude plugin update <plugin>@negima-mochi` for each installed plugin, and
 restart Claude Code.
 
+## 1.3.0 — unreleased
+
+### mochi
+
+- The banner shows the version of each installed mochi plugin, on one line.
+  An amber `↑` marks a plugin that is older than the latest GitHub release.
+  The banner gets the latest release from the GitHub API, one time in 12
+  hours at most. `MOCHI_UPDATE_CHECK=0` stops this request.
+
 ## 1.2.0 — 2026-11-20
 
 Mochi writes shorter and plainer text, and handles stacked pull requests and
