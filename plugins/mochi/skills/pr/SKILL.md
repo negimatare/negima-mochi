@@ -1,6 +1,6 @@
 ---
 name: pr
-description: Open a pull request for the current branch — a body written from the final diff for a busy reviewer (a TL;DR and a Why that names each drift from the plan, and before and after screenshots for a UI change), plus one-line candidate self-review comments that the user picks from. Shows the draft before posting and creates the PR as a draft. Also restacks a pull request stacked on another one after its base moves or merges.
+description: Open a pull request for the current branch — a body written from the final diff for a busy reviewer (a TL;DR and a Why that names each drift from the plan, and before and after screenshots for a UI change), plus one-line candidate self-review comments that the user picks from. Shows the draft before posting and creates the PR as a draft. Also restacks a pull request stacked on another one after its base moves or merges, through gh stack when it is set up.
 argument-hint: "[optional: base branch, tracker ID, links]"
 disable-model-invocation: true
 ---
@@ -14,17 +14,25 @@ The user's notes: `$ARGUMENTS`
 - Tracked files are clean (`git status --porcelain --untracked-files=no`).
   Otherwise run the `commit` skill first.
 - The branch is pushed and up to date with its upstream. If not, ask before
-  pushing — publishing is the user's call.
+  pushing — publishing is the user's call. A stacked branch that has
+  diverged from its upstream is restacked instead (below). Run the
+  **push checks** before each push that this skill makes: the project's
+  verification commands from its `CLAUDE.md`.
 - The base is the argument, else the default branch
   (`gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`), and it
   differs from the current branch. A base other than the default branch is
   the branch of the part below: this pull request is **stacked** on it.
 - No PR exists yet (`gh pr view`). If one does, its base is the PR's
-  `baseRefName`. When that PR is stacked, check its base: when the base's PR is merged
-  (`gh pr view <base> --json state,headRefOid`) or the base has commits this
-  branch lacks (`git rev-list --count HEAD..origin/<base>`), restack it
-  (step 6). Otherwise offer to regenerate its body and its posted
-  self-review comments.
+  `baseRefName`, and the steps below offer to regenerate its body and its
+  posted self-review comments.
+- A stacked branch is restacked (step 6), before the steps below, when:
+  - the base's PR is merged (`gh pr view <base> --json state,headRefOid`);
+  - the base has commits this branch lacks: `git rev-list --count
+    HEAD..origin/<base>`, or `HEAD..<base>` for a local base that is ahead
+    of `origin/<base>`;
+  - or this branch has diverged from its upstream (both numbers of
+    `git rev-list --left-right --count HEAD...@{u}` are above 0). A review
+    fix on the base leaves this state after its local restack.
 - When `gh` is missing or not logged in, say so once and go on: take the
   base from the argument or `git symbolic-ref refs/remotes/origin/HEAD`, and
   write the draft. Only posting needs `gh`.
@@ -156,26 +164,73 @@ When the change or the facts move later, regenerate the whole body and the
 picked comments from the new diff — do not patch one sentence and leave the
 rest stale.
 
+After a stacked pull request is created, and before any part of the stack
+merges, put the branch in a local stack when `gh stack --version` and
+`gh auth status` pass:
+
+- The base is in no local stack (`gh stack view` on the base says that it is
+  not part of a stack): `gh stack init <branches>`, with every branch of the
+  stack from the bottom to this one. Follow each PR's `baseRefName` down to
+  the default branch to find them.
+- The base is in a local stack: switch to the top branch of that stack, run
+  `gh stack add <branch>`, and switch back.
+- Then run `gh stack link <PR URLs>`, with the URL of every PR of the stack,
+  from the bottom to the top. Give URLs, never branch names: `link` pushes
+  the branches that it gets as names.
+
+When `init`, `add` or `link` fails, report the error, keep the `Stacked on`
+line, and use the git steps of step 6 for this stack.
+
 ## 6. Restack
 
 A stacked pull request goes stale when its base moves. Restack it when the
-user asks, or when step 1 finds that the base moved or merged. Without `gh`,
-ask the user whether the base is merged.
+user asks, or when step 1 finds a reason. Without `gh`, ask the user whether
+the base is merged.
+
+**The stack check** passes when `gh stack --version` and `gh auth status`
+pass, and `gh stack view` shows this branch in a local stack. The `review`
+skill reads this check too. When `gh stack --version` fails, say one time
+that `gh extension install github/gh-stack` adds it. When the check passes,
+restack the whole stack with `gh stack`:
+
+1. `gh stack rebase`. It rebases each branch onto the one below it, and onto
+   the default branch after a base merges. Untracked files make it refuse to
+   start: name them, and ask in one question whether to stash them
+   (`git stash push --include-untracked`, and `git stash pop` after the
+   restack) or to use the git steps.
+2. On a conflict, run `gh stack rebase --abort`, which restores every branch,
+   and show the conflict. Do not resolve it by picking a side.
+3. For each rebased branch, switch to it and run the push checks. Then switch
+   back.
+4. Ask one time before you push, and name each branch that the push replaces
+   on the remote. Only after the user agrees, run `gh stack push`. Then
+   compare `git ls-remote origin <branch>` with `git rev-parse <branch>` for
+   each branch: `gh stack push` can report success and push nothing.
+
+When the check fails, restack this branch with git:
 
 1. `git fetch`. Base merged:
    `git rebase --onto origin/<default> <base's last commit>`, with the
    `headRefOid` from step 1, or `git merge-base HEAD origin/<base>` without
    `gh`. A squash merge puts the base's commits on the default branch under
    new hashes; this replays only this branch's own commits. Base moved:
-   `git rebase origin/<base>`.
+   `git rebase <base>` when the local base is ahead of `origin/<base>` (a
+   review fix that is not pushed yet), else `git rebase origin/<base>`.
 2. On a conflict, stop and show it; do not resolve it by picking a side.
-3. Run the project's verification commands from its `CLAUDE.md`.
-4. Ask before pushing: the push replaces the branch on the remote. Only after
-   the user agrees, `git push --force-with-lease`, on this branch only.
-5. Base merged: `gh pr edit --base <default>` (GitHub may have done it
-   already). Then regenerate the body and the posted self-review comments
-   from the new diff, without the `Stacked on` line, and show them as step 5
-   does.
+3. Run the push checks on this branch. When the local base is ahead, switch
+   to it, run them there too, and switch back.
+4. Ask one time before pushing: the push replaces the branch on the remote.
+   When the local base is ahead, the same question names its push too. Only
+   after the user agrees, push the base with `git push origin <base>` (a
+   fast-forward, never forced), then this branch with
+   `git push --force-with-lease`.
 
-Name the pull requests stacked on this one (`gh pr list --base <branch>`):
-each needs `/mochi:pr` on its branch to restack it in turn.
+After either path:
+
+- Base merged: `gh pr edit --base <default>` (GitHub may have done it
+  already). Then regenerate the body and the posted self-review comments
+  from the new diff, without the `Stacked on` line, and show them as step 5
+  does.
+- After the git steps, name the pull requests stacked on this one
+  (`gh pr list --base <branch>`): each needs `/mochi:pr` on its branch to
+  restack it in turn.
