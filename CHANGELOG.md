@@ -6,7 +6,10 @@ a new release where the kit is installed, run
 `claude plugin update <plugin>@negima-mochi` for each installed plugin, and
 restart Claude Code.
 
-## 1.2.0 — unreleased
+## 1.2.0 — 2026-11-20
+
+Mochi writes shorter and plainer text, and handles stacked pull requests and
+CI checks better.
 
 ### mochi
 
