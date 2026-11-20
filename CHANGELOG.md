@@ -6,7 +6,7 @@ a new release where the kit is installed, run
 `claude plugin update <plugin>@negima-mochi` for each installed plugin, and
 restart Claude Code.
 
-## 1.3.0 — unreleased
+## 1.3.0 — 2026-11-20
 
 The banner shows which mochi release runs and which plugins have an update.
 The test suite of the kit is smaller, and a release check costs two fifths
