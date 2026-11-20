@@ -22,6 +22,7 @@ X
 cat > package.json <<'X'
 { "name": "shop", "private": true, "type": "module", "scripts": { "test": "bash scripts/test.sh" } }
 X
+source "$(dirname "${BASH_SOURCE[0]}")/npmrc.sh"
 cat > scripts/test.sh <<'X'
 #!/usr/bin/env bash
 # Runs the tests and keeps a log of each run.

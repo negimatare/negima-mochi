@@ -18,6 +18,7 @@ X
 cat > package.json <<'X'
 { "name": "orders", "private": true, "scripts": { "knip": "node scripts/knip.mjs" }, "dependencies": { "left-pad": "^1.3.0", "react": "^19.0.0", "react-dom": "^19.0.0" } }
 X
+source "$(dirname "${BASH_SOURCE[0]}")/../_shared/npmrc.sh"
 cat > CLAUDE.md <<'X'
 # Orders
 

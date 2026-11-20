@@ -6,6 +6,7 @@ git config user.name eval && git config user.email eval@example.invalid
 cat > package.json <<'X'
 { "name": "orders", "private": true, "type": "module", "scripts": { "test": "node --test", "lint": "node scripts/lint.mjs" } }
 X
+source "$(dirname "${BASH_SOURCE[0]}")/../_shared/npmrc.sh"
 mkdir -p src scripts
 cat > scripts/lint.mjs <<'X'
 // Fails when a source file still has a console.log.

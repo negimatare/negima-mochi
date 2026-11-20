@@ -227,6 +227,20 @@ steps before these calls, and the behaviour of the kit when the calls fail.
   the sandbox can read, for example the git from Homebrew, at the start of
   `PATH`. The
   `git-worked` grader of each case fails a run that used the shim.
+- The cases need Node 22.18 or later to run the `.ts` tests. Below your home
+  folder, the sandbox can read only the folders on `PATH`. A Node from a
+  version manager, for example mise or nvm, keeps npm in `lib/`. Its
+  `bin/npm` is only a link or a wrapper that starts that npm, so the sandbox
+  blocks npm. Put the root folder of that Node on `PATH` too:
+
+  ```sh
+  node_root=$(dirname "$(dirname "$(node -p process.execPath)")")
+  PATH="$node_root:$node_root/bin:$PATH" claude plugin eval …
+  ```
+
+  The eval run does not keep other environment variables. Thus each fixture
+  with npm scripts sources `evals/_shared/npmrc.sh`, which writes an
+  `.npmrc` that npm can use in the sandbox.
 - Run the evals from a path that has only ASCII characters. In a folder with
   other characters in its name, Claude puts quotes around the paths in the
   commands that it runs. This breaks graders that look for a command line, for example
