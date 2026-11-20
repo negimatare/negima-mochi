@@ -125,8 +125,8 @@ the Why that names the known gap, and show the body again before you post.
 
 When the diff changes markup or styles (templates, components, HTML, CSS)
 and the user gave no images, offer in the reply to add a before and an
-after screenshot. Whenever the body has screenshots, tell the user to check
-that the images show no customer data.
+after screenshot. With that offer, and whenever the body has screenshots,
+tell the user to check that the images show no customer data.
 
 Show the title, the body word for word with its image references, and the
 candidate comments in the reply. Ask which candidates to post, and ask the
