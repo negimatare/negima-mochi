@@ -15,8 +15,9 @@ of the 1.2.0 check, in half the time.
 ### mochi
 
 - **Versions in the banner.** The banner shows the version of each installed
-  mochi plugin, on one line. An amber `↑` marks a plugin that is older than
-  the latest GitHub release. The banner gets the latest release from the
+  mochi plugin, on one line. An orange `↑` marks a plugin that is older than
+  the latest GitHub release, and the end of the line shows that release, for
+  example `↑ 1.3.0 latest`. The banner gets the latest release from the
   GitHub API, one time in 12 hours at most. `MOCHI_UPDATE_CHECK=0` stops
   this request.
 
