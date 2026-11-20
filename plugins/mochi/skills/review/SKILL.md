@@ -20,15 +20,18 @@ ask for what has a default.
   against its merge base with `origin/<baseRefName>`, not the default
   branch. Reviewers read the working tree, so if the PR's head branch is not
   checked out, ask the user before running `gh pr checkout <n>`.
-- **Branch name**: diff it against its merge base with the default branch, or
-  with the base branch the arguments name (a part stacked on another one).
+- **Branch name**: when the branch has an open pull request
+  (`gh pr view <branch> --json number,state,baseRefName,author`), review it
+  as that pull request, against `origin/<baseRefName>`. Otherwise diff it
+  against its merge base with the default branch, or with the base branch
+  the arguments name (a part stacked on another one).
 - **Nothing**: the current branch against the default branch, plus uncommitted
   changes. When the current branch has an open pull request
   (`gh pr view --json number,state,baseRefName,author`), review it as that
-  pull request, against `origin/<baseRefName>`. When no commit is ahead of the default branch, the change is only
-  the uncommitted files: before splitting them into areas, ask in one question
-  whether to review those files or to audit the code as it stands with
-  `/mochi:refactor <area>`.
+  pull request, against `origin/<baseRefName>`. When no commit is ahead of
+  the base, the change is only the uncommitted files: before splitting them
+  into areas, ask in one question whether to review those files or to audit
+  the code as it stands with `/mochi:refactor <area>`.
 - **Code as it stands** (a folder or the whole tree, with no change to diff):
   that is an audit, not a review. Point the user to `/mochi:refactor <area>`
   and stop.
@@ -37,9 +40,9 @@ Find the default branch with `git symbolic-ref refs/remotes/origin/HEAD`; never
 assume `master` or `main`. Drop every path the user put out of scope.
 
 For a pull request, compare its `author.login` with
-`gh api user --jq .login`. When `gh api user` fails, the pull request is the
-user's own. For a pull request that another person wrote, the fix round
-edits nothing (step 7).
+`gh api user --jq .login`. When `gh api user` fails, treat the pull request
+as the user's own. For a pull request that another person wrote, the fix
+round edits no file of the change (step 7).
 
 Then check that the branch is current: run `git fetch` and, when the
 checked-out branch has an upstream or is the PR's head,
@@ -148,10 +151,12 @@ Verify in depth what would block merging; the rest waits until it is picked.
 - Report `imo` and `nit` findings as the reviewer gave them, without opening
   their code now: they are confirmed in the fix round when the user picks
   them, and before they go into a pull request comment. One that reads as a
-  `must` the reviewer under-graded is checked now, like a `must`. A missing
-  test for a rare-path guard is not under-graded: the test reviewer's
-  "Severity" makes it a `nit` at most. The
+  `must` the reviewer under-graded is checked now, like a `must`. The
   mechanism check below still applies to the fix each of them proposes.
+- A missing test for a rare-path guard is 🔵 Minor at most, whatever the
+  reviewer called it: the "Severity" section of
+  `${CLAUDE_PLUGIN_ROOT}/agents/test-reviewer.md` defines a rare path. It is
+  not an under-graded `must`.
 - When a `must` finding says a test cannot fail or a guard has no test, and the
   project's `CLAUDE.md` gives a test command that runs that test without a
   build or a service, prove it. First run only the tests of that file as
@@ -167,9 +172,11 @@ Verify in depth what would block merging; the rest waits until it is picked.
 - Merge findings that point at the same line and the same problem; keep the
   highest severity.
 - Drop a new finding that matches a `[~]` line in the findings file: the
-  same path and the same problem, at any line. Its dropped line names the
-  match, for example `matches skipped W-1`. The `[~]` line stays as it is,
-  until the user reopens it. Do not give the `[~]` lines to the reviewers.
+  same path and the same problem, at any line, and a grade no higher than
+  the skipped one. Its dropped line names the match, for example
+  `matches skipped W-1`. A match with a higher grade is reported, and names
+  the `[~]` line it matches. The `[~]` line stays as it is, until the user
+  reopens it. Do not give the `[~]` lines to the reviewers.
 - A finding that only says "a sibling does it differently" is not a finding.
 - When a fix brings in a mechanism (a guard, a file layout, a library, a
   pattern), look for how the codebase already handles the same case. If it
@@ -187,7 +194,7 @@ consequence in the code:
 | Grade | From | When |
 |---|---|---|
 | 🔴 Critical | `must` | A security hole, data loss, or a crash or wrong result on a path most users take. |
-| 🟠 High | `must` | Any other `must`: wrong behaviour on a narrower path, a behaviour that matters left unprotected (not a rare-path guard: see the test reviewer's "Severity"), code or a comment that misleads. |
+| 🟠 High | `must` | Any other `must`: wrong behaviour on a narrower path, a behaviour that matters left unprotected, code or a comment that misleads. |
 | 🟡 Medium | `imo` | Real risk or debt that breaks nothing today. |
 | 🔵 Minor | `nit` | Optional polish. |
 
@@ -221,19 +228,21 @@ findings of every area per grade; update it with the checkboxes.
 Then show the user, in this order: one line on what the area does well, the
 `Open:` counts, the findings grouped 🔴 Critical → 🟠 High → 🟡 Medium →
 🔵 Minor with each line starting with its grade, and the dropped findings in
-one line each. In the first area's report of the session only, say in one
-line that the Medium and Minor findings are as the reviewers reported them
-and are checked against the code before any is fixed. Later reports leave it
-out, by the "Give a caveat one time" rule of
+one line each. In the first report of the session that has a Medium or
+Minor finding, say in one line that the Medium and Minor findings are as the
+reviewers reported them and are checked against the code before any is
+fixed. Later reports leave it out, by the "Give a caveat one time" rule of
 `${CLAUDE_PLUGIN_ROOT}/principles.md`. Do not paste the reviewers' full
 output.
 
 ## 7. Fix round
 
-On a pull request that another person wrote, edit no file. Offer the comment
-of step 8 instead, with the findings that the user picks.
+On a pull request that another person wrote, edit no file outside
+`.reviews/`. Offer the comment of step 8 instead, with the findings that the
+user picks.
 
-Otherwise, fix what the user picks, offering the Critical and High findings first.
+Otherwise, fix what the user picks, offering the Critical and High findings
+first.
 Before fixing a Medium or Minor finding, confirm it as step 5 does for a
 `must`; one that does not hold is marked `[~]` with the reason. After
 the fixes, run the verification commands listed in the project's `CLAUDE.md`,
@@ -243,8 +252,9 @@ the next area only when the user says so.
 ## 8. Comment on the pull request
 
 When the change is a pull request, end the report by offering once to post
-the open findings on it as one comment. The comment holds the scope reviewed,
-one line on what works, then the findings grouped by grade like the report,
+the open findings on it as one comment, or the ones that the user picks.
+The comment holds the scope reviewed, one line on what works, then the
+findings grouped by grade like the report,
 each with its ID, `path:line`, problem, and fix, and anything the pull request
 description gets wrong. Confirm each Medium or Minor finding it includes,
 as the fix round does, unless you already confirmed it in this session, and

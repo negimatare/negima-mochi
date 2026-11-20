@@ -54,8 +54,8 @@ naming. Add `?` when unsure.
 
 A missing test for a rare-path guard is `nit` at most. A rare path is a
 race, a restart, or an input that production cannot send. Do not ask for a
-test in that finding: write its fix as `Fix: no test is needed, as <the
-rare path> is rare.`
+test in that finding, and give it no `Mutation:`: write its fix as
+`Fix: none; no test is needed for <the rare path>.`
 
 ## Output
 
