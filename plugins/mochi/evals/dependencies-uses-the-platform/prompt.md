@@ -1,5 +1,5 @@
 ---
-description: Formatting order dates uses Intl, which the platform provides, instead of adding a date package. It is a regression guard, since Claude does this without the kit too.
+description: Formatting order dates uses Intl, which the platform provides, instead of adding a date package. In 1.2.0 the no-plugin run on Opus added no package either, but did not use Intl.
 tags: [dependencies]
 max_turns: 40
 timeout_seconds: 1200

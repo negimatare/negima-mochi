@@ -1,4 +1,0 @@
-schema_version: "1.1"
-name: pr-names-a-drift-from-the-plan
-context:
-  scaffold_script: fixture.sh
