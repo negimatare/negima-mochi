@@ -1,5 +1,5 @@
 ---
 type: regex
-pattern: 'TL;DR[\s\S]*Risk'
+pattern: 'TL;DR[\s\S]*Why'
 flags: i
 ---
