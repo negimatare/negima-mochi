@@ -115,11 +115,11 @@ The page also shows all links in a table.
   session shows a banner from one of the reviewer monitors. To hide the
   banner, set `MOCHI_BANNER=0`.
 - The banner shows the version of each mochi plugin that is installed for the
-  project, on one line. When a newer release is on GitHub, an orange `↑`
+  project, on one line. When a newer release is on GitHub, a bold orange `↑`
   follows each older plugin, and the end of the line shows the version of
-  that release, for example `↑ 1.3.0 latest`. To get the latest release, the banner sends one
-  request to the GitHub API each 12 hours at most. To stop this request, set
-  `MOCHI_UPDATE_CHECK=0`.
+  that release, for example `↑ 1.x.0 latest`. To get the latest release, the
+  banner sends one request to the GitHub API each 12 hours at most. To stop
+  this request, set `MOCHI_UPDATE_CHECK=0`.
 - The principles set how Claude writes. The text that mochi owns, for
   example plans, commit messages and pull requests, is in
   [STE](https://www.asd-ste100.org/), in a UK English tone. A code comment is the

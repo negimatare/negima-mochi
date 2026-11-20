@@ -182,7 +182,7 @@ reports only part of the suite.
 
 Add `--json` to each release run, with a new file name for each run, a
 rerun too, for example
-`--json ./plugins/mochi/evals/results/release-1.3.0/opus-1.json`. The tool
+`--json ./plugins/mochi/evals/results/release-1.x.0/opus-1.json`. The tool
 writes a relative path below the current folder, not below the plugin. The
 results folder is git-ignored, so then add all the runs of the release to
 the history in git:
@@ -323,13 +323,13 @@ steps before these calls, and the behaviour of the kit when the calls fail.
 2. In a pull request, set the same version in the three
    `.claude-plugin/plugin.json` files. Replace "unreleased" in the
    `CHANGELOG.md` heading with the date, for example
-   `## 1.3.0 — 2026-11-21`.
-3. Before you merge, run `node scripts/release-notes.mjs 1.3.0`. It shows
+   `## 1.x.0 — YYYY-MM-DD`.
+3. Before you merge, run `node scripts/release-notes.mjs 1.x.0`. It shows
    the release notes, or the problem that stops them.
 4. After the merge, tag the merge commit on `main` and push the tag:
 
    ```bash
-   git tag v1.3.0 && git push origin v1.3.0
+   git tag v1.x.0 && git push origin v1.x.0
    ```
 
 The GitHub workflow `Release` then checks that the tag is on `main`, runs

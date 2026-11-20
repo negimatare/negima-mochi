@@ -77,7 +77,10 @@ Then read what the branch already decided, when the files exist:
 ## 3. Write the body
 
 For a reviewer who arrives from a notification, the body has two sections,
-and a Screenshots table after them when the user gives images:
+and a Screenshots table after them when the user gives images. Without a
+repo template, fill `${CLAUDE_SKILL_DIR}/assets/pr-body.md`, and keep its
+headings and its footer. With a repo template, fill the repo template, and
+add only the footer of `pr-body.md`:
 
 - **TL;DR** — one or two sentences: what changes for whom. Add the link to
   the request, when there is one.
@@ -92,15 +95,14 @@ and a Screenshots table after them when the user gives images:
   Each image reference uses the absolute path of its image, in `<...>` when
   the path has a space: `![Before](</path/to/before.png>)`. In a
   regenerated body, keep the image URLs from `gh pr view --json body`.
+  Without images, remove the section.
+- **Footer** — the rule and the `🍁 Generated with` line of `pr-body.md`,
+  at the end of each body. It replaces any other "Generated with" line.
 
 Add no other section: no risk, reading order, review asks, test plan or
 links. An open decision is a candidate comment (step 4). Step 5 owns an open
 🟠 High or 🔴 Critical finding. Do not give a manual test checklist, in the
 body or in the reply.
-
-A stacked pull request starts with one line above the TL;DR:
-`Stacked on #<base PR> (part <n> of <total>). Merge it first.` Without `gh`,
-name the base branch instead of the number.
 
 **Title**: the commit header that a squash merge will use — the same rules
 as the `commit` skill (Conventional Commits, imperative, lowercase, ticket ID
@@ -174,7 +176,8 @@ the pull request and prints its URL: take the URL from the output, and
 attach the missing image with `gh pr edit <number> --attach`.
 Report the URL, and run `gh pr ready <number>` when the user says it is ready.
 At squash merge, the final commit message is the PR title, and the extended
-description is the body's Why plus any footer, per the `commit` skill.
+description is the body's Why plus any commit footer (`BREAKING CHANGE:`,
+`Refs:`), per the `commit` skill. It never gets the `🍁` line.
 
 When the change or the facts move later, regenerate the whole body and the
 picked comments from the new diff — do not patch one sentence and leave the
@@ -199,10 +202,9 @@ First switch to the base, run `gh stack view --short`, and switch back:
   from the bottom to the top. Give URLs, never branch names: `link` pushes
   the branches that it gets as names.
 
-When `init` or `add` fails, report the error, keep the `Stacked on` line,
-and use the git steps of step 6 for this stack. When only `link` fails,
-report it: the local stack still restacks, and each PR keeps its
-`Stacked on` line.
+When `init` or `add` fails, report the error, and use the git steps of
+step 6 for this stack. When only `link` fails, report it: the local stack
+still restacks, and each PR shows its base branch.
 
 ## 6. Restack
 
@@ -256,8 +258,7 @@ After either path:
 
 - Base merged: `gh pr edit --base <default>` (GitHub may have done it
   already). Then regenerate the body and the posted self-review comments
-  from the new diff, without the `Stacked on` line, and show them as step 5
-  does.
+  from the new diff, and show them as step 5 does.
 - After the git steps, name the pull requests stacked on this one
   (`gh pr list --base <branch>`): each needs `/mochi:pr` on its branch to
   restack it in turn.
