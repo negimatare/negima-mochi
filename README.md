@@ -46,8 +46,8 @@ where it must stop for your decision.
    tests, hygiene and the conventions of your stack. For a small area, one
    quick reviewer does the first three. Each finding has a grade: 🔴 Critical,
    🟠 High, 🟡 Medium or 🔵 Minor. You select the findings to fix.
-6. **Pull request.** Run `/mochi:pr`. It writes a short body, a TL;DR and
-   the reasons, and it opens the pull request as a draft.
+6. **Pull request.** Run `/mochi:pr`. It writes a short body with a TL;DR
+   and the reasons, and it opens the pull request as a draft.
 
 ---
 

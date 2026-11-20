@@ -305,8 +305,8 @@ Each finding has a [grade](#grades). The report shows the most severe findings
 first. Claude saves the findings in `.reviews/REV-<date>-<pr number>.md`, so
 that a later session can continue the review. Before the pull request exists,
 the file uses the branch name in place of the number. A finding that you skip
-stays skipped when Claude reviews the area again. To get it back, tell Claude
-to open it again.
+stays skipped when Claude reviews the area again, unless the new finding has a
+higher grade. To get it back, tell Claude to open it again.
 
 For a pull request, Claude offers to post the open findings as one comment.
 **You approve the comment** before Claude posts it. When findings are
@@ -318,9 +318,9 @@ above the package can be for a different app.
 
 Build does the review step itself. Use `/mochi:review` alone for work that
 build did not make, for example a pull request from a team member. On a pull
-request that a different person wrote, Claude changes no file. It offers to
-post the findings as a comment. To examine code without a change, use
-`/mochi:refactor`.
+request that a different person wrote, Claude changes no file of the pull
+request. It offers to post the findings as a comment. To examine code without
+a change, use `/mochi:refactor`.
 
 ### Grades
 
@@ -331,12 +331,14 @@ against the code first:
 | Grade | Description | In a refactor audit |
 |---|---|---|
 | 🔴 Critical | A security hole, data loss, or a crash or wrong result on a path that most users take. It blocks the merge. | Bugs only |
-| 🟠 High | Wrong behaviour on a narrower path, an important behaviour without a test, or code that gives a wrong idea. A missing test for a race, a restart or an input that production cannot send is Minor at most. It blocks the merge. | Bugs, and candidates that make a bug likely in data, money or access, or that make each change more difficult |
+| 🟠 High | Wrong behaviour on a narrower path, an important behaviour without a test, or code that gives a wrong idea. It blocks the merge. | Bugs, and candidates that make a bug likely in data, money or access, or that make each change more difficult |
 | 🟡 Medium | Real risk or debt that breaks nothing now. | Other candidates |
 | 🔵 Minor | Optional improvement. | The "later" list |
 
 The findings file starts with the number of open findings for each grade, for
-example `Open: 🔴 0 · 🟠 2 · 🟡 5 · 🔵 3`. A problem copied from current code
+example `Open: 🔴 0 · 🟠 2 · 🟡 5 · 🔵 3`. A missing test for a race, a
+restart or an input that production cannot send is Minor at most, and its fix
+says that no test is needed. A problem copied from current code
 gets the grade of its effect in the change, as if the code was new. A `?` at
 the end, as in `🟡 Medium?`, marks a finding that the code alone cannot
 confirm. An example is a finding that depends on the size of a table.
@@ -349,11 +351,12 @@ location where the code is different from the plan, and why. The pull
 request template of your repository wins over these two sections.
 
 The command lists candidate self-review comments, one line for each open
-decision or difference from the plan. It writes only the comments that you
-select. When a High or Critical finding is still open, Claude offers to fix
-it before the pull request opens.
+decision or difference from the plan that shows at one line. It writes only
+the comments that you select. When a High or Critical finding is still open,
+Claude offers to fix it before the pull request opens. If you decline, the
+reasons name the gap.
 
-When the diff changes markup or styles, Claude offers to add a before and an
+When the diff changes markup or styles, Claude asks you for a before and an
 after screenshot. Make sure that the images show no customer data. With the
 images, the body gets a Before and After table, and `gh` uploads the files.
 

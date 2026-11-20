@@ -200,8 +200,8 @@ The `smoke` tag marks the case with the lowest cost in `mochi` and in
   - Packed refs make a commit to `main` create a `refs/heads/main` file,
     which `file_exists` can see.
 - **The `pr` cases for a UI change** use `evals/_shared/cart-summary.sh`.
-  This script adds a pushed branch that changes the markup of a component to
-  the `shop-lib.sh` repository.
+  This script adds a pushed branch to the `shop-lib.sh` repository. The branch
+  changes the markup of a component.
 
 ### Plugins in a case
 

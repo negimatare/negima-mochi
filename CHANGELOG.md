@@ -35,20 +35,24 @@ restart Claude Code.
   that tidy deletes.
 - `/mochi:pr` writes a body of two sections: a TL;DR and a Why. The Why
   names each location where the code is different from the plan, and why.
-  The Risk, How to review, Review asks, Test plan and Links sections go.
+  The body has no Risk, How to review, Review asks, Test plan or Links
+  section.
 - `/mochi:pr` lists candidate self-review comments in one line each, and
-  writes only the ones that you select. An open High or Critical finding is
-  not in the body: Claude offers to fix it first.
-- When the diff changes markup or styles, `/mochi:pr` offers before and after
-  screenshots, and attaches them with `gh pr create --attach`.
+  writes only the ones that you select. An open High or Critical finding
+  comes first: Claude offers to fix it. If you decline, the Why names the
+  gap.
+- When the diff changes markup or styles, `/mochi:pr` asks you for before and
+  after screenshots, and attaches them with `gh pr create --attach`. It tells
+  you to check that the images show no customer data.
 - `/mochi:review` compares a pull request, and a branch with an open pull
   request, with the base of the pull request. On a pull request that a
-  different person wrote, the fix round changes no file.
+  different person wrote, the fix round changes no file of the pull request.
 - A missing test for a race, a restart or an input that production cannot
-  send is 🔵 Minor at most, and its fix says that no test is needed.
-- A finding that you skipped stays skipped when the area is reviewed again.
-- When a change edits two deployables, the plan asks if they deploy together
-  before it adds a compatibility step.
+  send is Minor at most, and its fix says that no test is needed.
+- A finding that you skipped stays skipped when the area is reviewed again,
+  unless the new finding has a higher grade.
+- When a change edits two deployables, the plan asks if they deploy together.
+  When they do, the plan has no compatibility step.
 - Mochi asks before it runs a migration or changes local infrastructure.
 
 ## 1.1.0 — 2026-11-18
