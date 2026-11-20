@@ -1,5 +1,5 @@
 ---
-description: A review of part 2 of a stack, which the user starts, finds a High bug in a line that part 1 added, while part 2 has a change that is not committed. It fixes the bug on part 2's branch, leaves part 1's branch alone, and says why the fix is not on part 1. It is a regression guard, since the review did not switch branches for a fix before the owning-part rule.
+description: A review of part 2 of a stack, which the user starts, finds a High bug in a line that part 1 added, while part 2 has a change that is not committed. It fixes the bug on part 2's branch, leaves part 1's branch alone, and says why the fix is not on part 1.
 tags: [review]
 max_turns: 60
 timeout_seconds: 1500
