@@ -16,8 +16,12 @@ The user's notes: `$ARGUMENTS`
 - The branch is pushed and up to date with its upstream. If not, ask before
   pushing — publishing is the user's call. A stacked branch that has
   diverged from its upstream is restacked instead (below). Run the
-  **push checks** before each push that this skill makes: the project's
-  verification commands from its `CLAUDE.md`.
+  **push checks** before each push that this skill makes, because each push
+  feeds a pull request that exists or that this skill opens: the project's
+  verification commands from its `CLAUDE.md`, and its "Before a push to an
+  open PR" list. A failure stops the push: name the command that failed,
+  and push only when the user says so. When the `CLAUDE.md` has no such
+  list, say so one time and suggest `/mochi:setup-project`.
 - The base is the argument, else the default branch
   (`gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`), and it
   differs from the current branch. A base other than the default branch is

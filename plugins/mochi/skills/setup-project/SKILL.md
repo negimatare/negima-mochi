@@ -40,6 +40,11 @@ Read, do not ask:
   Makefile targets) and what each really runs. Watch for traps such as a
   solution-style `tsconfig.json` (`"files": []` plus references), where a bare
   `tsc --noEmit` checks nothing.
+- **CI before a push**: the jobs in `.github/workflows/` that run on
+  `pull_request`. Their local commands that the verification commands do not
+  already run go into the file as "Before a push to an open PR". Leave out
+  deploy steps, steps that need a secret, and steps that need a service, and
+  note each job that cannot run locally.
 - **Build targets** when there is no single build command.
 - **Path aliases** in `tsconfig*.json` and bundler configs, and whether they
   must stay in sync across files.
@@ -104,7 +109,8 @@ after they agree.
 
 ## 5. Prove it
 
-Run every verification command the file lists, from the folder it names, and
+Run every verification command the file lists, and each command of its
+"Before a push to an open PR" list, one time, from the folder it names, and
 report the result. A command that fails or does not exist goes back to the
 user before the file is final.
 

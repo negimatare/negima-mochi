@@ -20,6 +20,18 @@ Run from this folder before calling a change done:
 
 <Build targets, if there is no single build command.>
 
+## Before a push to an open PR
+
+The commands of the `pull_request` CI jobs that Verification does not run.
+Run them and Verification before each push to a branch with an open pull
+request:
+
+```bash
+<command>   # <CI job>
+```
+
+<Each job that cannot run locally, and why: a deploy, a secret, a service.>
+
 ## Dead-code check
 
 Run from this folder by reviews and audits, not part of verification:
