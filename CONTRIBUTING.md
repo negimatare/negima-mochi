@@ -135,9 +135,18 @@ Each plugin has an eval suite in its `evals/` folder. Run it with
 The workflow cases send the text that a user types. The reviewer cases call
 the reviewer directly, to test the agent alone.
 
-When you change the behaviour of a skill or an agent, add or update a case
-that fails on the old version. No check enforces this rule, but it is how a
-kit change gets a test.
+When you change the behaviour of a skill or an agent, add or update a
+grader that fails on the old version. No check enforces this rule, but it is
+how a kit change gets a test. Each new case makes all later changes slower
+and more expensive, so:
+
+- Add a new case only when a regression is likely and costly: a push, a
+  force-push, a loss of data, or work on the wrong branch.
+- For any other rule, add a grader to an existing case that already gets to
+  that step of the workflow.
+- In a review of a kit change, a missing case for a narrow guard (a rule for
+  one rare input or state) is `imo` (Medium) at most, not `must`. A guard
+  of a push, a force-push, data or the branch is the exception.
 
 Each run is a real model call. The cost goes to your API or cloud account, or
 counts against your plan. Pin the two models, so that a model update does not
