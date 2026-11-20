@@ -51,7 +51,7 @@ const fresh = (version) => ({ checkedAt: Date.now(), version });
 const readCache = (dirs) => JSON.parse(readFileSync(join(dirs.data, CACHE), 'utf8'));
 
 test('a newer release adds the arrow, by number and not by text', () => {
-  assert.match(versionLine(run(setUp({ cache: fresh('1.10.0') }))), /Mochi 1\.2\.0 ↑.*  ↑ 1\.10\.0$/);
+  assert.match(versionLine(run(setUp({ cache: fresh('1.10.0') }))), /Mochi 1\.2\.0 ↑.*  ↑ 1\.10\.0 latest$/);
 });
 
 test('the same or an older release adds no arrow', () => {
@@ -117,7 +117,7 @@ test('the arrow marks only the plugin that is older than the release', () => {
       },
     }),
   });
-  assert.equal(versionLine(run(dirs)).match(/Mochi 1\.2\.0.*/)[0], 'Mochi 1.2.0 · React 1.1.0 ↑  ↑ 1.2.0');
+  assert.equal(versionLine(run(dirs)).match(/Mochi 1\.2\.0.*/)[0], 'Mochi 1.2.0 · React 1.1.0 ↑  ↑ 1.2.0 latest');
 });
 
 test('an installed_plugins.json of version 1 still shows the banner', () => {

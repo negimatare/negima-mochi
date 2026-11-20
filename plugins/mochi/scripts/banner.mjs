@@ -200,7 +200,8 @@ const versionLine =
       const text = paint('2', `${label(plugin)} ${version}`);
       return latest && isOlder(version, latest) ? `${text} ${paint(`1;${ORANGE}`, '↑')}` : text;
     })
-    .join(paint('2', ' · ')) + (outdated.length ? `  ${paint(`1;${ORANGE}`, '↑')}${paint(ORANGE, ` ${latest}`)}` : '');
+    .join(paint('2', ' · ')) +
+  (outdated.length ? `  ${paint(`1;${ORANGE}`, '↑')}${paint(ORANGE, ` ${latest} `)}${paint(`3;${ORANGE}`, 'latest')}` : '');
 const right = [
   boldItalic('N E G I M A   M O C H I'),
   ...(versionLine ? [versionLine] : []),
