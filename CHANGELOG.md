@@ -32,7 +32,7 @@ update is out. Release checks of the kit cost less and take less time.
 - **Versions in the banner.** The banner shows the version of each installed
   mochi plugin. A bold orange `↑` marks a plugin that is older than the
   latest release, and the line ends with that release, for example
-  `↑ 1.3.0 latest`. The banner checks GitHub one time in 12 hours at most.
+  `↑ 1.x.0 latest`. The banner checks GitHub one time in 12 hours at most.
   To stop the check, set `MOCHI_UPDATE_CHECK=0`.
 
 ### For contributors
