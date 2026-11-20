@@ -347,7 +347,8 @@ command restacks the branch when the part below changes or merges, as
 
 - Build and fix-bug commit through one internal step. This step pulls first
   and adds files by explicit path. Then it runs the verification commands. It
-  writes a Conventional Commits message that gives the reason for the change.
+  writes a Conventional Commits message that gives the reason for the change,
+  in STE and UK English. A commit guideline in your `CLAUDE.md` wins.
 - On the default branch, the first commit makes a feature branch with the
   name `<type>/<slug>`, for example `feat/csv-export`. For a stacked part, the
   first commit makes the branch from the part below.

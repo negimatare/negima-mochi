@@ -6,6 +6,22 @@ a new release where the kit is installed, run
 `claude plugin update <plugin>@negima-mochi` for each installed plugin, and
 restart Claude Code.
 
+## 1.2.0 — unreleased
+
+### mochi
+
+- Mochi writes its own text in
+  [ASD-STE100 Simplified Technical English](https://www.asd-ste100.org/)
+  and UK English: plans, audits, findings files, pull request text, commit
+  messages, and a new `CLAUDE.md`. Identifiers, file paths and quoted text
+  stay exact. A file that mochi does not own keeps its language, and a rule
+  in your `CLAUDE.md` wins.
+- Replies answer what you asked and stop there. A caveat comes one time, not
+  in each later summary.
+- A code comment is the last resort. The tidy step deletes a comment that
+  restates the code or warns "do not change", and makes the code say it with
+  a name or a constant. A comment that gives a why stays.
+
 ## 1.1.0 — 2026-11-18
 
 Reviews, plans, and builds cost less.
