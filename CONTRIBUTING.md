@@ -199,6 +199,9 @@ The `smoke` tag marks the case with the lowest cost in `mochi` and in
   - `npm test` writes a line to `.eval/test-runs.log` for each run.
   - Packed refs make a commit to `main` create a `refs/heads/main` file,
     which `file_exists` can see.
+- **The review cases for a stack** use `evals/_shared/order-exports-stack.sh`.
+  This script adds two stacked branches to the `shop-lib.sh` repository.
+  Part 2 calls a function of part 1 that has a bug.
 - **The `pr` cases for a UI change** use `evals/_shared/cart-summary.sh`.
   This script adds a pushed branch to the `shop-lib.sh` repository. The branch
   changes the markup of a component.
