@@ -15,13 +15,17 @@ ask for what has a default.
 
 ## 1. Resolve the change
 
-- **PR number or URL**: `gh pr view <n> --json number,baseRefName,headRefName`.
-  Reviewers read the working tree, so if the PR's head branch is not checked
-  out, ask the user before running `gh pr checkout <n>`.
+- **PR number or URL**:
+  `gh pr view <n> --json number,baseRefName,headRefName,author`. Diff it
+  against its merge base with `origin/<baseRefName>`, not the default
+  branch. Reviewers read the working tree, so if the PR's head branch is not
+  checked out, ask the user before running `gh pr checkout <n>`.
 - **Branch name**: diff it against its merge base with the default branch, or
   with the base branch the arguments name (a part stacked on another one).
 - **Nothing**: the current branch against the default branch, plus uncommitted
-  changes. When no commit is ahead of the default branch, the change is only
+  changes. When the current branch has an open pull request
+  (`gh pr view --json number,state,baseRefName,author`), review it as that
+  pull request, against `origin/<baseRefName>`. When no commit is ahead of the default branch, the change is only
   the uncommitted files: before splitting them into areas, ask in one question
   whether to review those files or to audit the code as it stands with
   `/mochi:refactor <area>`.
@@ -31,6 +35,11 @@ ask for what has a default.
 
 Find the default branch with `git symbolic-ref refs/remotes/origin/HEAD`; never
 assume `master` or `main`. Drop every path the user put out of scope.
+
+For a pull request, compare its `author.login` with
+`gh api user --jq .login`. When `gh api user` fails, the pull request is the
+user's own. For a pull request that another person wrote, the fix round
+edits nothing (step 7).
 
 Then check that the branch is current: run `git fetch` and, when the
 checked-out branch has an upstream or is the PR's head,
@@ -212,7 +221,10 @@ fixed. Do not paste the reviewers' full output.
 
 ## 7. Fix round
 
-Fix what the user picks, offering the Critical and High findings first.
+On a pull request that another person wrote, edit no file. Offer the comment
+of step 8 instead, with the findings that the user picks.
+
+Otherwise, fix what the user picks, offering the Critical and High findings first.
 Before fixing a Medium or Minor finding, confirm it as step 5 does for a
 `must`; one that does not hold is marked `[~]` with the reason. After
 the fixes, run the verification commands listed in the project's `CLAUDE.md`,
