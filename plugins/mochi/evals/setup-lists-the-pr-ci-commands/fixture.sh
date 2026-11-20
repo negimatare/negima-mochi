@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # A JavaScript app whose pull_request workflow runs the tests, a link check
-# that only CI runs (it is no package script), and a preview deploy with a
+# that only CI runs (it is not a package script), and a preview deploy with a
 # secret.
 set -euo pipefail
 git init -q -b main

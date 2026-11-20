@@ -1,6 +1,6 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'check:links|check-links'
+input_match: 'node\s+(\./)?scripts/check-links\.mjs|npm run check:links'
 min: 1
 ---

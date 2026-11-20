@@ -6,4 +6,4 @@ timeout_seconds: 1200
 allowed_tools: [Read, Glob, Grep, Skill, Agent, Bash, Write, Edit]
 ---
 
-/mochi:pr feat/order-exports-1-monthly-csv Part 1's pull request is not merged. You can push both branches without asking me.
+/mochi:pr feat/order-exports-1-monthly-csv Part 1's pull request is not merged. You can push without asking me.

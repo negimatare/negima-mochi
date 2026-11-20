@@ -1,9 +1,21 @@
-# Sourced by fixture.sh, after shop-lib.sh: two stacked parts, both pushed
-# and not merged. Part 1's `euros` divides by 10, not 100, and part 2's
-# customer statement calls it, so a review of part 2 against part 1 finds a
-# High bug in a line that part 1 added. Call finish_shop after it.
+# Sourced by fixture.sh: the shop-lib.sh repository with two stacked parts,
+# both pushed and not merged. Part 1's `euros` divides by 10, not 100, and
+# part 2's customer statement calls it, so a review of part 2 against part 1
+# finds a High bug in a line that part 1 added. Call finish_shop after it.
+source "$(dirname "${BASH_SOURCE[0]}")/shop-lib.sh"
 mkdir -p .plans
 printf '.plans/\n.reviews/\n' >> .git/info/exclude
+cat > .plans/20261102-order-exports.md <<'X'
+# Order exports — split into parts
+
+Build the parts in order, each on its own branch and pull request, each
+stacked on the part before it.
+
+1. .plans/20261102-order-exports-1-monthly-csv.md — finance downloads a month's orders.
+2. .plans/20261102-order-exports-2-customer-statement.md — support gets one customer's statement. Stacked on part 1.
+
+Dropped with the user's agreement: nothing.
+X
 cat > .plans/20261102-order-exports-2-customer-statement.md <<'X'
 # Order exports: support's customer statement
 
