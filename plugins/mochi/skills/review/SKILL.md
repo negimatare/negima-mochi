@@ -156,7 +156,9 @@ Verify in depth what would block merging; the rest waits until it is picked.
 - A missing test for a rare-path guard is 🔵 Minor at most, whatever the
   reviewer called it: the "Severity" section of
   `${CLAUDE_PLUGIN_ROOT}/agents/test-reviewer.md` defines a rare path. It is
-  not an under-graded `must`.
+  not an under-graded `must`. Its fix is
+  `none; no test is needed for <the rare path>`, also when the reviewer
+  gave a test as an optional fix.
 - When a `must` finding says a test cannot fail or a guard has no test, and the
   project's `CLAUDE.md` gives a test command that runs that test without a
   build or a service, prove it. First run only the tests of that file as
