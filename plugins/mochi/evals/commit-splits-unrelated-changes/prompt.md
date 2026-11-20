@@ -1,6 +1,6 @@
 ---
 description: Committing two unrelated changes makes two commits, one per concern, staged by explicit path.
-tags: [commit]
+tags: [commit, core]
 max_turns: 30
 timeout_seconds: 900
 allowed_tools: [Read, Glob, Grep, Skill, Agent, Bash, Write, Edit]

@@ -1,6 +1,6 @@
 ---
 description: Fixing a reported rounding bug when asked to reproduces it first, makes the tests pass with the code changed, and pushes one fix commit on a fix branch, leaving main alone.
-tags: [fix-bug]
+tags: [fix-bug, core]
 max_turns: 60
 timeout_seconds: 1800
 allowed_tools: [Read, Glob, Grep, Skill, Agent, Bash, Write, Edit]

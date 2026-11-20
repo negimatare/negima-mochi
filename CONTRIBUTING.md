@@ -151,16 +151,25 @@ eval_kit() {  # eval_kit <plugin dir> [claude plugin eval options]
     --scaffold --allow-tools Bash Write Edit --no-publish "${@:2}"
 }
 
-# After you change a skill or an agent: its tagged cases, one time on each
-# model, no baseline. $0.05 to $0.70 for each case; build cases cost the most.
-eval_kit ./plugins/mochi --tag commit --runs 1 --ablation none --max-cost-usd 5
-M=claude-sonnet-5-5 eval_kit ./plugins/mochi --tag commit --runs 1 --ablation none --max-cost-usd 5
+# After you change a skill or an agent: only its new and changed cases, one
+# time on Sonnet, no baseline. $0.10 to $0.85 for each case on Opus, less on
+# Sonnet; build and review cases cost the most.
+M=claude-sonnet-5-5 eval_kit ./plugins/mochi --case 'commit-*' --runs 1 --ablation none --max-cost-usd 5
 
-# Before a release, or when the default model changes: all cases one time on
-# each model, with the no-plugin baseline on Opus. Approximately $13 for mochi.
-eval_kit ./plugins/mochi --runs 1 --max-cost-usd 20
-M=claude-sonnet-5-5 eval_kit ./plugins/mochi --runs 1 --ablation none --max-cost-usd 10
+# Before each release: the core cases, one time on each model, no baseline.
+# Approximately $12 on Opus and $6 on Sonnet for mochi.
+eval_kit ./plugins/mochi --tag core --runs 1 --ablation none --max-cost-usd 18 -j 4
+M=claude-sonnet-5-5 eval_kit ./plugins/mochi --tag core --runs 1 --ablation none --max-cost-usd 9 -j 4
+
+# Before a major version, or when the default model changes: all cases one
+# time on each model, with the no-plugin baseline on Opus. Approximately $31
+# on Opus and $10 on Sonnet for mochi, and one hour.
+eval_kit ./plugins/mochi --runs 1 --max-cost-usd 40 -j 4
+M=claude-sonnet-5-5 eval_kit ./plugins/mochi --runs 1 --ablation none --max-cost-usd 15 -j 4
 ```
+
+The cost figures come from the 1.2.0 runs. A run that stops at its cap
+reports only part of the suite.
 
 The skill guidance from Anthropic asks for a minimum of three cases for each
 skill. It also asks you to test each case on all models that the kit
@@ -187,6 +196,12 @@ A tag gives the subject of a case:
 
 The `smoke` tag marks the case with the lowest cost in `mochi` and in
 `mochi-python`.
+
+The `core` tag marks the `mochi` cases that run before each release:
+the main path of each workflow, and each case that guards a push, a
+force-push, data or the branch. A new case that guards one of these gets
+the `core` tag too. Repeated `--tag` options select the cases that have any
+of the tags.
 
 ### Shared fixtures
 

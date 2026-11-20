@@ -1,6 +1,6 @@
 ---
 description: Planning a frontend change that calls the API renders the plan view with the kit's script, with a data-flow diagram and the header before and after drawn from the product's own tokens, and stops for approval without writing code.
-tags: [plan]
+tags: [plan, core]
 max_turns: 50
 timeout_seconds: 1500
 allowed_tools: [Read, Glob, Grep, Skill, Agent, Bash, Write, Edit]
