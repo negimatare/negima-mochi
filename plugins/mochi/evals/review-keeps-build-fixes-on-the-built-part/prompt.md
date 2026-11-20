@@ -1,5 +1,5 @@
 ---
-description: A review for a build of part 2 of a stack finds a High bug in a line that part 1 added. It commits the fix on part 2's branch with the other fixes, leaves part 1's branch alone, and says that the bug came from part 1's code. It is a regression guard: it passed on Sonnet before the owning-part rule.
+description: A review for a build of part 2 of a stack finds a High bug in a line that part 1 added. It commits the fix on part 2's branch with the other fixes, leaves part 1's branch alone, and says that the bug came from part 1's code. It is a regression guard, since it passed on Sonnet before the owning-part rule.
 tags: [review, build]
 max_turns: 60
 timeout_seconds: 1500
