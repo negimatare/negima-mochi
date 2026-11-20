@@ -189,13 +189,18 @@ const [name, line] = pool[Math.floor(Math.random() * pool.length)];
 const paint = (code, text) => (plain ? text : `\x1b[${code}m${text}${RESET}`);
 const versions = installedVersions();
 const latest = await latestRelease();
-// One line keeps the text as high as the art.
-const versionLine = versions
-  .map(([plugin, version]) => {
-    const text = paint('2', `${plugin.replace(/^mochi-/, '')} ${version}`);
-    return latest && isOlder(version, latest) ? text + paint('38;2;214;140;40', '↑') : text;
-  })
-  .join(paint('2', ' · '));
+// One line keeps the text as high as the art. The arrows and the latest
+// version at the end have the same colour, so the end tells what an arrow means.
+const ORANGE = '38;2;255;140;0';
+const outdated = versions.filter(([, version]) => latest && isOlder(version, latest));
+const label = (plugin) => plugin.replace(/^mochi-/, '').replace(/^./, (letter) => letter.toUpperCase());
+const versionLine =
+  versions
+    .map(([plugin, version]) => {
+      const text = paint('2', `${label(plugin)} ${version}`);
+      return latest && isOlder(version, latest) ? `${text} ${paint(`1;${ORANGE}`, '↑')}` : text;
+    })
+    .join(paint('2', ' · ')) + (outdated.length ? `  ${paint(`1;${ORANGE}`, '↑')}${paint(ORANGE, ` ${latest}`)}` : '');
 const right = [
   boldItalic('N E G I M A   M O C H I'),
   ...(versionLine ? [versionLine] : []),

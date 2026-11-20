@@ -115,8 +115,9 @@ The page also shows all links in a table.
   session shows a banner from one of the reviewer monitors. To hide the
   banner, set `MOCHI_BANNER=0`.
 - The banner shows the version of each mochi plugin that is installed for the
-  project, on one line. When a newer release is on GitHub, an amber `↑`
-  follows each older plugin. To get the latest release, the banner sends one
+  project, on one line. When a newer release is on GitHub, an orange `↑`
+  follows each older plugin, and the end of the line shows the version of
+  that release, for example `↑ 1.3.0`. To get the latest release, the banner sends one
   request to the GitHub API each 12 hours at most. To stop this request, set
   `MOCHI_UPDATE_CHECK=0`.
 - The principles set how Claude writes. The text that mochi owns, for
