@@ -29,7 +29,8 @@ The user's notes: `$ARGUMENTS`
 - No PR exists yet (`gh pr view`). If one does, its base is the PR's
   `baseRefName`, and the steps below offer to regenerate its body and its
   posted self-review comments.
-- A stacked branch is restacked (step 6), before the steps below, when:
+- A stacked branch is restacked (step 6), before the steps below, when one
+  of these holds after a `git fetch`:
   - the base's PR is merged (`gh pr view <base> --json state,headRefOid`);
   - the base has commits this branch lacks
     (`git rev-list --count HEAD..origin/<base>`);

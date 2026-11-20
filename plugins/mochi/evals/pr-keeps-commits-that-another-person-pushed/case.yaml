@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: pr-keeps-commits-that-another-person-pushed
+context:
+  scaffold_script: fixture.sh
