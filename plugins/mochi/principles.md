@@ -115,9 +115,10 @@ Limits:
   `favoriteColor`, but the prose says "favourite colour".
 - In a file that mochi edits but does not own, keep the language of that
   file. This includes a `CLAUDE.md` that `/mochi:setup-project` refreshes.
-- A project rule wins, in the order above: for example a language in its
-  `CLAUDE.md`, or its commit guideline.
-- This rule is for the text that mochi writes. It is not a review check on
+- A project rule wins, by the order in **Where the standard comes from**: for
+  example a language in its `CLAUDE.md`, or its commit guideline.
+- This rule is for the text that mochi writes. It is not a review check: a
+  reviewer does not report US spelling, STE grammar, or sentence length in
   the user's code or text.
 
 ## Communication
