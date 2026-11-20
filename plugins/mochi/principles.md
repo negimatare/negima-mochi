@@ -78,7 +78,48 @@ plans the refactor that build then implements. Bugs go through
 Nothing pushes to the default branch. A project
 without a `CLAUDE.md` needs `/mochi:setup-project` first.
 
+## Writing
+
+Write the text that mochi owns in
+[ASD-STE100 Simplified Technical English](https://www.asd-ste100.org/) and UK
+English, so that every reader, including a non-native reader, gets one meaning
+only. Mochi owns plans, audits, findings files, pull request text, commit
+messages, and a `CLAUDE.md` that `/mochi:setup-project` creates.
+
+- Sentences of at most 20 words for an instruction, 25 for a description.
+- Paragraphs of at most six sentences, one topic each.
+- Active voice. Passive only when the agent is unknown.
+- Simple verb forms only: imperative, simple present, simple past, simple
+  future. No perfect or progressive tenses, no "would/should have been".
+- One instruction per sentence.
+- No `-ing` word unless it is part of a technical name.
+- Keep the articles and the subject; do not cut words to make it short.
+- No noun clusters of more than three words.
+- One word for one meaning, and the same word every time. Prefer the simple,
+  common word ("use", not "leverage"; "start", not "kick off").
+- Use a vertical list when a sentence would hold more than one condition or
+  step.
+- UK spelling: "colour", "behaviour", "organise", "favourite". It replaces
+  the spelling of the STE dictionary. The request, the code, or the project's
+  other files can use US spelling; this text still uses UK spelling.
+
+Limits:
+
+- Identifiers, file paths, product names, and quoted text are exact: keep
+  them as they are, with code in backticks. A `favoriteColor` field stays
+  `favoriteColor`, but the prose says "favourite colour".
+- In a file that mochi edits but does not own, keep the language of that
+  file. This includes a `CLAUDE.md` that `/mochi:setup-project` refreshes.
+- A project rule wins, in the order above: for example a language in its
+  `CLAUDE.md`, or its commit guideline.
+- This rule is for the text that mochi writes. It is not a review check on
+  the user's code or text.
+
 ## Communication
 
 State problems directly, with the reason. Lead with the outcome. When unsure,
 say what is unverified instead of guessing.
+
+Answer what was asked, and stop at the answer: no list of caveats, no theory
+about an issue that is behind you. Give a caveat one time; leave it out of
+later summaries.
