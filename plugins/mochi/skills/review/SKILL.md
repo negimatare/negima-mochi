@@ -166,6 +166,10 @@ Verify in depth what would block merging; the rest waits until it is picked.
   call count) and re-grade the finding if it is wrong.
 - Merge findings that point at the same line and the same problem; keep the
   highest severity.
+- Drop a new finding that matches a `[~]` line in the findings file: the
+  same path and the same problem, at any line. Its dropped line names the
+  match, for example `matches skipped W-1`. The `[~]` line stays as it is,
+  until the user reopens it. Do not give the `[~]` lines to the reviewers.
 - A finding that only says "a sibling does it differently" is not a finding.
 - When a fix brings in a mechanism (a guard, a file layout, a library, a
   pattern), look for how the codebase already handles the same case. If it
@@ -217,9 +221,12 @@ findings of every area per grade; update it with the checkboxes.
 Then show the user, in this order: one line on what the area does well, the
 `Open:` counts, the findings grouped 🔴 Critical → 🟠 High → 🟡 Medium →
 🔵 Minor with each line starting with its grade, and the dropped findings in
-one line each. Say in one line that the Medium and Minor findings are as the
-reviewers reported them and are checked against the code before any is
-fixed. Do not paste the reviewers' full output.
+one line each. In the first area's report of the session only, say in one
+line that the Medium and Minor findings are as the reviewers reported them
+and are checked against the code before any is fixed. Later reports leave it
+out, by the "Give a caveat one time" rule of
+`${CLAUDE_PLUGIN_ROOT}/principles.md`. Do not paste the reviewers' full
+output.
 
 ## 7. Fix round
 
