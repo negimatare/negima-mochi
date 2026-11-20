@@ -101,7 +101,7 @@ Comments on your own diff, at the line where a reviewer will get stuck:
 - Concrete before/after against the base (a line new in this PR has no
   before), and the worst case in one sentence.
 - Only diff-lifetime questions. Anything every future reader of the file
-  needs belongs in a source comment instead.
+  needs belongs in the code (a name, a constant), or else in a source comment.
 - Every review ask in the body has its comment, and every ask-type comment is
   listed under Review asks. No ask, no "Design decision" comment.
 

@@ -1,5 +1,5 @@
 ---
-description: Tidying an uncommitted loyalty module removes the comments that restate the next line or warn "do not change", keeps the one comment that gives a why (an upstream rounding bug), keeps the tests green, and commits nothing.
+description: Tidying an uncommitted loyalty module removes the comments that restate the next line or warn "do not change", keeps the one comment that gives a why (an upstream rounding bug), names the magic number with a constant, keeps the tests green, and commits nothing.
 tags: [tidy]
 max_turns: 40
 timeout_seconds: 1200

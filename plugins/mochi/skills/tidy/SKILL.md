@@ -1,6 +1,6 @@
 ---
 name: tidy
-description: Tidy the concepts the current uncommitted change touches — collapse duplication, fix naming, give each rule one home, remove dead code, consolidate tests, split oversized files — without changing behaviour, then rerun only the tests the edits could break. Use after implementing a change and before reviewing or committing it. To restructure existing code that no change touches, use /mochi:refactor.
+description: Tidy the concepts the current uncommitted change touches — collapse duplication, fix naming, remove comments that restate the code, give each rule one home, remove dead code, consolidate tests, split oversized files — without changing behaviour, then rerun only the tests the edits could break. Use after implementing a change and before reviewing or committing it. To restructure existing code that no change touches, use /mochi:refactor.
 argument-hint: "[optional: plan path or notes on what the change is for]"
 user-invocable: false
 ---
@@ -36,12 +36,13 @@ of files that fixes it, and the production subsystems it would touch.
    leaves the callers still repeating the rule is not a fix.
 2. **Naming and comments** — names that mislead, mix layers, or leak delivery
    order (step numbers, `V2`, story names). Name by capability, in the
-   project's domain vocabulary. In the change, delete a comment that restates
-   the code, warns "do not change", or names a plan step. When it says
-   something the code does not, rename, extract, or name a constant so that
-   the code says it. Keep a comment that gives a why the code cannot carry,
-   and one that the project asks for, such as a licence header or a lint
-   directive. A neighbour's comment style is no reason to keep one.
+   project's domain vocabulary. In the change, delete each comment that the
+   **Comments** section of `${CLAUDE_PLUGIN_ROOT}/principles.md` does not
+   allow: for example one that restates the code, a one-time setup note, a
+   plan-step name, or a "do not change" warning, also one that gives a reason.
+   When the deleted comment says something the code does not, rename,
+   extract, or name a constant so that the code says it. A neighbour's comment
+   style is no reason to keep one.
 3. **Shotgun surgery** — one concept (a value, a rule, a format) that forces
    edits in many places. Consolidate it behind one constant, config, or module.
 4. **Dead code** — no caller, unreachable branches, edits that cancel each

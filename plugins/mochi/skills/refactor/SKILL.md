@@ -67,8 +67,8 @@ path, the area's `CLAUDE.md` path, and the user's goal. Nothing else.
 
 While they run, apply the checks of the tidy skill
 (`${CLAUDE_PLUGIN_ROOT}/skills/tidy/SKILL.md`, section 2) to the whole area
-instead of to a change: duplication, naming, shotgun surgery, dead code,
-tests, file size.
+instead of to a change: duplication, naming and comments, shotgun surgery,
+dead code, tests, file size.
 
 Confirm the findings as `/mochi:review` does: open the cited code of every
 `must` now, and drop a finding that does not hold, saying why in one line.

@@ -41,9 +41,11 @@ A comment is the last resort. First make the code say it: a better name, an
 extracted function, a named constant. Then comment only a *why* that the code
 cannot carry, in one line: domain rationale, a workaround, the source of a
 value, an accessibility intent. No comment that restates the code, the
-function name, or the commit message. No one-time setup notes, no "do not
-change this" warnings, and no plan-step identifiers or scaffolding names in
-code.
+function name, or the commit message. No one-time setup notes, and no plan-step
+identifiers or scaffolding names in code. No "do not change this" warnings,
+also when they give a reason: a test protects what must not change. A comment
+that the project asks for, such as a licence header or a lint directive, stays
+as the project writes it.
 
 ## Tests
 
