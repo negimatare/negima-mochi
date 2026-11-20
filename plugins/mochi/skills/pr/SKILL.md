@@ -90,7 +90,7 @@ diff before using it.
 ### Language
 
 Write the body and the comments by the **Writing** section of
-`${CLAUDE_PLUGIN_ROOT}/principles.md`: STE and UK English.
+`${CLAUDE_PLUGIN_ROOT}/principles.md`: STE, in a UK English tone.
 
 ## 4. Write the self-review comments
 

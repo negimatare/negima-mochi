@@ -86,9 +86,9 @@ without a `CLAUDE.md` needs `/mochi:setup-project` first.
 ## Writing
 
 Write the text that mochi owns in
-[ASD-STE100 Simplified Technical English](https://www.asd-ste100.org/) and UK
-English, so that every reader, including a non-native reader, gets one meaning
-only. Mochi owns plans, audits, findings files, pull request text, commit
+[ASD-STE100 Simplified Technical English](https://www.asd-ste100.org/), so
+that every reader, including a non-native reader, gets one meaning only.
+Mochi owns plans, audits, findings files, pull request text, commit
 messages, and a `CLAUDE.md` that `/mochi:setup-project` creates.
 
 - Sentences of at most 20 words for an instruction, 25 for a description.
@@ -104,15 +104,15 @@ messages, and a `CLAUDE.md` that `/mochi:setup-project` creates.
   common word ("use", not "leverage"; "start", not "kick off").
 - Use a vertical list when a sentence would hold more than one condition or
   step.
-- UK spelling: "colour", "behaviour", "organise", "favourite". It replaces
-  the spelling of the STE dictionary. The request, the code, or the project's
-  other files can use US spelling; this text still uses UK spelling.
+
+The tone is UK English with a neutral, formal register: "colour",
+"organise", no slang. This is a preference, not a strict rule. A US word from
+the request or the code is not an error.
 
 Limits:
 
 - Identifiers, file paths, product names, and quoted text are exact: keep
-  them as they are, with code in backticks. A `favoriteColor` field stays
-  `favoriteColor`, but the prose says "favourite colour".
+  them as they are, with code in backticks.
 - In a file that mochi edits but does not own, keep the language of that
   file. This includes a `CLAUDE.md` that `/mochi:setup-project` refreshes.
 - A project rule wins, by the order in **Where the standard comes from**: for

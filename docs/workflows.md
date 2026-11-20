@@ -335,10 +335,10 @@ confirm. An example is a finding that depends on the size of a table.
 This command writes the body of the pull request from the final diff. The
 body has a TL;DR, the reasons, the risk, the review steps, the review
 questions and a manual test plan. The command also adds self-review comments
-at the lines with risk. Claude writes the body and the comments in STE and UK
-English. **You approve the body and the comments.** Then the
-command opens the pull request as a draft. It marks the pull request as ready
-only when you tell it to.
+at the lines with risk. Claude writes the body and the comments in STE.
+**You approve the body and the comments.** Then the command opens the pull
+request as a draft. It marks the pull request as ready only when you tell it
+to.
 
 On the branch of a stacked part, the pull request targets the part below. The
 command restacks the branch when the part below changes or merges, as
@@ -349,7 +349,7 @@ command restacks the branch when the part below changes or merges, as
 - Build and fix-bug commit through one internal step. This step pulls first
   and adds files by explicit path. Then it runs the verification commands. It
   writes a Conventional Commits message that gives the reason for the change,
-  in STE and UK English. A commit guideline in your `CLAUDE.md` wins.
+  in STE. A commit guideline in your `CLAUDE.md` wins.
 - On the default branch, the first commit makes a feature branch with the
   name `<type>/<slug>`, for example `feat/csv-export`. For a stacked part, the
   first commit makes the branch from the part below.

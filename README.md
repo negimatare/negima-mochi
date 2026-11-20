@@ -115,7 +115,7 @@ The page also shows all links in a table.
   banner, set `MOCHI_BANNER=0`.
 - The principles set how Claude writes. The text that mochi owns, for
   example plans, commit messages and pull requests, is in
-  [STE](https://www.asd-ste100.org/) and UK English. A code comment is the
+  [STE](https://www.asd-ste100.org/), in a UK English tone. A code comment is the
   last resort: Claude first makes the code clear with names.
 - Before a command adds or upgrades a package, the kit asks for permission. The
   prompt tells you the checks of the dependency policy. An install from the

@@ -70,7 +70,7 @@ Changelogs may be generated from it, so the format is strict:
   session's instructions require.
 - Never name a customer, other sensitive information, or an internal code name
   of a system — describe what it does instead.
-- STE and UK English, by the **Writing** section of
+- STE, by the **Writing** section of
   `${CLAUDE_PLUGIN_ROOT}/principles.md`. The project's own commit guideline
   wins wherever its `CLAUDE.md` names one.
 

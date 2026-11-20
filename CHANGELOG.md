@@ -11,8 +11,8 @@ restart Claude Code.
 ### mochi
 
 - Mochi writes its own text in
-  [ASD-STE100 Simplified Technical English](https://www.asd-ste100.org/)
-  and UK English. This text is plans, audits, findings files, pull request
+  [ASD-STE100 Simplified Technical English](https://www.asd-ste100.org/),
+  in a UK English tone. This text is plans, audits, findings files, pull request
   text, commit messages, and a new `CLAUDE.md`. Identifiers, file paths and
   quoted text stay exact. A file that mochi does not own keeps its language,
   and a rule in your `CLAUDE.md` wins.
