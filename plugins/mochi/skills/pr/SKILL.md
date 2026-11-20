@@ -23,13 +23,14 @@ The user's notes: `$ARGUMENTS`
   `baseRefName`. When that PR is stacked, check its base: when the base's PR is merged
   (`gh pr view <base> --json state,headRefOid`) or the base has commits this
   branch lacks (`git rev-list --count HEAD..origin/<base>`), restack it
-  (step 6). Otherwise offer to regenerate its body and the picked comments.
+  (step 6). Otherwise offer to regenerate its body and its posted
+  self-review comments.
 - When `gh` is missing or not logged in, say so once and go on: take the
   base from the argument or `git symbolic-ref refs/remotes/origin/HEAD`, and
   write the draft. Only posting needs `gh`.
 
 When the repo has a `.github/pull_request_template.md`, use its sections: a
-project rule wins over the two sections of step 3.
+project rule wins over the sections of step 3.
 
 ## 2. Gather
 
@@ -51,7 +52,8 @@ Then read what the branch already decided, when the files exist:
 
 ## 3. Write the body
 
-For a reviewer who arrives from a notification, the body has two sections:
+For a reviewer who arrives from a notification, the body has two sections,
+and a Screenshots table after them when the user gives images:
 
 - **TL;DR** — one or two sentences: what changes for whom. Add the link to
   the request, when there is one.
@@ -62,15 +64,15 @@ For a reviewer who arrives from a notification, the body has two sections:
   is, for example, a different module, a different design, or a step that
   the code does not do. When neither gives a reason, ask the user in step 5.
 - **Screenshots** — only when the user gives a before image and an after
-  image. Put a table after the Why, with a Before column and an After
-  column. Each image reference uses the absolute path of its image, in
-  `<...>` when the path has a space: `![Before](</path/to/before.png>)`. In
-  a regenerated body, keep the image URLs from `gh pr view --json body`.
+  image: a table after the Why, with a Before column and an After column.
+  Each image reference uses the absolute path of its image, in `<...>` when
+  the path has a space: `![Before](</path/to/before.png>)`. In a
+  regenerated body, keep the image URLs from `gh pr view --json body`.
 
 Add no other section: no risk, reading order, review asks, test plan or
 links. An open decision is a candidate comment (step 4). Step 5 owns an open
-🟠 High or 🔴 Critical finding. Do not give a manual test
-checklist, in the body or in the reply.
+🟠 High or 🔴 Critical finding. Do not give a manual test checklist, in the
+body or in the reply.
 
 A stacked pull request starts with one line above the TL;DR:
 `Stacked on #<base PR> (part <n> of <total>). Merge it first.` Without `gh`,
@@ -104,8 +106,8 @@ Never a settled decision, and never an open review finding: a reviewer can
 do nothing with "this PR or a follow-up?". Product or UX questions belong
 elsewhere. With no candidate, say so in one line.
 
-When the user picks a candidate, write it out at the line where a reviewer
-will get stuck, and show it before you post it:
+When the user picks a candidate, write it out at its line, and show it
+before you post it:
 
 - The first sentence is the ask: "Design decision for your opinion: …" or
   "Exception to the description: …".
@@ -117,19 +119,20 @@ will get stuck, and show it before you post it:
 ## 5. Show, then post
 
 When a 🟠 High or 🔴 Critical finding is still open, name it first, and
-offer to fix it before the pull request goes out. The body does not mention
-it. When the user declines the fix and posts, add one line to the Why that
-names the known gap.
+offer to fix it before the pull request goes out. Until the user declines
+the fix, the body does not mention it. When they decline, add one line to
+the Why that names the known gap, and show the body again before you post.
 
 When the diff changes markup or styles (templates, components, HTML, CSS)
-and the user gave no images, offer in the approval message to add a before
-and an after screenshot. Tell the user to check that the images show no
-customer data.
+and the user gave no images, offer in the reply to add a before and an
+after screenshot. Whenever the body has screenshots, tell the user to check
+that the images show no customer data.
 
-Show the title, the body, and the candidate comments in the reply. Ask which
-candidates to post, and ask for the reason of a drift that step 3 did not
-find. Post only after the user agrees. Without a working `gh`, also save the
-body to a file, give its path and the commands below, and stop there:
+Show the title, the body word for word with its image references, and the
+candidate comments in the reply. Ask which candidates to post, and ask the
+reason for each drift that the commits and the plan do not give. Post only
+after the user agrees. Without a working `gh`, also save the body to a file,
+give its path and the commands below, and stop there:
 
 ```bash
 gh pr create --draft --base <base> --title "<title>" --body-file <file> \
@@ -138,13 +141,16 @@ gh api --method POST repos/{owner}/{repo}/pulls/<number>/reviews --input <review
 ```
 
 with `review.json` as
-`{"event": "COMMENT", "comments": [{"path": "...", "line": N, "side": "RIGHT", "body": "..."}]}`,
-only when the user picked comments. Give the `--attach` flags only with
-screenshots, each with the same absolute path as its reference in the body.
-`gh` uploads each file and puts its URL in the body.
+`{"event": "COMMENT", "comments": [{"path": "...", "line": N, "side": "RIGHT", "body": "..."}]}`.
+Run the `gh api` command only when the user picked comments. Give the
+`--attach` flags only with screenshots, each with the same absolute path as
+its reference in the body. `gh` uploads each file and puts its URL in the
+body. When an upload fails, `gh pr create` exits non-zero but still creates
+the pull request and prints its URL: take the URL from the output, and
+attach the missing image with `gh pr edit <number> --attach`.
 Report the URL, and run `gh pr ready <number>` when the user says it is ready.
 At squash merge, the final commit message is the PR title, and the extended
-description is the body's motivation plus any footer, per the `commit` skill.
+description is the body's Why plus any footer, per the `commit` skill.
 
 When the change or the facts move later, regenerate the whole body and the
 picked comments from the new diff — do not patch one sentence and leave the
@@ -167,8 +173,9 @@ ask the user whether the base is merged.
 4. Ask before pushing: the push replaces the branch on the remote. Only after
    the user agrees, `git push --force-with-lease`, on this branch only.
 5. Base merged: `gh pr edit --base <default>` (GitHub may have done it
-   already). Then regenerate the body and the picked comments from the new diff,
-   without the `Stacked on` line, and show them as step 5 does.
+   already). Then regenerate the body and the posted self-review comments
+   from the new diff, without the `Stacked on` line, and show them as step 5
+   does.
 
 Name the pull requests stacked on this one (`gh pr list --base <branch>`):
 each needs `/mochi:pr` on its branch to restack it in turn.

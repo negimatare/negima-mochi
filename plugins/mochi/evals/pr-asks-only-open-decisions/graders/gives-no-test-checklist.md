@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: '^[> \t]*- \[ \]'
+pattern: '^[> \t]*- \[ \](?! *[A-Z]+-\d)'
 flags: m
 match: not_contains
 ---
