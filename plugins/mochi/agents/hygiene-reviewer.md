@@ -39,9 +39,11 @@ they stand, and skip the checks that only apply to a diff.
     `publishConfig`; for PyPI: a release workflow that uploads it), an export
     nothing inside it uses is public API, not dead code. When unsure whether
     it is published, report the export with `?`.
-- **Comments**: a comment that restates the code, the function name, or the
-  commit message; a comment longer than its *why* needs; a comment whose claim
-  no longer matches the code under it — read what it names and check.
+- **Comments**: a comment that the **Comments** section of
+  `${CLAUDE_PLUGIN_ROOT}/principles.md` does not allow, such as one that
+  restates the code, a one-time setup note, or a "do not change" warning; a
+  comment longer than its *why* needs; a comment whose claim no longer matches
+  the code under it — read what it names and check.
 - **Claims in prose**: every statement about behaviour in the diff's docs,
   user-facing descriptions and help text, and the pull request description
   when you are given it. Read what each one names and check it holds: a

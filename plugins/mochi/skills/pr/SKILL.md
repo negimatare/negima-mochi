@@ -87,27 +87,10 @@ counts, earlier commits on the branch). Describe only the end state — nothing 
 "updated". Check every factual claim ("no existing test changed") against the
 diff before using it.
 
-### Language: ASD-STE100 Simplified Technical English
+### Language
 
-Write the body and the comments in
-[STE](https://www.asd-ste100.org/) so that every reader, including a non-native
-reader, gets one meaning only:
-
-- Sentences of at most 20 words for an instruction, 25 for a description.
-- Paragraphs of at most six sentences, one topic each.
-- Active voice. Passive only when the agent is unknown.
-- Simple verb forms only: imperative, simple present, simple past, simple
-  future. No perfect or progressive tenses, no "would/should have been".
-- One instruction per sentence.
-- No `-ing` word unless it is part of a technical name.
-- Keep the articles and the subject; do not cut words to make it short.
-- No noun clusters of more than three words.
-- One word for one meaning, and the same word every time. Prefer the simple,
-  common word ("use", not "leverage"; "start", not "kick off").
-- Code identifiers, file paths, and product names are technical names: keep
-  them exact, in backticks.
-- Use a vertical list when a sentence would hold more than one condition or
-  step.
+Write the body and the comments by the **Writing** section of
+`${CLAUDE_PLUGIN_ROOT}/principles.md`: STE, in a UK English tone.
 
 ## 4. Write the self-review comments
 
@@ -118,7 +101,7 @@ Comments on your own diff, at the line where a reviewer will get stuck:
 - Concrete before/after against the base (a line new in this PR has no
   before), and the worst case in one sentence.
 - Only diff-lifetime questions. Anything every future reader of the file
-  needs belongs in a source comment instead.
+  needs belongs in the code (a name, a constant), or else in a source comment.
 - Every review ask in the body has its comment, and every ask-type comment is
   listed under Review asks. No ask, no "Design decision" comment.
 

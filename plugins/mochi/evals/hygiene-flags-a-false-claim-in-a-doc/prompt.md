@@ -1,5 +1,5 @@
 ---
-description: Calls the hygiene reviewer on a branch whose doc says the export's end date is included while the code excludes it.
+description: Calls the hygiene reviewer on a branch whose doc says the export's end date is included while the code excludes it, and does not report the US spelling of the doc.
 tags: [hygiene]
 max_turns: 30
 timeout_seconds: 900

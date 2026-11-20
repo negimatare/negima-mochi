@@ -1,6 +1,7 @@
 ---
 type: tool_used
-tool: Write
+tool: Bash
+input_match: 'git commit'
 min: 0
 max: 0
 ---

@@ -37,10 +37,15 @@ the code stays where its single consumer lives.
 
 ## Comments
 
-One line of non-obvious *why*: domain rationale, a workaround, a magic number's
-derivation, an accessibility intent. No comment that restates the code, the
-function name, or the commit message. No plan-step identifiers or scaffolding
-names in code.
+A comment is the last resort. First make the code say it: a better name, an
+extracted function, a named constant. Then comment only a *why* that the code
+cannot carry, in one line: domain rationale, a workaround, the source of a
+value, an accessibility intent. No comment that restates the code, the
+function name, or the commit message. No one-time setup notes, and no plan-step
+identifiers or scaffolding names in code. No "do not change this" warnings,
+also when they give a reason: a test protects what must not change. A comment
+that the project asks for, such as a licence header or a lint directive, stays
+as the project writes it.
 
 ## Tests
 
@@ -78,7 +83,49 @@ plans the refactor that build then implements. Bugs go through
 Nothing pushes to the default branch. A project
 without a `CLAUDE.md` needs `/mochi:setup-project` first.
 
+## Writing
+
+Write the text that mochi owns in
+[ASD-STE100 Simplified Technical English](https://www.asd-ste100.org/), so
+that every reader, including a non-native reader, gets one meaning only.
+Mochi owns plans, audits, findings files, pull request text, commit
+messages, and a `CLAUDE.md` that `/mochi:setup-project` creates.
+
+- Sentences of at most 20 words for an instruction, 25 for a description.
+- Paragraphs of at most six sentences, one topic each.
+- Active voice. Passive only when the agent is unknown.
+- Simple verb forms only: imperative, simple present, simple past, simple
+  future. No perfect or progressive tenses, no "would/should have been".
+- One instruction per sentence.
+- No `-ing` word unless it is part of a technical name.
+- Keep the articles and the subject; do not cut words to make it short.
+- No noun clusters of more than three words.
+- One word for one meaning, and the same word every time. Prefer the simple,
+  common word ("use", not "leverage"; "start", not "kick off").
+- Use a vertical list when a sentence would hold more than one condition or
+  step.
+
+The tone is UK English with a neutral, formal register: "colour",
+"organise", no slang. This is a preference, not a strict rule. A US word from
+the request or the code is not an error.
+
+Limits:
+
+- Identifiers, file paths, product names, and quoted text are exact: keep
+  them as they are, with code in backticks.
+- In a file that mochi edits but does not own, keep the language of that
+  file. This includes a `CLAUDE.md` that `/mochi:setup-project` refreshes.
+- A project rule wins, by the order in **Where the standard comes from**: for
+  example a language in its `CLAUDE.md`, or its commit guideline.
+- This rule is for the text that mochi writes. It is not a review check: a
+  reviewer does not report US spelling, STE grammar, or sentence length in
+  the user's code or text.
+
 ## Communication
 
 State problems directly, with the reason. Lead with the outcome. When unsure,
 say what is unverified instead of guessing.
+
+Answer what was asked, and stop at the answer: no list of caveats, no theory
+about an issue that is behind you. Give a caveat one time; leave it out of
+later summaries.
