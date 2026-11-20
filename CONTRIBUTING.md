@@ -116,11 +116,11 @@ file in `plugins/`. On each push, the GitHub workflow `Skill map` runs
 
 ## Hook tests
 
-The tests in `tests/` run a hook script as a child process, with no model
-call and no network. Run them with `node --test tests/*.test.mjs`. The
+The tests in `tests/` run a hook script, or a script in `scripts/`, as a
+child process, with no model call and no network. Run them with `node --test tests/*.test.mjs`. The
 GitHub workflow `Hook tests` runs them on each push. A test sets the
-`CLAUDE_*` folders to temporary folders, so that it does not read your own
-`~/.claude`.
+`CLAUDE_*` folders to temporary folders when its hook reads them, so that
+it does not read your own `~/.claude`.
 
 ## Evals
 
@@ -163,7 +163,7 @@ eval_kit() {  # eval_kit <plugin dir> [claude plugin eval options]
 # After you change a skill or an agent: only its new and changed cases, one
 # time on Sonnet, no baseline. $0.10 to $0.85 for each case on Opus, less on
 # Sonnet; build and review cases cost the most.
-M=claude-sonnet-5-5 eval_kit ./plugins/mochi --case 'commit-*' --runs 1 --ablation none --max-cost-usd 5
+M=claude-sonnet-5-5 eval_kit ./plugins/mochi --case commit-splits-unrelated-changes --runs 1 --ablation none --max-cost-usd 5
 
 # Before each release: the core cases, one time on each model, no baseline.
 # Approximately $12 on Opus and $6 on Sonnet for mochi.
@@ -180,9 +180,12 @@ M=claude-sonnet-5-5 eval_kit ./plugins/mochi --runs 1 --ablation none --max-cost
 The cost figures come from the 1.2.0 runs. A run that stops at its cap
 reports only part of the suite.
 
-Add `--json evals/results/release-<version>/<model>.json` to each release
-run. The results folder is git-ignored, so then add the runs to the history
-in git:
+Add `--json` to each release run, with a new file name for each run, a
+rerun too, for example
+`--json ./plugins/mochi/evals/results/release-1.3.0/opus-1.json`. The tool
+writes a relative path below the current folder, not below the plugin. The
+results folder is git-ignored, so then add all the runs of the release to
+the history in git:
 
 ```bash
 node scripts/eval-history.mjs ./plugins/mochi <version> ./plugins/mochi/evals/results/release-<version>/*.json
@@ -190,9 +193,12 @@ node scripts/eval-history.mjs ./plugins/mochi --demote
 ```
 
 `evals/history.tsv` has one row for each case, release, model and arm, with
-the passes and the runs. A rerun does not replace a failure. `--demote`
-lists the core cases that passed every run on Opus and Sonnet in the last
-three releases. Remove the `core` tag from these cases.
+the passes and the runs. The first command replaces the rows of that
+release, so give it every JSON of the release: then a rerun that passes
+does not hide the failure before it. A run that the cost cap cut off before
+its paid graders is not counted. `--demote` lists the core cases that
+passed every run on Opus and Sonnet in the last three releases. Remove the
+`core` tag from these cases.
 
 The skill guidance from Anthropic asks for a minimum of three cases for each
 skill. It also asks you to test each case on all models that the kit
