@@ -10,9 +10,10 @@ Each release has a section for each plugin that changed. **For contributors**
 lists the work on the kit itself, which does not change the installed
 plugins.
 
-## 1.3.1 — unreleased
+## 1.3.1 — 2026-11-20
 
-The pull request body follows a template.
+The pull request body follows a template. The banner shows all the mochi
+plugins that you installed from a local marketplace.
 
 ### mochi plugin
 
