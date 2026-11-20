@@ -31,12 +31,23 @@ The user's notes: `$ARGUMENTS`
   posted self-review comments.
 - A stacked branch is restacked (step 6), before the steps below, when:
   - the base's PR is merged (`gh pr view <base> --json state,headRefOid`);
-  - the base has commits this branch lacks: `git rev-list --count
-    HEAD..origin/<base>`, or `HEAD..<base>` for a local base that is ahead
-    of `origin/<base>`;
+  - the base has commits this branch lacks
+    (`git rev-list --count HEAD..origin/<base>`);
+  - the local base is ahead of `origin/<base>`
+    (`git rev-list --count origin/<base>..<base>` is above 0), also when
+    this branch already holds it: a review fix on the base waits for its
+    push;
   - or this branch has diverged from its upstream (both numbers of
     `git rev-list --left-right --count HEAD...@{u}` are above 0). A review
-    fix on the base leaves this state after its local restack.
+    fix on the base leaves this state after its local restack. A branch
+    with no upstream (`git rev-parse @{u}` fails) has not diverged.
+
+  Before you restack a branch that has diverged, list the upstream commits
+  that this branch has no copy of
+  (`git log --cherry-pick --right-only --no-merges --oneline HEAD...@{u}`).
+  When the list is not empty, another person pushed to this branch, and the
+  restack push would delete those commits: stop, show them, and restack
+  nothing.
 - When `gh` is missing or not logged in, say so once and go on: take the
   base from the argument or `git symbolic-ref refs/remotes/origin/HEAD`, and
   write the draft. Only posting needs `gh`.
@@ -172,18 +183,25 @@ After a stacked pull request is created, and before any part of the stack
 merges, put the branch in a local stack when `gh stack --version` and
 `gh auth status` pass:
 
-- The base is in no local stack (`gh stack view` on the base says that it is
-  not part of a stack): `gh stack init <branches>`, with every branch of the
-  stack from the bottom to this one. Follow each PR's `baseRefName` down to
-  the default branch to find them.
-- The base is in a local stack: switch to the top branch of that stack, run
+First switch to the base, run `gh stack view --short`, and switch back:
+`gh stack view` takes no branch and shows the stack of the current branch.
+
+- The base is in no local stack: `gh stack init <branches>`, with every
+  branch of the stack from the bottom to this one. Follow each PR's
+  `baseRefName` down to the default branch to find them.
+- The base is the top branch of a local stack: switch to it, run
   `gh stack add <branch>`, and switch back.
+- The base is in a local stack, but not at its top: another branch is
+  already stacked on the base, and `add` would put this branch on that
+  branch. Do not add it: use the git steps of step 6 for this branch.
 - Then run `gh stack link <PR URLs>`, with the URL of every PR of the stack,
   from the bottom to the top. Give URLs, never branch names: `link` pushes
   the branches that it gets as names.
 
-When `init`, `add` or `link` fails, report the error, keep the `Stacked on`
-line, and use the git steps of step 6 for this stack.
+When `init` or `add` fails, report the error, keep the `Stacked on` line,
+and use the git steps of step 6 for this stack. When only `link` fails,
+report it: the local stack still restacks, and each PR keeps its
+`Stacked on` line.
 
 ## 6. Restack
 
@@ -198,18 +216,22 @@ that `gh extension install github/gh-stack` adds it. When the check passes,
 restack the whole stack with `gh stack`:
 
 1. `gh stack rebase`. It rebases each branch onto the one below it, and onto
-   the default branch after a base merges. Untracked files make it refuse to
-   start: name them, and ask in one question whether to stash them
-   (`git stash push --include-untracked`, and `git stash pop` after the
+   the default branch after a base merges. When it refuses to start because
+   of untracked files, name them, and ask in one question whether to stash
+   them (`git stash push --include-untracked`, and `git stash pop` after the
    restack) or to use the git steps.
-2. On a conflict, run `gh stack rebase --abort`, which restores every branch,
-   and show the conflict. Do not resolve it by picking a side.
+2. On a conflict, first show it: the conflicting files
+   (`git diff --name-only --diff-filter=U`) and their hunks. Then run
+   `gh stack rebase --abort`, which restores every branch. Do not resolve
+   the conflict by picking a side.
 3. For each rebased branch, switch to it and run the push checks. Then switch
    back.
 4. Ask one time before you push, and name each branch that the push replaces
    on the remote. Only after the user agrees, run `gh stack push`. Then
    compare `git ls-remote origin <branch>` with `git rev-parse <branch>` for
-   each branch: `gh stack push` can report success and push nothing.
+   each branch: `gh stack push` can report success and push nothing. When a
+   branch did not move, name each such branch and stop. Do not push it in a
+   different way.
 
 When the check fails, restack this branch with git:
 
@@ -227,7 +249,7 @@ When the check fails, restack this branch with git:
    When the local base is ahead, the same question names its push too. Only
    after the user agrees, push the base with `git push origin <base>` (a
    fast-forward, never forced), then this branch with
-   `git push --force-with-lease`.
+   `git push --force-with-lease -u origin <branch>`.
 
 After either path:
 
