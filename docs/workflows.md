@@ -382,10 +382,13 @@ confirm. An example is a finding that depends on the size of a table.
 
 ## `/mochi:pr`
 
-This command writes the body of the pull request from the final diff. The
-body has two sections: a TL;DR and the reasons. The reasons include each
-location where the code is different from the plan, and why. The pull
-request template of your repository wins over these two sections.
+This command writes the body of the pull request from the final diff. It
+fills the template `skills/pr/assets/pr-body.md`, which has two sections: a
+TL;DR and the reasons. The reasons include each location where the code is
+different from the plan, and why. A Screenshots table follows when you give
+images. The pull request template of your repository wins over these
+sections. A footer at the end of each body names Negima Mochi and Claude
+Code.
 
 The command lists candidate self-review comments, one line for each open
 decision or difference from the plan that shows at one line. It writes only
