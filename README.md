@@ -46,8 +46,8 @@ where it must stop for your decision.
    tests, hygiene and the conventions of your stack. For a small area, one
    quick reviewer does the first three. Each finding has a grade: 🔴 Critical,
    🟠 High, 🟡 Medium or 🔵 Minor. You select the findings to fix.
-6. **Pull request.** Run `/mochi:pr`. It writes the pull request and opens it
-   as a draft.
+6. **Pull request.** Run `/mochi:pr`. It writes a short body, a TL;DR and
+   the reasons, and it opens the pull request as a draft.
 
 ---
 
@@ -90,7 +90,7 @@ only local commands. It uses only the tools that your project has installed.
 | `/mochi:refactor <area> [goal]` | Improve code without a change in behaviour | Select the candidates, then approve each plan |
 | `/mochi:fix-bug <report>` | Fix a bug, test first | Confirm the cause and the fix |
 | `/mochi:review [PR or branch]` | Review any change | Select the findings after each area |
-| `/mochi:pr` | Open the pull request, or restack one part of a stack | Approve the body, its comments and each force-push |
+| `/mochi:pr` | Open the pull request, or restack one part of a stack | Approve the body, select its comments and approve each force-push |
 | `/mochi:split <plan>` | Divide a plan that is too big into parts, with one pull request for each part | Accept the parts, and select: in order or stacked |
 
 Write a request as you write a brief for a colleague. Include the decisions
