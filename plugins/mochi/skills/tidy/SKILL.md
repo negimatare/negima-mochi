@@ -34,10 +34,14 @@ of files that fixes it, and the production subsystems it would touch.
    parallel representations, including a copy that already existed. Give the
    rule one home, reusing an existing seam when one owns it. A helper that
    leaves the callers still repeating the rule is not a fix.
-2. **Naming** — names that mislead, mix layers, or leak delivery order (step
-   numbers, `V2`, story names). Name by capability, in the project's domain
-   vocabulary. A comment that names a plan step is deleted, not replaced with
-   one that restates the code — a neighbour's comment style is no reason.
+2. **Naming and comments** — names that mislead, mix layers, or leak delivery
+   order (step numbers, `V2`, story names). Name by capability, in the
+   project's domain vocabulary. In the change, delete a comment that restates
+   the code, warns "do not change", or names a plan step. When it says
+   something the code does not, rename, extract, or name a constant so that
+   the code says it. Keep a comment that gives a why the code cannot carry,
+   and one that the project asks for, such as a licence header or a lint
+   directive. A neighbour's comment style is no reason to keep one.
 3. **Shotgun surgery** — one concept (a value, a rule, a format) that forces
    edits in many places. Consolidate it behind one constant, config, or module.
 4. **Dead code** — no caller, unreachable branches, edits that cancel each

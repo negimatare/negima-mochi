@@ -37,10 +37,13 @@ the code stays where its single consumer lives.
 
 ## Comments
 
-One line of non-obvious *why*: domain rationale, a workaround, a magic number's
-derivation, an accessibility intent. No comment that restates the code, the
-function name, or the commit message. No plan-step identifiers or scaffolding
-names in code.
+A comment is the last resort. First make the code say it: a better name, an
+extracted function, a named constant. Then comment only a *why* that the code
+cannot carry, in one line: domain rationale, a workaround, the source of a
+value, an accessibility intent. No comment that restates the code, the
+function name, or the commit message. No one-time setup notes, no "do not
+change this" warnings, and no plan-step identifiers or scaffolding names in
+code.
 
 ## Tests
 
