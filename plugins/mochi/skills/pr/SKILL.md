@@ -1,6 +1,6 @@
 ---
 name: pr
-description: Open a pull request for the current branch — a body written from the final diff for a busy reviewer (a TL;DR and a Why that names each drift from the plan), plus one-line candidate self-review comments that the user picks from. Shows the draft before posting and creates the PR as a draft. Also restacks a pull request stacked on another one after its base moves or merges.
+description: Open a pull request for the current branch — a body written from the final diff for a busy reviewer (a TL;DR and a Why that names each drift from the plan, and before and after screenshots for a UI change), plus one-line candidate self-review comments that the user picks from. Shows the draft before posting and creates the PR as a draft. Also restacks a pull request stacked on another one after its base moves or merges.
 argument-hint: "[optional: base branch, tracker ID, links]"
 disable-model-invocation: true
 ---
@@ -61,6 +61,11 @@ For a reviewer who arrives from a notification, the body has two sections:
   plan, say so, and give the reason from the commits or the plan. A drift
   is, for example, a different module, a different design, or a step that
   the code does not do. When neither gives a reason, ask the user in step 5.
+- **Screenshots** — only when the user gives a before image and an after
+  image. Put a table after the Why, with a Before column and an After
+  column. Each image reference uses the absolute path of its image, in
+  `<...>` when the path has a space: `![Before](</path/to/before.png>)`. In
+  a regenerated body, keep the image URLs from `gh pr view --json body`.
 
 Add no other section: no risk, reading order, review asks, test plan or
 links. An open decision is a candidate comment (step 4). Step 5 owns an open
@@ -116,19 +121,27 @@ offer to fix it before the pull request goes out. The body does not mention
 it. When the user declines the fix and posts, add one line to the Why that
 names the known gap.
 
+When the diff changes markup or styles (templates, components, HTML, CSS)
+and the user gave no images, offer in the approval message to add a before
+and an after screenshot. Tell the user to check that the images show no
+customer data.
+
 Show the title, the body, and the candidate comments in the reply. Ask which
 candidates to post, and ask for the reason of a drift that step 3 did not
 find. Post only after the user agrees. Without a working `gh`, also save the
 body to a file, give its path and the commands below, and stop there:
 
 ```bash
-gh pr create --draft --base <base> --title "<title>" --body-file <file>
+gh pr create --draft --base <base> --title "<title>" --body-file <file> \
+  --attach '<before path>#Before' --attach '<after path>#After'
 gh api --method POST repos/{owner}/{repo}/pulls/<number>/reviews --input <review.json>
 ```
 
 with `review.json` as
 `{"event": "COMMENT", "comments": [{"path": "...", "line": N, "side": "RIGHT", "body": "..."}]}`,
-only when the user picked comments.
+only when the user picked comments. Give the `--attach` flags only with
+screenshots, each with the same absolute path as its reference in the body.
+`gh` uploads each file and puts its URL in the body.
 Report the URL, and run `gh pr ready <number>` when the user says it is ready.
 At squash merge, the final commit message is the PR title, and the extended
 description is the body's motivation plus any footer, per the `commit` skill.
