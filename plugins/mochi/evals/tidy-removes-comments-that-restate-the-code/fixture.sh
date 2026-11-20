@@ -11,7 +11,7 @@ import { total } from "./cart.ts";
 export const loyaltyPoints = (prices: number[]): number => {
     // Sum the order.
     const sum = total(prices);
-    // Round to cents first: the till sends totals such as 19.999999999 (till-sdk issue #412).
+    // Round to cents first: the till sends prices such as 9.999999999 (till-sdk issue #412).
     const cents = Math.round(sum * 100);
     // One point per 1000 cents, rounded down.
     return Math.floor(cents / 1000);

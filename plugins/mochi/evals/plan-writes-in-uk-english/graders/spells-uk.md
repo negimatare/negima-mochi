@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: '\bfavourite\b'
+pattern: '\b(favourite|colour)s?\b'
 flags: i
 target:
   source: file

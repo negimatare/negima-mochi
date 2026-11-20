@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# A team directory in US spelling: a favoriteColor field, US comments and a US
-# README. The request is in US spelling too, so only the writing rule makes
-# the plan prose UK English.
+# A team directory in US spelling: a favoriteColor field and US comments. The
+# request is in US spelling too, so only the writing rule makes the plan prose
+# UK English. The README and the test name have no US words, so that a plan
+# can quote them exactly.
 set -euo pipefail
 git init -q -b main
 git config user.name eval && git config user.email eval@example.invalid
@@ -14,9 +15,8 @@ X
 cat > README.md <<'X'
 # Team directory
 
-Members, their teams and their favorite colors. Each member picks a favorite
-color on the profile page, and the avatar uses that color as its background.
-The behavior of a member without a color: the avatar is gray.
+Members and their teams. Each member picks a hue on the profile page, and
+the avatar uses it as its background. Without a pick, the avatar is gray.
 X
 cat > src/members.ts <<'X'
 export type Member = {
@@ -44,7 +44,7 @@ import { avatarBackground } from "./avatar.ts";
 
 const member = (favoriteColor: string) => ({ id: "1", name: "Ana", team: "web", favoriteColor });
 
-test("uses the favorite color, or gray without one", () => {
+test("uses the pick of the member, or gray without one", () => {
     strictEqual(avatarBackground(member("teal")), "teal");
     strictEqual(avatarBackground(member("")), "gray");
 });

@@ -1,5 +1,5 @@
 ---
-description: Planning a change to favorite colors, asked in US spelling in a codebase with a favoriteColor field and US comments, writes the plan prose in UK spelling ("favourite", "colour") and keeps the identifier favoriteColor exact, in backticks.
+description: Planning a change to favorite colors, asked in US spelling in a codebase with a favoriteColor field and US comments, writes the plan prose in UK spelling ("favourite" or "colour", and no "favorite", "color", "organize" or "behavior" outside code and quotes) and keeps the identifier favoriteColor exact, in backticks.
 tags: [plan]
 max_turns: 40
 timeout_seconds: 1200

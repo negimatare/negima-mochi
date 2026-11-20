@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: 'spelling|spelled|spelt|UK English|British English'
+pattern: 'spell|US English|American|UK English|British English|\banalyse\b'
 flags: i
 match: not_contains
 ---

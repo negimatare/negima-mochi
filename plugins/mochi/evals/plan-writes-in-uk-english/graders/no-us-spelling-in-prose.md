@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: '(?<![\w`])(favorite|color)s?(?!\w)'
+pattern: '^(?:(?!```)(?:[^`"\n]|`[^`\n]*`|"[^"\n]*"|[`"](?=[^`"\n]*(?:\n|$)))*\n|```[^\n]*\n(?:(?!```)[^\n]*\n)*```[^\n]*(?:\n|$))*?(?:(?!```)(?:[^`"\n]|`[^`\n]*`|"[^"\n]*"|[`"](?=[^`"\n]*(?:\n|$))))*?(?<![\w`])(favorite|color|organiz|behavior)\w*'
 flags: i
 match: not_contains
 target:
