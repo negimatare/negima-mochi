@@ -214,6 +214,12 @@ of the tags.
 
 ### Shared fixtures
 
+- **The `git-worked` grader** is one file in each suite,
+  `evals/_shared/git-worked.md`. Each case has a relative symlink to it. In
+  a new case, run
+  `ln -s ../../_shared/git-worked.md graders/git-worked.md`. On Windows,
+  clone with `core.symlinks=true`, or the links are text files and the
+  grader does not load.
 - **`mochi-react`** cases use `evals/_shared/shop-web.sh`. This script builds
   an orders app in React + Fluent UI with the layout of the `architecture` skill.
   The app has no `node_modules`, so nothing builds or runs. The graders read
@@ -269,7 +275,7 @@ steps before these calls, and the behaviour of the kit when the calls fail.
 - On macOS, `/usr/bin/git` is a shim that the sandbox blocks. Put a git that
   the sandbox can read, for example the git from Homebrew, at the start of
   `PATH`. The
-  `git-worked` grader of each case fails a run that used the shim.
+  `git-worked` grader fails a run that used the shim.
 - The cases need Node 22.18 or later to run the `.ts` tests. Below your home
   folder, the sandbox can read only the folders on `PATH`. A Node from a
   version manager, for example mise or nvm, keeps npm in `lib/`. Its
