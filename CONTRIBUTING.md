@@ -114,6 +114,14 @@ In this repository, Claude does this step for you. The hook in
 file in `plugins/`. On each push, the GitHub workflow `Skill map` runs
 `--check`. This check fails when the committed map is out of date.
 
+## Hook tests
+
+The tests in `tests/` run a hook script as a child process, with no model
+call and no network. Run them with `node --test tests/*.test.mjs`. The
+GitHub workflow `Hook tests` runs them on each push. A test sets the
+`CLAUDE_*` folders to temporary folders, so that it does not read your own
+`~/.claude`.
+
 ## Evals
 
 Each plugin has an eval suite in its `evals/` folder. Run it with
