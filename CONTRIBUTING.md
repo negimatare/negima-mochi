@@ -180,6 +180,20 @@ M=claude-sonnet-5-5 eval_kit ./plugins/mochi --runs 1 --ablation none --max-cost
 The cost figures come from the 1.2.0 runs. A run that stops at its cap
 reports only part of the suite.
 
+Add `--json evals/results/release-<version>/<model>.json` to each release
+run. The results folder is git-ignored, so then add the runs to the history
+in git:
+
+```bash
+node scripts/eval-history.mjs ./plugins/mochi <version> ./plugins/mochi/evals/results/release-<version>/*.json
+node scripts/eval-history.mjs ./plugins/mochi --demote
+```
+
+`evals/history.tsv` has one row for each case, release, model and arm, with
+the passes and the runs. A rerun does not replace a failure. `--demote`
+lists the core cases that passed every run on Opus and Sonnet in the last
+three releases. Remove the `core` tag from these cases.
+
 The skill guidance from Anthropic asks for a minimum of three cases for each
 skill. It also asks you to test each case on all models that the kit
 supports. At this time, these models are Opus and Sonnet.
