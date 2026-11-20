@@ -148,7 +148,9 @@ Verify in depth what would block merging; the rest waits until it is picked.
 - Report `imo` and `nit` findings as the reviewer gave them, without opening
   their code now: they are confirmed in the fix round when the user picks
   them, and before they go into a pull request comment. One that reads as a
-  `must` the reviewer under-graded is checked now, like a `must`. The
+  `must` the reviewer under-graded is checked now, like a `must`. A missing
+  test for a rare-path guard is not under-graded: the test reviewer's
+  "Severity" makes it a `nit` at most. The
   mechanism check below still applies to the fix each of them proposes.
 - When a `must` finding says a test cannot fail or a guard has no test, and the
   project's `CLAUDE.md` gives a test command that runs that test without a
@@ -181,7 +183,7 @@ consequence in the code:
 | Grade | From | When |
 |---|---|---|
 | 🔴 Critical | `must` | A security hole, data loss, or a crash or wrong result on a path most users take. |
-| 🟠 High | `must` | Any other `must`: wrong behaviour on a narrower path, a behaviour that matters left unprotected, code or a comment that misleads. |
+| 🟠 High | `must` | Any other `must`: wrong behaviour on a narrower path, a behaviour that matters left unprotected (not a rare-path guard: see the test reviewer's "Severity"), code or a comment that misleads. |
 | 🟡 Medium | `imo` | Real risk or debt that breaks nothing today. |
 | 🔵 Minor | `nit` | Optional polish. |
 

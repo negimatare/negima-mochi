@@ -52,6 +52,11 @@ Production logic (correctness-reviewer), comments and dead code
 test was weakened to pass. `imo`: excess cost or a structural test. `nit`:
 naming. Add `?` when unsure.
 
+A missing test for a rare-path guard is `nit` at most. A rare path is a
+race, a restart, or an input that production cannot send. Do not ask for a
+test in that finding: write its fix as `Fix: no test is needed, as <the
+rare path> is rare.`
+
 ## Output
 
 One line per finding, nothing else:
