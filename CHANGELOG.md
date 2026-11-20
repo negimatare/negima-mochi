@@ -11,70 +11,82 @@ restart Claude Code.
 Mochi writes shorter and plainer text, and handles stacked pull requests and
 CI checks better.
 
+### Update
+
+- Run `/mochi:setup-project` again to add the new "Before a push to an open
+  PR" list to an existing `CLAUDE.md`.
+- Optional: install the [`gh stack`](https://github.com/github/gh-stack)
+  extension with `gh extension install github/gh-stack`.
+
 ### mochi
 
-- Mochi writes its own text in
-  [ASD-STE100 Simplified Technical English](https://www.asd-ste100.org/),
-  in a UK English tone. This text is plans, audits, findings files, pull request
-  text, commit messages, and a new `CLAUDE.md`. Identifiers, file paths and
-  quoted text stay exact. A file that mochi does not own keeps its language,
-  and a rule in your `CLAUDE.md` wins.
-- The writing rule is for mochi text only. A reviewer does not report US
-  spelling, STE grammar or sentence length in your code or text.
-- Replies answer what you asked and stop there. A caveat comes one time, not
-  in each later summary. In `/mochi:review`, the note that the Medium and
-  Minor findings are not yet examined comes in the first report of the
-  session only.
-- A code comment is the last resort. In the change, the tidy step deletes
-  these comments:
-  - A comment that restates the code.
-  - A one-time setup note or a plan-step name.
-  - A "do not change" warning, also one that gives a reason.
+#### Writing
 
-  When a deleted comment says something that the code does not, tidy puts it
-  in a name or a constant. A one-line why stays. A comment that your project
-  asks for, such as a licence header or a lint directive, also stays.
-- The hygiene reviewer and the `/mochi:refactor` audit report the comments
-  that tidy deletes.
-- `/mochi:pr` writes a body of two sections: a TL;DR and a Why. The Why
-  names each location where the code is different from the plan, and why.
-  The body has no Risk, How to review, Review asks, Test plan or Links
-  section.
-- `/mochi:pr` lists candidate self-review comments in one line each, and
-  writes only the ones that you select. An open High or Critical finding
-  comes first: Claude offers to fix it. If you decline, the Why names the
-  gap.
-- When the diff changes markup or styles, `/mochi:pr` asks you for before and
-  after screenshots, and attaches them with `gh pr create --attach`. It tells
-  you to check that the images show no customer data.
-- `/mochi:review` compares a pull request, and a branch with an open pull
-  request, with the base of the pull request. On a pull request that a
-  different person wrote, the fix round changes no file of the pull request.
-- A missing test for a race, a restart or an input that production cannot
-  send is Minor at most, and its fix says that no test is needed.
-- A finding that you skipped stays skipped when the area is reviewed again,
-  unless the new finding has a higher grade.
-- When a change edits two deployables, the plan asks if they deploy together.
-  When they do, the plan has no compatibility step.
-- Mochi asks before it runs a migration or changes local infrastructure.
-- With the `gh stack` extension and a login, `/mochi:pr` puts each stacked
-  pull request in a local stack and links it on GitHub. A restack rebases
-  the whole stack with `gh stack rebase`, asks one time, and pushes with
-  `gh stack push`. Without `gh stack`, it restacks with git, as before.
-  When another person pushed commits to the branch, it shows them and
-  restacks nothing, so that the force-push does not delete them.
-- `/mochi:review` fixes a bug in code of an unmerged part below on the
-  branch of that part. Then it rebases the part above onto the fix, and
-  pushes nothing: `/mochi:pr` pushes the two branches. With uncommitted
-  changes, the fix stays on this part, and the reply says why. In the review
-  of a build, the fix stays on the part that build builds, and the reply
-  names the part that had the bug.
-- `/mochi:setup-project` writes a "Before a push to an open PR" list. It
-  holds the commands of the `pull_request` CI jobs that the verification
-  commands do not run. `/mochi:pr`, and the commit step before a push to an
-  open pull request, run the list. A failure stops the push. Run
-  `/mochi:setup-project` again to add the list to an existing `CLAUDE.md`.
-  Without the list, Claude tells you one time.
+- **Simplified Technical English.** Mochi writes its own text in
+  [ASD-STE100](https://www.asd-ste100.org/), in a UK English tone: plans,
+  audits, findings files, pull request text, commit messages and a new
+  `CLAUDE.md`. Identifiers, file paths and quoted text stay exact.
+- **Your text keeps its language.** A file that mochi does not own keeps its
+  language, and a rule in your `CLAUDE.md` wins. A reviewer does not report
+  US spelling, STE grammar or sentence length in your code or text.
+- **Shorter replies.** A reply answers what you asked and stops. A caveat
+  comes one time, not in each later summary.
+- **Comments are the last resort.** Tidy deletes a comment that restates the
+  code, a one-time setup note, a plan-step name and a "do not change"
+  warning. When a comment says something that the code does not, tidy puts
+  it in a name or a constant. A one-line why, a licence header and a lint
+  directive stay. The hygiene reviewer and the `/mochi:refactor` audit report
+  these comments too.
+
+#### Pull requests
+
+- **A two-section body.** `/mochi:pr` writes a TL;DR and a Why. The Why names
+  each place where the code is different from the plan, and why.
+- **Self-review comments that you select.** `/mochi:pr` lists the candidates
+  in one line each, and writes only the ones that you select.
+- **An open High or Critical finding comes first.** Claude offers to fix it.
+  If you decline, the Why names the gap.
+- **Screenshots for a UI change.** When the diff changes markup or styles,
+  `/mochi:pr` asks for before and after screenshots and attaches them with
+  `gh pr create --attach`. It tells you to check the images for customer
+  data.
+- **CI checks before a push.** `/mochi:setup-project` writes a "Before a push
+  to an open PR" list from the `pull_request` CI jobs that the verification
+  commands do not run. `/mochi:pr` and the commit step run it before a push
+  to an open pull request. A failure stops the push.
+
+#### Stacked pull requests
+
+- **`gh stack` support.** With the extension and a `gh` login, `/mochi:pr`
+  puts each stacked pull request in a local stack and links the stack on
+  GitHub. A restack rebases all the parts, asks one time, and pushes them.
+  Without `gh stack`, it restacks with git, as before.
+- **The fix goes on the part that has the bug.** When `/mochi:review` finds a
+  bug in code of an unmerged part below, it fixes the bug on that part's
+  branch and rebases the part above. It pushes nothing: `/mochi:pr` pushes the
+  two branches. With uncommitted changes, or in the review of a build, the
+  fix stays on the current part, and the reply says why.
+- **Other people's commits stay.** When another person pushed commits to the
+  branch, `/mochi:pr` shows them and restacks nothing.
+
+#### Reviews
+
+- **The right base.** `/mochi:review` compares a pull request, and a branch
+  with an open pull request, with the base of that pull request.
+- **Another person's pull request.** The fix round changes no file of it.
+- **Rare-path tests are Minor.** A missing test for a race, a restart or an
+  input that production cannot send is Minor at most, with no test needed.
+- **Skipped stays skipped.** A finding that you skipped stays skipped in a
+  new review of the area, unless the new finding has a higher grade.
+- **One caveat.** The note that the Medium and Minor findings are not yet
+  examined comes in the first report of the session only.
+
+#### Plans and builds
+
+- **Two deployables.** When a change edits two deployables, the plan asks if
+  they deploy together. When they do, the plan has no compatibility step.
+- **Ask before infrastructure.** Mochi asks before it runs a migration or
+  changes local infrastructure.
 
 ## 1.1.0 — 2026-11-18
 
