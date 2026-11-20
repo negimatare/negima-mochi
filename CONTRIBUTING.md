@@ -116,11 +116,11 @@ file in `plugins/`. On each push, the GitHub workflow `Skill map` runs
 
 ## Hook tests
 
-The tests in `tests/` run a hook script as a child process, with no model
-call and no network. Run them with `node --test tests/*.test.mjs`. The
+The tests in `tests/` run a hook script, or a script in `scripts/`, as a
+child process, with no model call and no network. Run them with `node --test tests/*.test.mjs`. The
 GitHub workflow `Hook tests` runs them on each push. A test sets the
-`CLAUDE_*` folders to temporary folders, so that it does not read your own
-`~/.claude`.
+`CLAUDE_*` folders to temporary folders when its hook reads them, so that
+it does not read your own `~/.claude`.
 
 ## Evals
 
@@ -135,9 +135,18 @@ Each plugin has an eval suite in its `evals/` folder. Run it with
 The workflow cases send the text that a user types. The reviewer cases call
 the reviewer directly, to test the agent alone.
 
-When you change the behaviour of a skill or an agent, add or update a case
-that fails on the old version. No check enforces this rule, but it is how a
-kit change gets a test.
+When you change the behaviour of a skill or an agent, add or update a
+grader that fails on the old version. No check enforces this rule, but it is
+how a kit change gets a test. Each new case makes all later changes slower
+and more expensive, so:
+
+- Add a new case only when a regression is likely and costly: a push, a
+  force-push, a loss of data, or work on the wrong branch.
+- For any other rule, add a grader to an existing case that already gets to
+  that step of the workflow.
+- In a review of a kit change, a missing case for a narrow guard (a rule for
+  one rare input or state) is `imo` (Medium) at most, not `must`. A guard
+  of a push, a force-push, data or the branch is the exception.
 
 Each run is a real model call. The cost goes to your API or cloud account, or
 counts against your plan. Pin the two models, so that a model update does not
@@ -151,16 +160,45 @@ eval_kit() {  # eval_kit <plugin dir> [claude plugin eval options]
     --scaffold --allow-tools Bash Write Edit --no-publish "${@:2}"
 }
 
-# After you change a skill or an agent: its tagged cases, one time on each
-# model, no baseline. $0.05 to $0.70 for each case; build cases cost the most.
-eval_kit ./plugins/mochi --tag commit --runs 1 --ablation none --max-cost-usd 5
-M=claude-sonnet-5-5 eval_kit ./plugins/mochi --tag commit --runs 1 --ablation none --max-cost-usd 5
+# After you change a skill or an agent: only its new and changed cases, one
+# time on Sonnet, no baseline. $0.10 to $0.85 for each case on Opus, less on
+# Sonnet; build and review cases cost the most.
+M=claude-sonnet-5-5 eval_kit ./plugins/mochi --case commit-splits-unrelated-changes --runs 1 --ablation none --max-cost-usd 5
 
-# Before a release, or when the default model changes: all cases one time on
-# each model, with the no-plugin baseline on Opus. Approximately $13 for mochi.
-eval_kit ./plugins/mochi --runs 1 --max-cost-usd 20
-M=claude-sonnet-5-5 eval_kit ./plugins/mochi --runs 1 --ablation none --max-cost-usd 10
+# Before each release: the core cases, one time on each model, no baseline.
+# Approximately $12 on Opus and $6 on Sonnet for mochi.
+eval_kit ./plugins/mochi --tag core --runs 1 --ablation none --max-cost-usd 18 -j 4
+M=claude-sonnet-5-5 eval_kit ./plugins/mochi --tag core --runs 1 --ablation none --max-cost-usd 9 -j 4
+
+# Before a major version, or when the default model changes: all cases one
+# time on each model, with the no-plugin baseline on Opus. Approximately $31
+# on Opus and $10 on Sonnet for mochi, and one hour.
+eval_kit ./plugins/mochi --runs 1 --max-cost-usd 40 -j 4
+M=claude-sonnet-5-5 eval_kit ./plugins/mochi --runs 1 --ablation none --max-cost-usd 15 -j 4
 ```
+
+The cost figures come from the 1.2.0 runs. A run that stops at its cap
+reports only part of the suite.
+
+Add `--json` to each release run, with a new file name for each run, a
+rerun too, for example
+`--json ./plugins/mochi/evals/results/release-1.3.0/opus-1.json`. The tool
+writes a relative path below the current folder, not below the plugin. The
+results folder is git-ignored, so then add all the runs of the release to
+the history in git:
+
+```bash
+node scripts/eval-history.mjs ./plugins/mochi <version> ./plugins/mochi/evals/results/release-<version>/*.json
+node scripts/eval-history.mjs ./plugins/mochi --demote
+```
+
+`evals/history.tsv` has one row for each case, release, model and arm, with
+the passes and the runs. The first command replaces the rows of that
+release, so give it every JSON of the release: then a rerun that passes
+does not hide the failure before it. A run that the cost cap cut off before
+its paid graders is not counted. `--demote` lists the core cases that
+passed every run on Opus and Sonnet in the last three releases. Remove the
+`core` tag from these cases.
 
 The skill guidance from Anthropic asks for a minimum of three cases for each
 skill. It also asks you to test each case on all models that the kit
@@ -188,8 +226,20 @@ A tag gives the subject of a case:
 The `smoke` tag marks the case with the lowest cost in `mochi` and in
 `mochi-python`.
 
+The `core` tag marks the `mochi` cases that run before each release:
+the main path of each workflow, and each case that guards a push, a
+force-push, data or the branch. A new case that guards one of these gets
+the `core` tag too. Repeated `--tag` options select the cases that have any
+of the tags.
+
 ### Shared fixtures
 
+- **The `git-worked` grader** is one file in each suite,
+  `evals/_shared/git-worked.md`. Each case has a relative symlink to it. In
+  a new case, run
+  `ln -s ../../_shared/git-worked.md graders/git-worked.md`. On Windows,
+  clone with `core.symlinks=true`, or the links are text files and the
+  grader does not load.
 - **`mochi-react`** cases use `evals/_shared/shop-web.sh`. This script builds
   an orders app in React + Fluent UI with the layout of the `architecture` skill.
   The app has no `node_modules`, so nothing builds or runs. The graders read
@@ -245,7 +295,7 @@ steps before these calls, and the behaviour of the kit when the calls fail.
 - On macOS, `/usr/bin/git` is a shim that the sandbox blocks. Put a git that
   the sandbox can read, for example the git from Homebrew, at the start of
   `PATH`. The
-  `git-worked` grader of each case fails a run that used the shim.
+  `git-worked` grader fails a run that used the shim.
 - The cases need Node 22.18 or later to run the `.ts` tests. Below your home
   folder, the sandbox can read only the folders on `PATH`. A Node from a
   version manager, for example mise or nvm, keeps npm in `lib/`. Its

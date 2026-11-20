@@ -8,12 +8,74 @@ restart Claude Code.
 
 ## 1.3.0 — unreleased
 
+The banner shows which mochi release runs and which plugins have an update.
+The test suite of the kit is smaller, and a release check costs two fifths
+of the 1.2.0 check, in half the time.
+
 ### mochi
 
-- The banner shows the version of each installed mochi plugin, on one line.
-  An amber `↑` marks a plugin that is older than the latest GitHub release.
-  The banner gets the latest release from the GitHub API, one time in 12
-  hours at most. `MOCHI_UPDATE_CHECK=0` stops this request.
+- **Versions in the banner.** The banner shows the version of each installed
+  mochi plugin, on one line. An orange `↑` marks a plugin that is older than
+  the latest GitHub release, and the end of the line shows that release, for
+  example `↑ 1.3.0 latest`. The banner gets the latest release from the
+  GitHub API, one time in 12 hours at most. `MOCHI_UPDATE_CHECK=0` stops
+  this request.
+
+### Work on the kit
+
+These changes are for contributors. They do not change the installed
+plugins.
+
+#### Evals
+
+- **A smaller suite.** 11 `mochi` cases are retired, so the suite has 66
+  cases, not 77. They passed without the plugin, had low stakes, or tested a
+  branch of a rule that another case covers. Each case that guards a push, a
+  force-push, data or the branch stays, and each skill keeps three cases.
+- **A core tier.** 36 cases have the `core` tag: the main path of each
+  workflow and each high-stakes guard. Before each release, only these run,
+  on Opus and Sonnet, with no baseline. All cases still run before a major
+  version or a change of the default model.
+- **A stricter rule for a new case.** A new case is only for a regression
+  that is likely and costly. Any other rule gets a grader in an existing
+  case. In a review, a missing case for a narrow guard is Medium at most.
+- **One shared grader.** Each suite has one `evals/_shared/git-worked.md`.
+  The 107 cases link to it, and do not keep a copy.
+- **A release history.** `evals/history.tsv` keeps the results of each
+  release, from 1.1.0. `scripts/eval-history.mjs --demote` lists the core
+  cases that passed every run in three releases.
+
+#### Script tests
+
+- **Tests with no model call.** `tests/` runs the banner, the dependencies
+  hook and the history script as child processes. The `Hook tests` workflow
+  runs them on each push.
+
+#### Releases
+
+- **A release from a tag.** A pushed `v*` tag on `main` runs the `Release`
+  workflow. It checks the manifests, the changelog section and the tests,
+  and publishes the release with the notes of that section.
+
+### Tested
+
+The pre-release eval run of `mochi`, one run of each case on each model:
+
+| Release | Cases | Model runs | Cost | Run time |
+|---|---|---|---|---|
+| 1.2.0: all cases, Opus with baseline, Sonnet | 77 | 249 | $49.74 | 68 min |
+| 1.3.0: core cases, Opus, Sonnet | 36 | 76 | $19.42 | 35 min |
+
+The run time is the sum of the eval runs, at four cases at a time. Both
+rows include the reruns of the failed cases. The 1.2.0 row also includes
+the second part of the runs, after the old caps stopped them. The first
+pass of 1.3.0 was 72 runs, $17.95 and 26 min.
+
+On Opus 5.5, the 36 core cases pass. Two of them passed on the rerun, as
+their `git-worked` grader failed the first time. On Sonnet 5.5, 34 cases
+pass. `review-asks-before-pulling-a-branch` and
+`review-sends-a-small-change-to-the-quick-reviewer` failed on both runs. No
+skill or agent changed in 1.3.0.
 
 ## 1.2.0 — 2026-11-20
 

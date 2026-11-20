@@ -1,6 +1,6 @@
 ---
 description: Planning a month's CSV export finds that billableOrders in the statement module already owns which orders count for a month, records it as the existing solution instead of ordersInMonth beside the export it was pointed at, and stops for approval without writing code.
-tags: [plan]
+tags: [plan, core]
 max_turns: 40
 timeout_seconds: 1200
 allowed_tools: [Read, Glob, Grep, Skill, Agent, Bash, Write, Edit]

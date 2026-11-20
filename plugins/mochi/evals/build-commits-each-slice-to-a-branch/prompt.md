@@ -1,6 +1,6 @@
 ---
 description: Building an approved two-slice plan from main commits each slice on a feature branch, pushes it, leaves main alone, and stops for the user to pick review findings.
-tags: [build]
+tags: [build, core]
 max_turns: 60
 timeout_seconds: 1800
 allowed_tools: [Read, Glob, Grep, Skill, Agent, Bash, Write, Edit]

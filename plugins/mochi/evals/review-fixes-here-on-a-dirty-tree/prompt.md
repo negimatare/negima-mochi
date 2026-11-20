@@ -1,6 +1,6 @@
 ---
 description: A review of part 2 of a stack, which the user starts, finds a High bug in a line that part 1 added, while part 2 has a change that is not committed. It fixes the bug on part 2's branch, leaves part 1's branch alone, and says why the fix is not on part 1.
-tags: [review]
+tags: [review, core]
 max_turns: 60
 timeout_seconds: 1500
 allowed_tools: [Read, Glob, Grep, Skill, Agent, Bash, Write, Edit]

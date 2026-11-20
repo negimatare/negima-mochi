@@ -1,4 +1,0 @@
-schema_version: "1.1"
-name: plan-view-shows-screens-without-a-flow
-context:
-  scaffold_script: fixture.sh
