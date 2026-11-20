@@ -14,4 +14,4 @@
 
 ---
 
-🍁 Generated with [Negima Mochi](https://github.com/negimatare/negima-mochi) powered by [Claude Code](https://claude.com/claude-code)
+🍁 Generated with Negima Mochi powered by [Claude Code](https://claude.com/claude-code)
