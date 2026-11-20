@@ -25,7 +25,7 @@ Base: main · Areas: TypeScript web/ ✅
 Open: 🔴 0 · 🟠 0 · 🟡 0 · 🔵 0
 
 ## TypeScript — web/
-- [~] W-1 🟠 High    web/receiptView.ts:2 — 350 cents shows as "3.5", not "3.50". Fix: use `(cents / 100).toFixed(2)`. (skipped: user)
+- [~] W-1 🔴 Critical web/receiptView.ts:2 — 350 cents shows as "3.5", not "3.50". Fix: use `(cents / 100).toFixed(2)`. (skipped: user)
 Y
 cat > web/receiptView.ts <<'Y'
 /** The receipt header, such as "Receipt 42 — 2026-11-02". */

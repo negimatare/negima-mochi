@@ -1,5 +1,5 @@
 ---
-description: Reviewing an area again after a new commit moved the line of a finding that the user skipped does not report that finding as open again. It passes on 1.1.0 on Sonnet, so it guards against a regression only.
+description: Reviewing an area again after a new commit moved the line of a finding that the user skipped. The review does not report that finding as open again, names the skipped match, and gives no skipped line to the reviewers. Before its two graders for the match, it passed on 1.1.0 on Sonnet.
 tags: [review]
 max_turns: 40
 timeout_seconds: 1200

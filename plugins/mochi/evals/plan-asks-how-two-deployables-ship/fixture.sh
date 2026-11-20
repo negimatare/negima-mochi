@@ -24,7 +24,7 @@ import { strictEqual } from "node:assert";
 import { test } from "node:test";
 import { checkout } from "./checkout.ts";
 
-test("sums the prices", () => strictEqual(checkout([10, 9.99]).total, 19.99));
+test("sums the prices", () => strictEqual(checkout([10, 9.5]).total, 19.5));
 Y
 cat > web/src/checkoutView.ts <<'Y'
 /** The total line of the checkout page, from the API response. */

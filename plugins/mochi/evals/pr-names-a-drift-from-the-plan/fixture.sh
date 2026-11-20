@@ -26,7 +26,7 @@ test("ships free from 50", async () => {
 });
 Y
 git add -A && git commit -q -m "feat(cart): add the shipping fee" \
-    -m "Put the fee in src/cart.ts, next to total, and not in a new src/pricing.ts. The fee is one function that only the cart calls, and the checkout team asked to keep one import for the cart."
+    -m "Put the fee in src/cart.ts, next to total. The fee is one function that only the cart calls, and the checkout team asked to keep one import for the cart."
 git push -q -u origin feat/shipping-fee
 mkdir -p .plans .reviews
 cat > .plans/20261102-shipping-fee.md <<'Y'

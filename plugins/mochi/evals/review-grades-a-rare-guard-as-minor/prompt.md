@@ -1,5 +1,5 @@
 ---
-description: The review of a branch that adds an email worker, with a test for its main path and an untested guard against a job that a worker restart replays, grades the missing test 🔵 Minor at most, and its fix says that no test is needed.
+description: The review of a branch that adds an email worker, with a test for its main path and an untested guard against a job that a worker restart replays. The review grades the missing test 🔵 Minor, and its fix says that no test is needed.
 tags: [review, tests]
 max_turns: 50
 timeout_seconds: 1500

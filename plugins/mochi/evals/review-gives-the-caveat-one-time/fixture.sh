@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Branch receipts changes api/ and web/, each with one small file and one
+# Branch receipts changes api/ and web/, each with one small source file and one
 # unused parameter, so that each area has a Minor finding.
 set -euo pipefail
 git init -q -b main
