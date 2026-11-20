@@ -62,7 +62,8 @@ Then ask how the parts ship, unless the arguments already say:
 - **Stacked**: each part starts on the branch of the part before it, as soon as
   that branch is pushed, and its pull request targets that branch. Parts are
   reviewed in parallel, and each merge must be followed by a restack of the
-  part above it, which force-pushes that part's branch.
+  parts above it, which force-pushes their branches. With `gh stack`, one
+  restack moves the whole stack.
 
 This is the **first stop**: the user accepts or changes the split, and picks
 in order or stacked.

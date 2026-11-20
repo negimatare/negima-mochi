@@ -54,6 +54,19 @@ restart Claude Code.
 - When a change edits two deployables, the plan asks if they deploy together.
   When they do, the plan has no compatibility step.
 - Mochi asks before it runs a migration or changes local infrastructure.
+- With the `gh stack` extension and a login, `/mochi:pr` puts each stacked
+  pull request in a local stack and links it on GitHub. A restack rebases
+  the whole stack with `gh stack rebase`, asks one time, and pushes with
+  `gh stack push`. Without `gh stack`, it restacks with git, as before.
+- `/mochi:review` fixes a bug in code of an unmerged part below on the
+  branch of that part. Then it rebases the part above onto the fix, and
+  pushes nothing: `/mochi:pr` pushes the two branches. In the review of a
+  build, the fix stays on the part that build builds, and the reply names
+  the part that had the bug.
+- `/mochi:setup-project` writes a "Before a push to an open PR" list. It
+  holds the commands of the `pull_request` CI jobs that the verification
+  commands do not run. `/mochi:pr`, and the commit step before a push to an
+  open pull request, run the list. A failure stops the push.
 
 ## 1.1.0 — 2026-11-18
 
