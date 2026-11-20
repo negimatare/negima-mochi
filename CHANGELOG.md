@@ -12,15 +12,25 @@ restart Claude Code.
 
 - Mochi writes its own text in
   [ASD-STE100 Simplified Technical English](https://www.asd-ste100.org/)
-  and UK English: plans, audits, findings files, pull request text, commit
-  messages, and a new `CLAUDE.md`. Identifiers, file paths and quoted text
-  stay exact. A file that mochi does not own keeps its language, and a rule
-  in your `CLAUDE.md` wins.
+  and UK English. This text is plans, audits, findings files, pull request
+  text, commit messages, and a new `CLAUDE.md`. Identifiers, file paths and
+  quoted text stay exact. A file that mochi does not own keeps its language,
+  and a rule in your `CLAUDE.md` wins.
+- The writing rule is for mochi text only. A reviewer does not report US
+  spelling, STE grammar or sentence length in your code or text.
 - Replies answer what you asked and stop there. A caveat comes one time, not
   in each later summary.
-- A code comment is the last resort. The tidy step deletes a comment that
-  restates the code or warns "do not change", and makes the code say it with
-  a name or a constant. A comment that gives a why stays.
+- A code comment is the last resort. In the change, the tidy step deletes
+  these comments:
+  - A comment that restates the code.
+  - A one-time setup note or a plan-step name.
+  - A "do not change" warning, also one that gives a reason.
+
+  When a deleted comment says something that the code does not, tidy puts it
+  in a name or a constant. A one-line why stays. A comment that your project
+  asks for, such as a licence header or a lint directive, also stays.
+- The hygiene reviewer and the `/mochi:refactor` audit report the comments
+  that tidy deletes.
 
 ## 1.1.0 — 2026-11-18
 

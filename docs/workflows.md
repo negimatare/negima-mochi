@@ -335,7 +335,8 @@ confirm. An example is a finding that depends on the size of a table.
 This command writes the body of the pull request from the final diff. The
 body has a TL;DR, the reasons, the risk, the review steps, the review
 questions and a manual test plan. The command also adds self-review comments
-at the lines with risk. **You approve the body and the comments.** Then the
+at the lines with risk. Claude writes the body and the comments in STE and UK
+English. **You approve the body and the comments.** Then the
 command opens the pull request as a draft. It marks the pull request as ready
 only when you tell it to.
 

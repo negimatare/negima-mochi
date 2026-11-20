@@ -113,7 +113,7 @@ The page also shows all links in a table.
 - Each session starts with the working principles in its context. A new
   session shows a banner from one of the reviewer monitors. To hide the
   banner, set `MOCHI_BANNER=0`.
-- The principles set how Claude writes. The text that mochi creates, for
+- The principles set how Claude writes. The text that mochi owns, for
   example plans, commit messages and pull requests, is in
   [STE](https://www.asd-ste100.org/) and UK English. A code comment is the
   last resort: Claude first makes the code clear with names.
