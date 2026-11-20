@@ -80,7 +80,8 @@ existing code starts with `/mochi:refactor <area>`, which audits the area and
 plans the refactor that build then implements. Bugs go through
 `/mochi:fix-bug`, reproduced by a failing test before any fix.
 `/mochi:review` reviews any change, and `/mochi:pr` opens the pull request.
-Nothing pushes to the default branch. A project
+Nothing pushes to the default branch. Ask before you run a migration or
+change local infrastructure. A project
 without a `CLAUDE.md` needs `/mochi:setup-project` first.
 
 ## Writing

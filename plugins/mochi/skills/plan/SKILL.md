@@ -21,6 +21,13 @@ today), what is out of scope, how we will know it works, and any constraint
 (deadline, compatibility, cost). Skip what the request answers. If the need is
 unclear, say so: ease of implementation is not a reason to build something.
 
+When the change edits two deployables in this repository, for example an API
+and the web app that reads it, ask whether they deploy together. A change to
+one deployable that calls another is not such a change. Ask it even when the
+request answers the other questions, and wait for the answer before you write
+the plan. When they deploy together, the plan has no compatibility step, such
+as a field sent in two forms.
+
 ## 2. Ground it in the code
 
 Find where the change lands and how neighbouring code solves the same problem
@@ -160,7 +167,7 @@ about 400 lines, it is too big for one pull request to review well: say so
 and suggest `/mochi:split .plans/<date>-<short-slug>.md` before
 building, so each part gets its own branch and pull request. Suggest it too
 when its slices must reach production at different times: a deploy order
-between packages, a migration that must land before the code that reads it,
+between packages that do not deploy together, a migration that must land before the code that reads it,
 or a clean-up that waits until every client has upgraded. One pull request
 ships its slices together, so it cannot keep that order. It is a suggestion,
 not another stop.
