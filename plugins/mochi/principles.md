@@ -81,7 +81,7 @@ plans the refactor that build then implements. Bugs go through
 `/mochi:fix-bug`, reproduced by a failing test before any fix.
 `/mochi:review` reviews any change, and `/mochi:pr` opens the pull request.
 Nothing pushes to the default branch. Ask before you run a migration or
-change local infrastructure. A project
+change local infrastructure (a local database, containers). A project
 without a `CLAUDE.md` needs `/mochi:setup-project` first.
 
 ## Writing

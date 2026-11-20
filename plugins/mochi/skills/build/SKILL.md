@@ -20,10 +20,10 @@ go to step 2. A plan path that does not exist goes back to the user. A plan
 with more than six slices, or whose slice estimates add up to more than about
 400 lines, is too big for one pull request to review well, and
 one whose slices must reach production at different times (its Risks name a
-deploy order, a migration that must land first, or a clean-up that waits for
-every client) cannot keep that order in one pull request. Say which applies,
-suggest `/mochi:split <plan path>`, and build it whole only when the user says
-so.
+deploy order between deployables that do not deploy together, a migration
+that must land first, or a clean-up that waits for every client) cannot
+keep that order in one pull request. Say which applies, suggest
+`/mochi:split <plan path>`, and build it whole only when the user says so.
 
 A plan split by `/mochi:split` is an index of parts: send the user to its
 parts, built one at a time. A part that says `Build after part <n>` waits for
