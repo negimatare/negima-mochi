@@ -8,7 +8,9 @@ cat > CLAUDE.md <<'X'
 
 A Django service. Run `pytest` before every commit and format with `ruff format`.
 X
-mkdir -p apps/web && cd apps/web
+mkdir -p apps/web
+source "$(dirname "${BASH_SOURCE[0]}")/../_shared/npmrc.sh" apps/web
+cd apps/web
 cat > package.json <<'X'
 { "name": "orders", "private": true, "type": "module", "scripts": { "test": "node --test", "lint": "node scripts/lint.mjs" } }
 X

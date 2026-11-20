@@ -15,6 +15,7 @@ cat > package.json <<'P'
   "dependencies": { "@fluentui/react-components": "^9.66.0", "react": "^19.1.0", "react-dom": "^19.1.0" }
 }
 P
+source "$(dirname "${BASH_SOURCE[0]}")/../_shared/npmrc.sh"
 cat > eslint.config.js <<'P'
 export default [
     {
