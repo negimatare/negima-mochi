@@ -258,3 +258,23 @@ steps before these calls, and the behaviour of the kit when the calls fail.
   `renders-part-1` in `split-writes-the-parts-and-an-index`. Also, the
   sandbox can prevent access to the plugin. Copy `plugins/` to `$TMPDIR`.
   Then use the copy with `eval_kit`.
+
+## Release
+
+1. Run the evals for a release, as [Evals](#evals) says.
+2. In a pull request, set the same version in the three
+   `.claude-plugin/plugin.json` files. Replace "unreleased" in the
+   `CHANGELOG.md` heading with the date, for example
+   `## 1.3.0 — 2026-11-21`.
+3. Before you merge, run `node scripts/release-notes.mjs 1.3.0`. It shows
+   the release notes, or the problem that stops them.
+4. After the merge, tag the merge commit on `main` and push the tag:
+
+   ```bash
+   git tag v1.3.0 && git push origin v1.3.0
+   ```
+
+The GitHub workflow `Release` then checks that the tag is on `main`, runs
+the script tests, the skill map check and the notes script, and publishes
+the release with those notes. An immutable release keeps its tag, so the
+workflow stops before it publishes when something does not agree.
