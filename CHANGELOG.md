@@ -8,7 +8,7 @@ restart Claude Code.
 
 ## 1.3.1 — unreleased
 
-### mochi
+### mochi plugin
 
 - **A template for the pull request body.** `/mochi:pr` fills
   `skills/pr/assets/pr-body.md`: a TL;DR, a Why, a Screenshots table when
@@ -18,13 +18,13 @@ restart Claude Code.
 
 ## 1.3.0 — 2026-11-20
 
-The banner shows the version of each Mochi plugin and tells you when an
+The banner shows the version of each mochi plugin and tells you when an
 update is out. Release checks of the kit cost less and take less time.
 
-### Mochi
+### mochi plugin
 
 - **Versions in the banner.** The banner shows the version of each installed
-  Mochi plugin. A bold orange `↑` marks a plugin that is older than the
+  mochi plugin. A bold orange `↑` marks a plugin that is older than the
   latest release, and the line ends with that release, for example
   `↑ 1.3.0 latest`. The banner checks GitHub one time in 12 hours at most.
   To stop the check, set `MOCHI_UPDATE_CHECK=0`.
