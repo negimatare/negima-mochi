@@ -3,7 +3,9 @@
 //
 //   node scripts/eval-history.mjs <plugin dir> <release> <run.json>...
 //     Adds one row for each case, model and arm of the runs, and replaces
-//     the rows that the file already has for that release.
+//     the rows that the file already has for that release. Give every run
+//     JSON of the release. A run that the cost cap cut off before its paid
+//     graders adds its cost and time, but no pass and no run.
 //   node scripts/eval-history.mjs <plugin dir> --demote
 //     Lists the core cases that passed all their runs on Opus and on
 //     Sonnet in each of the last three releases.
@@ -16,6 +18,10 @@ const RELEASES_TO_DEMOTE = 3;
 const [pluginDir, release, ...runFiles] = process.argv.slice(2);
 if (!pluginDir || !release || (release !== '--demote' && !runFiles.length)) {
   console.error('Usage: eval-history.mjs <plugin dir> <release> <run.json>... | <plugin dir> --demote');
+  process.exit(1);
+}
+if (release !== '--demote' && !/^\d+\.\d+\.\d+$/.test(release)) {
+  console.error(`The release must be a version such as 1.3.0, not "${release}".`);
   process.exit(1);
 }
 const historyFile = join(pluginDir, 'evals', 'history.tsv');
@@ -55,7 +61,7 @@ if (release === '--demote') {
         const runs = rows.filter(
           (row) => row.release === version && row.case === name && row.arm === 'with' && row.model.startsWith(family),
         );
-        return runs.length > 0 && runs.every((row) => row.passes === row.runs);
+        return runs.length > 0 && runs.every((row) => row.runs !== '0' && row.passes === row.runs);
       }),
     );
   const ready = core.filter(passedEverywhere);
@@ -73,10 +79,11 @@ for (const file of runFiles) {
       const key = [testCase.name, model, arm].join('\t');
       const total = totals.get(key) ?? { passes: 0, runs: 0, cost: 0, seconds: 0 };
       for (const result of runs) {
-        total.passes += result.passed ? 1 : 0;
-        total.runs += 1;
         total.cost += result.costUsd + (result.judgeCostUsd ?? 0);
         total.seconds += result.durationSeconds;
+        if (result.skippedPaidGraders) continue;
+        total.passes += result.passed ? 1 : 0;
+        total.runs += 1;
       }
       totals.set(key, total);
     }

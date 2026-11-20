@@ -27,7 +27,8 @@ test('a command that adds or upgrades a package asks', () => {
     'npm update',
     'yarn up',
     'poetry update',
-    'uv pip install -U pydantic',
+    'uv lock -U',
+    'uv sync --upgrade',
     'uv lock --upgrade-package ruff',
     'cd web && npm install zod',
     'npm test; pnpm add lodash',
@@ -36,17 +37,16 @@ test('a command that adds or upgrades a package asks', () => {
   }
 });
 
-test('an install from the lockfile, a script or another tool is silent', () => {
+test('an install from the lockfile, a script or a tool is silent, also when its name is a verb', () => {
   for (const command of [
     'npm install',
     'npm ci',
     'pnpm install --frozen-lockfile',
     'yarn',
     'uv sync',
-    'npm run build',
     'npm test',
-    'pnpm exec eslint .',
-    'pnpm dlx create-vite',
+    'npm run update',
+    'pnpm exec add',
     'npx tsc --noEmit',
     'git status',
   ]) {
