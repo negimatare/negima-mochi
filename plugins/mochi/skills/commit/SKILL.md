@@ -102,8 +102,10 @@ Otherwise, when the branch has an open pull request
 run the **push checks** first: the verification commands, unless step 4 ran
 them, and the "Before a push to an open PR" list of the project's
 `CLAUDE.md`. A failure stops the push: name the command that failed, and
-push only when the user says so. Without `gh`, and with no word from the
-caller, say one time that you cannot tell, and push without the list. When
+push only when the user says so. A "no pull requests found" error means
+the branch has no open PR. When `gh` is missing or not logged in, and the
+caller gives no word, say one time that you cannot tell, and push without
+the list. When
 the `CLAUDE.md` has no such list, say so one time and suggest
 `/mochi:setup-project`.
 

@@ -99,15 +99,15 @@ there, since a fresh session will not come back to it. Then ask in one
 question: review here, or run `/clear` and then the command you give in
 full — `/mochi:review <branch>`, with `against <base>` for a stacked part,
 `for a build of <plan path>`, `the tidy skill ran on every slice` when it
-did, and `commit and push each area's fixes`. Give the command after it too: `/mochi:pr`, or
-`/mochi:pr <base>` for a stacked part. Wait for the answer before
-reviewing.
+did, and `commit and push each area's fixes`. Give the command after it
+too: `/mochi:pr`, or `/mochi:pr <base>` for a stacked part. Wait for the
+answer before reviewing.
 
 To review here, run `/mochi:review` on the feature branch, with
 `for a build of <plan path>`: a fix for code of the part below then stays
-on this part. When the `tidy` skill ran on every slice, tell it so; not when
-the user skipped it. For a stacked
-part, review it against its base, so that the review sees only this part.
+on this part. When the `tidy` skill ran on every slice, tell it so; not
+when the user skipped it. For a stacked part, review it against its base,
+so that the review sees only this part.
 Its report for each area is the **second stop**: the user picks which
 findings to fix. Fix those, rerun the verification commands, run the `commit`
 skill with "review fixes; push", and move to the next area when the user says
