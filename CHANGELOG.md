@@ -58,15 +58,20 @@ restart Claude Code.
   pull request in a local stack and links it on GitHub. A restack rebases
   the whole stack with `gh stack rebase`, asks one time, and pushes with
   `gh stack push`. Without `gh stack`, it restacks with git, as before.
+  When another person pushed commits to the branch, it shows them and
+  restacks nothing, so that the force-push does not delete them.
 - `/mochi:review` fixes a bug in code of an unmerged part below on the
   branch of that part. Then it rebases the part above onto the fix, and
-  pushes nothing: `/mochi:pr` pushes the two branches. In the review of a
-  build, the fix stays on the part that build builds, and the reply names
-  the part that had the bug.
+  pushes nothing: `/mochi:pr` pushes the two branches. With uncommitted
+  changes, the fix stays on this part, and the reply says why. In the review
+  of a build, the fix stays on the part that build builds, and the reply
+  names the part that had the bug.
 - `/mochi:setup-project` writes a "Before a push to an open PR" list. It
   holds the commands of the `pull_request` CI jobs that the verification
   commands do not run. `/mochi:pr`, and the commit step before a push to an
-  open pull request, run the list. A failure stops the push.
+  open pull request, run the list. A failure stops the push. Run
+  `/mochi:setup-project` again to add the list to an existing `CLAUDE.md`.
+  Without the list, Claude tells you one time.
 
 ## 1.1.0 — 2026-11-18
 

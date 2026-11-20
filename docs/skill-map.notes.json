@@ -64,7 +64,7 @@
     "review -> mochi-python:conventions-reviewer": { "when": "an area is a FastAPI service" },
     "review -> mochi-python:api-contract-reviewer": { "when": "an area is a FastAPI service and touches its HTTP surface" },
     "review -> commit": { "when": "a fix belongs to the unmerged part below, outside a build" },
-    "review -> pr": { "note": "its stack check, and the push of a fix on the part below" },
+    "review -> pr": { "when": "a fix belongs to the unmerged part below: it reads the stack check, and names /mochi:pr to push" },
     "pr -> commit": { "when": "tracked files have uncommitted changes" },
     "plan -> bar-raiser": { "note": "once, plus one re-check by the same agent" },
     "mochi-react:conventions-reviewer -> @mochi-react": { "note": "reads all seven" },
