@@ -2,7 +2,7 @@
 // costs no tokens.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 if (process.env.MOCHI_BANNER === '0') process.exit(0);
@@ -126,13 +126,28 @@ const installedVersions = () => {
   const mochiKey = Object.keys(plugins).find(
     (key) => key.startsWith('mochi@') && installs(key).some((entry) => resolve(entry.installPath ?? '') === pluginRoot),
   );
-  if (!mochiKey) return own.filter(([, version]) => version);
-  const marketplace = mochiKey.slice('mochi@'.length);
+  // A directory marketplace runs each plugin from its source folder, not from
+  // the installPath, so the version that runs is in that folder. macOS can
+  // give the same non-ASCII path in two Unicode forms, so compare in one.
+  const fromSource = !mochiKey;
+  const directoryMarketplace = () => {
+    const known = readJson(join(configDir, 'plugins', 'known_marketplaces.json')) ?? {};
+    const root = pluginRoot.normalize('NFC');
+    return Object.keys(known).find((name) => {
+      const location = known[name]?.installLocation;
+      return location && root.startsWith(resolve(location).normalize('NFC') + sep);
+    });
+  };
+  const marketplace = mochiKey?.slice('mochi@'.length) ?? directoryMarketplace();
+  if (!marketplace) return own.filter(([, version]) => version);
   const scopeOrder = ['local', 'project', 'user'];
-  const forThisProject = (name) =>
-    installs(`${name}@${marketplace}`)
+  const forThisProject = (name) => {
+    const entry = installs(`${name}@${marketplace}`)
       .filter((entry) => !entry.projectPath || resolve(entry.projectPath) === resolve(projectDir))
-      .sort((a, b) => scopeOrder.indexOf(a.scope) - scopeOrder.indexOf(b.scope))[0]?.version;
+      .sort((a, b) => scopeOrder.indexOf(a.scope) - scopeOrder.indexOf(b.scope))[0];
+    const source = fromSource ? readJson(join(dirname(pluginRoot), name, '.claude-plugin', 'plugin.json')) : undefined;
+    return entry && (source?.version ?? entry.version);
+  };
   return [...own, ...STACK_PLUGINS.map((name) => [name, forThisProject(name)])].filter(([, version]) => version);
 };
 

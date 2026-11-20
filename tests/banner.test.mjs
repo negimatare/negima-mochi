@@ -120,6 +120,35 @@ test('the arrow marks only the plugin that is older than the release', () => {
   assert.equal(versionLine(run(dirs)).match(/Mochi 1\.2\.0.*/)[0], 'Mochi 1.2.0 · React 1.1.0 ↑  ↑ 1.2.0 latest');
 });
 
+// A directory marketplace runs each plugin from its source folder, so no
+// installPath is the plugin root, and the source has the version that runs.
+// The marketplace path is in the other Unicode form, as macOS can give it.
+test('a directory marketplace shows the stack plugins from their source folders', () => {
+  const dirs = setUp({
+    cache: fresh('1.2.0'),
+    installed: ({ project }) => ({
+      version: 2,
+      plugins: {
+        'mochi@m': [{ scope: 'local', projectPath: project, installPath: '/cache/mochi/1.1.0', version: '1.1.0' }],
+        'mochi-react@m': [{ scope: 'local', projectPath: project, version: '1.1.0' }],
+        'mochi-python@m': [{ scope: 'local', projectPath: '/elsewhere', version: '1.1.0' }],
+      },
+    }),
+  });
+  const source = join(dirs.plugin, '..', 'ぎ'); // ぎ, one code point
+  for (const name of ['mochi', 'mochi-react', 'mochi-python']) {
+    mkdirSync(join(source, name, '.claude-plugin'), { recursive: true });
+    writeFileSync(join(source, name, '.claude-plugin', 'plugin.json'), JSON.stringify({ version: '1.2.0' }));
+  }
+  const location = source.normalize('NFD');
+  writeFileSync(
+    join(dirs.config, 'plugins', 'known_marketplaces.json'),
+    JSON.stringify({ m: { source: { source: 'directory', path: location }, installLocation: location } }),
+  );
+  const message = run(dirs, { env: { CLAUDE_PLUGIN_ROOT: join(source, 'mochi') } });
+  assert.equal(versionLine(message).match(/Mochi 1\.2\.0.*/)[0], 'Mochi 1.2.0 · React 1.2.0');
+});
+
 test('an installed_plugins.json of version 1 still shows the banner', () => {
   const dirs = setUp({
     cache: fresh('1.2.0'),

@@ -21,6 +21,10 @@ The pull request body follows a template.
   you give images, and a footer that names Negima Mochi and Claude Code. A
   stacked pull request has no `Stacked on` line above the TL;DR, as GitHub
   shows its base branch.
+- **Fix: the banner with a local marketplace.** When you add the kit as a
+  marketplace from a folder, the banner shows the versions of the
+  `mochi-react` and `mochi-python` plugins that you installed too, not only
+  `mochi`.
 
 ## 1.3.0 — 2026-11-20
 
