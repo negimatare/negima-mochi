@@ -32,11 +32,11 @@ Cut by outcome, never by layer, size, or file. Each part must be:
 
 A part that is only an API, only a schema, or only a UI fails the test; merge
 it into the outcome it enables. One exception: when the plan's slices must
-reach production in an order (a deploy order between packages, a migration
-before the code that reads it), the step that must ship first may be its own
-part, as long as it keeps the product working unchanged for everyone using
-it today. So may a clean-up that can only ship after every client has
-upgraded, as the last part. Name the order that forces each one. To find the cuts, narrow the case first (one
+reach production in an order (a deploy order between deployables that do
+not deploy together, a migration before the code that reads it), the step
+that must ship first may be its own part, as long as it keeps the product
+working unchanged for everyone using it today. So may a clean-up that can
+only ship after every client has upgraded, as the last part. Name the order that forces each one. To find the cuts, narrow the case first (one
 data shape, one kind of user), ship one workflow step, do the common behaviour
 before a special policy or exception, or test a cheap assumption before the
 build it would justify.

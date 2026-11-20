@@ -84,7 +84,10 @@ when Claude reads the files of the package.
 /mochi:build add a CSV export to the orders page; reuse the existing date filter
 ```
 
-1. **Plan.** Claude asks one round of questions. Then it writes
+1. **Plan.** Claude asks one round of questions. When the change edits two
+   deployables, for example an API and the web app that reads it, Claude asks
+   if they deploy together. When they do, the plan has no compatibility step.
+   Then it writes
    `.plans/<date>-<slug>.md`, for example `.plans/20261105-csv-export.md`. The
    plan contains:
    - The problem and the acceptance scenarios.
@@ -152,7 +155,8 @@ The plan step proposes a split in these conditions:
 - The plan has more than six slices.
 - The slices change more than approximately 400 lines in total.
 - The slices must go to production at different times. Examples are a
-  service before its frontend, or a migration before the code that reads it.
+  service before a frontend that does not deploy with it, or a migration
+  before the code that reads it.
 
 In these conditions, build also asks you before it builds the full plan.
 
@@ -262,7 +266,9 @@ touches, start from the area and tell Claude the problem:
 ```
 
 This command reviews a pull request, a branch or uncommitted work. Without
-arguments, it reviews the current branch and its uncommitted changes.
+arguments, it reviews the current branch and its uncommitted changes. Claude
+compares a pull request with its base branch, not with the default branch.
+This also applies to a branch that has an open pull request.
 
 The command divides the change by stack, for example "Python, api/" and
 "React, web/". Then it reviews one area at a time, and it starts with the area
@@ -285,7 +291,8 @@ contract reviewer runs only when the area touches the HTTP surface.
 Claude examines each Critical and High finding against the code before you
 see it.
 Claude shows Medium and Minor findings as the reviewers wrote them. It
-examines them before it fixes or posts them.
+examines them before it fixes or posts them. Claude tells you this one time
+in a session, not in each report.
 
 When a reviewer says that a test cannot fail, Claude proves it. This
 applies when the test runs without a build or a service. Claude removes the
@@ -297,7 +304,9 @@ you. It asks before it pulls.
 Each finding has a [grade](#grades). The report shows the most severe findings
 first. Claude saves the findings in `.reviews/REV-<date>-<pr number>.md`, so
 that a later session can continue the review. Before the pull request exists,
-the file uses the branch name in place of the number.
+the file uses the branch name in place of the number. A finding that you skip
+stays skipped when Claude reviews the area again, unless the new finding has a
+higher grade. To get it back, tell Claude to open it again.
 
 For a pull request, Claude offers to post the open findings as one comment.
 **You approve the comment** before Claude posts it. When findings are
@@ -308,8 +317,10 @@ you, and it recommends `/mochi:setup-project` first, because the instructions
 above the package can be for a different app.
 
 Build does the review step itself. Use `/mochi:review` alone for work that
-build did not make, for example a pull request from a team member. To examine
-code without a change, use `/mochi:refactor`.
+build did not make, for example a pull request from a team member. On a pull
+request that a different person wrote, Claude changes no file of the pull
+request. It offers to post the findings as a comment. To examine code without
+a change, use `/mochi:refactor`.
 
 ### Grades
 
@@ -325,7 +336,9 @@ against the code first:
 | 🔵 Minor | Optional improvement. | The "later" list |
 
 The findings file starts with the number of open findings for each grade, for
-example `Open: 🔴 0 · 🟠 2 · 🟡 5 · 🔵 3`. A problem copied from current code
+example `Open: 🔴 0 · 🟠 2 · 🟡 5 · 🔵 3`. A missing test for a race, a
+restart or an input that production cannot send is Minor at most, and its fix
+says that no test is needed. A problem copied from current code
 gets the grade of its effect in the change, as if the code was new. A `?` at
 the end, as in `🟡 Medium?`, marks a finding that the code alone cannot
 confirm. An example is a finding that depends on the size of a table.
@@ -333,12 +346,23 @@ confirm. An example is a finding that depends on the size of a table.
 ## `/mochi:pr`
 
 This command writes the body of the pull request from the final diff. The
-body has a TL;DR, the reasons, the risk, the review steps, the review
-questions and a manual test plan. The command also adds self-review comments
-at the lines with risk. Claude writes the body and the comments in STE.
-**You approve the body and the comments.** Then the command opens the pull
-request as a draft. It marks the pull request as ready only when you tell it
-to.
+body has two sections: a TL;DR and the reasons. The reasons include each
+location where the code is different from the plan, and why. The pull
+request template of your repository wins over these two sections.
+
+The command lists candidate self-review comments, one line for each open
+decision or difference from the plan that shows at one line. It writes only
+the comments that you select. When a High or Critical finding is still open,
+Claude offers to fix it before the pull request opens. If you decline, the
+reasons name the gap.
+
+When the diff changes markup or styles, Claude asks you for a before and an
+after screenshot. Make sure that the images show no customer data. With the
+images, the body gets a Before and After table, and `gh` uploads the files.
+
+Claude writes the body and the comments in STE. **You approve the body and
+select the comments.** Then the command opens the pull request as a draft. It
+marks the pull request as ready only when you tell it to.
 
 On the branch of a stacked part, the pull request targets the part below. The
 command restacks the branch when the part below changes or merges, as
