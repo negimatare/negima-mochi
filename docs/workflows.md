@@ -25,6 +25,7 @@ tools of the project change.
    - The typecheck, lint and test commands.
    - The instructions in the parent folders.
    - The rules of the applicable stack plugin.
+   - The CI jobs in `.github/workflows/` that run on `pull_request`.
 2. **Ask.** It asks a maximum of four questions about the data that the code
    cannot give. Examples are decisions that a new team member can get wrong,
    or areas that a different team owns.
@@ -36,6 +37,20 @@ tools of the project change.
 5. **Ignore.** It tells git to ignore `.plans/` and `.reviews/`. When the team
    has the plugins in the committed `.claude/settings.json`, it uses
    `.gitignore`. If not, it uses `.git/info/exclude`, which is not committed.
+
+**CI before a push.** A push to an open pull request runs the CI jobs again.
+To find a failure before that, setup writes a "Before a push to an open PR"
+list in `CLAUDE.md`:
+
+- The list has the local commands of the `pull_request` jobs that the
+  verification commands do not already run.
+- It does not have deploy steps, or steps that need a secret or a service.
+  Setup names each job that cannot run locally.
+- Before each push of `/mochi:pr`, and before a commit push to a branch
+  with an open pull request, Claude runs the verification commands and this
+  list. When a command fails, Claude does not push, and it names the
+  command. You can still tell Claude to push. Without `gh`, the commit step
+  cannot see the pull request: it says so, and pushes without the list.
 
 **Lint rules.** When a stack plugin needs a lint rule that the project does not
 have, setup proposes the rule. First, it runs lint with the rule and
@@ -197,6 +212,28 @@ Merge the parts from the bottom to the top. After each merge, run
 onto the default branch and runs the checks. Then it asks for your approval
 before it force-pushes. It also restacks a part when the part below it gets
 new commits during the review.
+
+**With `gh stack`.** Install the
+[`gh stack`](https://github.com/github/gh-stack) extension with
+`gh extension install github/gh-stack`, and log in to `gh`. Then
+`/mochi:pr` puts each stacked pull request in a local stack, and links the
+stack on GitHub. A restack rebases all the parts with `gh stack rebase`.
+Claude runs the checks on each part, asks you one time, and pushes all the
+parts with `gh stack push`. Without `gh stack`, Claude restacks one branch
+at a time with git. When another part is already stacked on the same base,
+that branch also restacks with git.
+
+When another person pushed commits to the branch, Claude shows them and
+restacks nothing, so that the force-push does not delete them.
+
+**A bug in a part below.** You run `/mochi:review` on a part, and a finding
+is in code that an unmerged part below added. Then Claude fixes it on the
+branch of that part, so that each pull request is correct when it merges.
+Claude asks before it changes to that branch. Then it rebases the part above
+onto the fix. It pushes nothing: run `/mochi:pr` to push the two branches.
+When you have uncommitted changes, the fix stays on this part, and Claude
+tells you why. In the review of a build, the fix stays on the part that
+build builds, and Claude tells you which part had the bug.
 
 ## `/mochi:refactor`
 
@@ -379,6 +416,10 @@ command restacks the branch when the part below changes or merges, as
   first commit makes the branch from the part below.
 - Claude never pushes to the default branch. It force-pushes only the branch
   of a stacked part, and only when you agree to a restack.
+- Before a push to a branch with an open pull request, Claude runs the
+  "Before a push to an open PR" list of your `CLAUDE.md`, with the
+  verification commands. A failure stops the push. Without `gh`, Claude
+  cannot see the pull request: it says so, and pushes without the list.
 - To commit changes that you made yourself, ask Claude to commit them. The
   same rules apply. Claude pushes only when you ask.
 

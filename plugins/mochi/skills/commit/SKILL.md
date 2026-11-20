@@ -97,6 +97,18 @@ Confirm with `git log --oneline -n <commits made>`.
 
 Without a request to push, stop here and say the commits are ready to push.
 
-Otherwise push the feature branch: `git push -u origin <branch>` the first
+Otherwise, when the branch has an open pull request
+(`gh pr view <branch> --json state` gives `OPEN`, or the caller says so),
+run the **push checks** first: the verification commands, unless step 4 ran
+them, and the "Before a push to an open PR" list of the project's
+`CLAUDE.md`. A failure stops the push: name the command that failed, and
+push only when the user says so. A "no pull requests found" error means
+the branch has no open PR. When `gh` is missing or not logged in, and the
+caller gives no word, say one time that you cannot tell, and push without
+the list. When
+the `CLAUDE.md` has no such list, say so one time and suggest
+`/mochi:setup-project`.
+
+Then push the feature branch: `git push -u origin <branch>` the first
 time, `git push` after. Never push the default branch and never force: a
 rejected push goes back to the user. With no remote, say so and stop.

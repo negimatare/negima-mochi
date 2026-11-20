@@ -199,6 +199,14 @@ The `smoke` tag marks the case with the lowest cost in `mochi` and in
   - `npm test` writes a line to `.eval/test-runs.log` for each run.
   - Packed refs make a commit to `main` create a `refs/heads/main` file,
     which `file_exists` can see.
+- **Most review and `pr` cases for a stack** use
+  `evals/_shared/order-exports-stack.sh`. This script builds the
+  `shop-lib.sh` repository with two stacked branches. Part 2 calls a
+  function of part 1 that has a bug.
+- **The `pr` and `commit` cases for the "Before a push to an open PR"
+  list** use `evals/_shared/api-docs-check.sh`. This script builds the
+  `shop-lib.sh` repository with a local branch, and a check in that list
+  that fails on the branch.
 - **The `pr` cases for a UI change** use `evals/_shared/cart-summary.sh`.
   This script adds a pushed branch to the `shop-lib.sh` repository. The branch
   changes the markup of a component.

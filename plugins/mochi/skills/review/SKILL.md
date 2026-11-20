@@ -204,9 +204,10 @@ Critical and High block merging. A `must` that breaks nothing today is Medium,
 whatever the reviewer called it. A flaw inherited from existing code is graded
 by what it does in this change, like code written here: a wrong result the
 change ships is High or Critical even when the code it copied ships it too.
-Say it is inherited, and offer to fix both now or the original in a
-follow-up. A finding the code could not confirm keeps its `?`, for example
-`🟡 Medium?`.
+Say it is inherited. When the original is in the unmerged part below,
+step 7 ("The owning part") decides where the fix goes. Otherwise offer to
+fix both now or the original in a follow-up. A finding the code could not
+confirm keeps its `?`, for example `🟡 Medium?`.
 
 Write or update the findings file in this format, one line per finding:
 
@@ -245,6 +246,38 @@ user picks.
 
 Otherwise, fix what the user picks, offering the Critical and High findings
 first.
+
+**The owning part.** On a stacked branch (its base is not the default
+branch), a cited line belongs to the part below when all three hold. For an
+inherited flaw, test the line of the original, not this part's copy.
+
+- `git blame -L <line>,<line> -- <path>` gives a commit that is an ancestor
+  of the base (`git merge-base --is-ancestor <sha> <base>`; use
+  `origin/<base>` when there is no local `<base>`). Exit code 1 means "not an
+  ancestor"; any other failure is an error to report, not an answer;
+- that commit is not an ancestor of `origin/<default>`, so the line is not
+  from the default branch;
+- the base's pull request is not merged (`gh pr view <base> --json state`;
+  without `gh`, ask).
+
+When the arguments say `for a build of <plan path>`, as `/mochi:build` does,
+fix such a finding on this branch with the other fixes, and name in the
+reply the part below whose code had the bug. Otherwise, fix it on the base
+first, before the other fixes:
+
+1. Tracked files have changes (`git status --porcelain --untracked-files=no`):
+   fix it on this branch, and say in the reply why it is not on the base.
+2. Ask one time before you switch to the base, unless the user already
+   agreed. Fix it there, run the verification commands, and run the
+   `commit` skill with "review fix; no push".
+3. Switch back and restack this branch onto the base: `gh stack rebase
+   --no-trunk` when the stack check of
+   `${CLAUDE_PLUGIN_ROOT}/skills/pr/SKILL.md` step 6 passes, else
+   `git rebase <base>`. On a conflict, stop and show it, as that step does.
+4. Push nothing. Mark the finding `[x]` with `(fixed on <base>)` at the end
+   of its line, and give `/mochi:pr` as the next step: it asks one time,
+   then pushes the base and the restacked branches.
+
 Before fixing a Medium or Minor finding, confirm it as step 5 does for a
 `must`; one that does not hold is marked `[~]` with the reason. After
 the fixes, run the verification commands listed in the project's `CLAUDE.md`,
