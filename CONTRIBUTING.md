@@ -317,16 +317,59 @@ steps before these calls, and the behaviour of the kit when the calls fail.
   sandbox can prevent access to the plugin. Copy `plugins/` to `$TMPDIR`.
   Then use the copy with `eval_kit`.
 
+## Branches
+
+- `mochitsuki` is the integration branch. Branch off it with a
+  `<type>/<slug>` branch, and open the pull request against it. GitHub
+  proposes `main` as the base, so change the base to `mochitsuki`. Merge with
+  "Squash and merge". Dependabot also opens its pull requests against
+  `mochitsuki`.
+- `main` holds only releases and hotfixes. Each commit on `main` is a
+  release, so a plugin install from `main` always gets the latest release.
+  Only a `release/<version>` branch or a hotfix branch targets `main`.
+- After each merge to `main`, open a back-merge pull request from `main` to
+  `mochitsuki`. Merge it with "Create a merge commit", not with a squash.
+  The merge commit makes the squashed commit of `main` part of the history
+  of `mochitsuki`. Thus the next pull request to `main` shows only the new
+  work.
+- When the back-merge has a conflict, do not use the conflict editor of
+  GitHub: it commits to `main`, and the ruleset blocks that. A hotfix usually
+  causes a conflict at the top of `CHANGELOG.md`. Merge on a branch instead:
+
+  ```bash
+  git fetch origin
+  git switch -c chore/back-merge-1.x.y origin/mochitsuki
+  git merge origin/main   # resolve the conflict, then commit
+  ```
+
+  Open its pull request against `mochitsuki`, and merge it with "Create a
+  merge commit".
+
+The repository allows squash merges and merge commits. Two branch rulesets
+limit them:
+
+| Ruleset | Branch | Merge methods | Linear history |
+|---|---|---|---|
+| Mendicant Bias | `main` | squash | required |
+| Exuberant Witness | `mochitsuki` | squash, merge commit | not required |
+
+Both rulesets require signed commits, a pull request and the `Analyze` and
+`Skill map` checks. They also block force pushes and deletion.
+
 ## Release
 
-1. Run the evals for a release, as [Evals](#evals) says.
-2. In a pull request, set the same version in the three
-   `.claude-plugin/plugin.json` files. Replace "unreleased" in the
-   `CHANGELOG.md` heading with the date, for example
-   `## 1.x.0 — YYYY-MM-DD`.
-3. Before you merge, run `node scripts/release-notes.mjs 1.x.0`. It shows
-   the release notes, or the problem that stops them.
-4. After the merge, sign a tag on the merge commit on `main` and push it:
+1. Run the evals for a release on `mochitsuki`, as [Evals](#evals) says.
+2. Create the branch `release/1.x.0` from `mochitsuki`. On it:
+   - Set the same version in the three `.claude-plugin/plugin.json` files.
+   - Replace "unreleased" in the `CHANGELOG.md` heading with the date, for
+     example `## 1.x.0 — YYYY-MM-DD`.
+   - Add the runs of step 1 to `evals/history.tsv` with
+     `scripts/eval-history.mjs`, as [Evals](#evals) says.
+3. Run `node scripts/release-notes.mjs 1.x.0`. It shows the release notes,
+   or the problem that stops them.
+4. Open the pull request from `release/1.x.0` to `main`, with the title
+   `chore(release): 1.x.0`. Squash-merge it.
+5. Sign a tag on the squashed commit on `main` and push it:
 
    ```bash
    git switch main && git pull
@@ -339,7 +382,20 @@ steps before these calls, and the behaviour of the kit when the calls fail.
    ruleset blocks a change to a tag after the push, so do the check before
    the push.
 
-The GitHub workflow `Release` then checks that the tag is on `main`, runs
-the script tests, the skill map check and the notes script, and publishes
-the release with those notes. An immutable release keeps its tag, so the
-workflow stops before it publishes when something does not agree.
+   The GitHub workflow `Release` then checks that the tag is on `main`,
+   runs the script tests, the skill map check and the notes script, and
+   publishes the release with those notes. An immutable release keeps its
+   tag, so the workflow stops before it publishes when something does not
+   agree.
+6. Open the back-merge pull request from `main` to `mochitsuki`, as
+   [Branches](#branches) says.
+
+For a hotfix:
+
+1. Create a `fix/<slug>` branch from `main`.
+2. In the same branch, set the next patch version and add its
+   `CHANGELOG.md` section, as step 2 says.
+3. Open the pull request against `main`, with the title
+   `fix(<scope>): <subject>`. The squashed commit is the release of the
+   patch version.
+4. Do steps 3, 5 and 6.
