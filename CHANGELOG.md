@@ -20,9 +20,9 @@ one release.
 ### For contributors
 
 - **A new integration branch.** Pull requests target `mochitsuki`. Only a
-  release branch or a hotfix targets `main`, and a back-merge pull request
-  brings each release back to `mochitsuki`. CONTRIBUTING's Branches section
-  gives the steps.
+  release branch or a hotfix targets `main`. A release copies the files of
+  `mochitsuki` to `main`, and both branches take only squash merges.
+  CONTRIBUTING's Branches section gives the steps.
 - **Signed release tags.** The release steps sign each tag with
   `git tag -s`, and check the signature before the push.
 - **A `CLAUDE.md` for the kit.** It gives the verification commands, the
