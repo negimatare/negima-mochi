@@ -326,11 +326,18 @@ steps before these calls, and the behaviour of the kit when the calls fail.
    `## 1.x.0 — YYYY-MM-DD`.
 3. Before you merge, run `node scripts/release-notes.mjs 1.x.0`. It shows
    the release notes, or the problem that stops them.
-4. After the merge, tag the merge commit on `main` and push the tag:
+4. After the merge, sign a tag on the merge commit on `main` and push it:
 
    ```bash
-   git tag v1.x.0 && git push origin v1.x.0
+   git switch main && git pull
+   git tag -s v1.x.0 -m "Negima Mochi 1.x.0"
+   git tag -v v1.x.0   # reports a good signature from your key
+   git push origin v1.x.0
    ```
+
+   The tag uses the signing key that you use for your commits. The tag
+   ruleset blocks a change to a tag after the push, so do the check before
+   the push.
 
 The GitHub workflow `Release` then checks that the tag is on `main`, runs
 the script tests, the skill map check and the notes script, and publishes
