@@ -66,6 +66,23 @@ The `--scope local` option writes the install to
 `.claude/settings.local.json`. Git ignores this file, so the install has no
 effect on your team.
 
+The marketplace follows the `main` branch, which holds only releases. To stay
+on one release, add its tag from the
+[releases](https://github.com/negimatare/negima-mochi/releases) to the
+marketplace source. Replace `v1.x.y` with that tag:
+
+```bash
+claude plugin marketplace add negimatare/negima-mochi#v1.x.y
+```
+
+To move a pinned install to a different release:
+
+1. Remove the marketplace with
+   `claude plugin marketplace remove negima-mochi`. This also uninstalls its
+   plugins.
+2. Add the marketplace again with the new tag.
+3. Install the plugins again, with the same commands as before.
+
 Then run `/mochi:setup-project` one time. This command writes a short
 `CLAUDE.md` with the commands that your project really uses for verification,
 and the commands of your pull request CI to run before a push. It also makes
@@ -117,7 +134,7 @@ The page also shows all links in a table.
 - The banner shows the version of each mochi plugin that is installed for the
   project, on one line. When a newer release is on GitHub, a bold orange `↑`
   follows each older plugin, and the end of the line shows the version of
-  that release, for example `↑ 1.x.0 latest`. To get the latest release, the
+  that release, for example `↑ 1.x.y latest`. To get the latest release, the
   banner sends one request to the GitHub API each 12 hours at most. To stop
   this request, set `MOCHI_UPDATE_CHECK=0`.
 - The principles set how Claude writes. The text that mochi owns, for

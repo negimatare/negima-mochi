@@ -4,11 +4,30 @@ Each release of the `mochi`, `mochi-react`, and `mochi-python` plugins. To get
 a new release where the kit is installed, run
 `claude plugin marketplace update negima-mochi`, then
 `claude plugin update <plugin>@negima-mochi` for each installed plugin, and
-restart Claude Code.
+restart Claude Code. An install pinned to a tag moves with the steps in the
+README Install section.
 
 Each release has a section for each plugin that changed. **For contributors**
 lists the work on the kit itself, which does not change the installed
 plugins.
+
+## 1.3.2 — unreleased
+
+The `main` branch now holds only releases, so an install gets the latest
+release and not the work in progress. A tag in the marketplace source pins
+one release.
+
+### For contributors
+
+- **A new integration branch.** Pull requests target `mochitsuki`. Only a
+  release branch or a hotfix targets `main`. A release copies the files of
+  `mochitsuki` to `main`, and both branches take only squash merges.
+  CONTRIBUTING's Branches section gives the steps.
+- **Signed release tags.** The release steps sign each tag with
+  `git tag -s`, and check the signature before the push.
+- **A `CLAUDE.md` for the kit.** It gives the verification commands, the
+  integration branch, and the rules for the changelog, the pull request body
+  and the README.
 
 ## 1.3.1 — 2026-11-20
 

@@ -182,13 +182,13 @@ reports only part of the suite.
 
 Add `--json` to each release run, with a new file name for each run, a
 rerun too, for example
-`--json ./plugins/mochi/evals/results/release-1.x.0/opus-1.json`. The tool
+`--json ./plugins/mochi/evals/results/release-1.x.y/opus-1.json`. The tool
 writes a relative path below the current folder, not below the plugin. The
 results folder is git-ignored, so then add all the runs of the release to
 the history in git:
 
 ```bash
-node scripts/eval-history.mjs ./plugins/mochi <version> ./plugins/mochi/evals/results/release-<version>/*.json
+node scripts/eval-history.mjs ./plugins/mochi 1.x.y ./plugins/mochi/evals/results/release-1.x.y/*.json
 node scripts/eval-history.mjs ./plugins/mochi --demote
 ```
 
@@ -317,22 +317,95 @@ steps before these calls, and the behaviour of the kit when the calls fail.
   sandbox can prevent access to the plugin. Copy `plugins/` to `$TMPDIR`.
   Then use the copy with `eval_kit`.
 
+## Branches
+
+- `mochitsuki` is the integration branch. Branch off it with a
+  `<type>/<slug>` branch, and open the pull request against it. GitHub
+  proposes `main` as the base, so change the base to `mochitsuki`. Dependabot
+  also opens its pull requests against `mochitsuki`.
+- `main` holds only releases and hotfixes. Each commit on `main` is a
+  release, so a plugin install from `main` always gets the latest release.
+  Only a `release/1.x.y` branch or a hotfix branch targets `main`.
+- Both branches take only squash merges. A squash does not put the commits of
+  one branch into the history of the other, so `main` never merges
+  `mochitsuki`. A release copies the files of `mochitsuki` to `main` instead,
+  as [Release](#release) says.
+- A hotfix goes to `main` first, and then to `mochitsuki` as a cherry-pick.
+  Without the cherry-pick, the next release removes the fix from `main`.
+
+Two branch rulesets protect the branches:
+
+| Ruleset | Branch |
+|---|---|
+| Mendicant Bias | `main` |
+| Exuberant Witness | `mochitsuki` |
+
+Each one requires a pull request with a squash merge, signed commits, linear
+history, and the `Analyze` and `Skill map` checks. Each one also blocks force
+pushes and deletion.
+
 ## Release
 
-1. Run the evals for a release, as [Evals](#evals) says.
-2. In a pull request, set the same version in the three
-   `.claude-plugin/plugin.json` files. Replace "unreleased" in the
-   `CHANGELOG.md` heading with the date, for example
-   `## 1.x.0 — YYYY-MM-DD`.
-3. Before you merge, run `node scripts/release-notes.mjs 1.x.0`. It shows
-   the release notes, or the problem that stops them.
-4. After the merge, tag the merge commit on `main` and push the tag:
+1. Run the evals for a release on `mochitsuki`, as [Evals](#evals) says.
+2. Create a `chore/release-1.x.y` branch from `mochitsuki`. On it:
+   - Set the same version in the three `.claude-plugin/plugin.json` files.
+   - Replace "unreleased" in the `CHANGELOG.md` heading with the date, for
+     example `## 1.x.y — YYYY-MM-DD`.
+   - Add the runs of step 1 to `evals/history.tsv` with
+     `scripts/eval-history.mjs`, as [Evals](#evals) says.
+
+   Run `node scripts/release-notes.mjs 1.x.y`. It shows the release notes,
+   or the problem that stops them. Then open the pull request against
+   `mochitsuki` and squash-merge it.
+3. Copy the files of `mochitsuki` to a `release/1.x.y` branch from `main`:
 
    ```bash
-   git tag v1.x.0 && git push origin v1.x.0
+   git fetch origin
+   git switch -c release/1.x.y origin/main
+   git restore --source=origin/mochitsuki --staged --worktree :/
+   git commit -m "chore(release): 1.x.y"
+   git push -u origin release/1.x.y
    ```
 
-The GitHub workflow `Release` then checks that the tag is on `main`, runs
-the script tests, the skill map check and the notes script, and publishes
-the release with those notes. An immutable release keeps its tag, so the
-workflow stops before it publishes when something does not agree.
+   `git restore` also removes the files that `mochitsuki` deleted, so the
+   files of the branch are the same as the files of `mochitsuki`.
+4. Open the pull request from `release/1.x.y` to `main`, with the title
+   `chore(release): 1.x.y`. Its diff is the full release. When the diff
+   removes a line of a hotfix, the cherry-pick of that hotfix is missing:
+   stop and do it first. Squash-merge the pull request.
+5. Sign a tag on the squashed commit on `main` and push it:
+
+   ```bash
+   git switch main && git pull
+   git tag -s v1.x.y -m "Negima Mochi 1.x.y"
+   git tag -v v1.x.y   # reports a good signature from your key
+   git push origin v1.x.y
+   ```
+
+   The tag uses the signing key that you use for your commits. The tag
+   ruleset blocks a change to a tag after the push, so do the check before
+   the push.
+
+   The GitHub workflow `Release` then checks that the tag is on `main`,
+   runs the script tests, the skill map check and the notes script, and
+   publishes the release with those notes. An immutable release keeps its
+   tag, so the workflow stops before it publishes when something does not
+   agree.
+
+For a hotfix:
+
+1. Create a `fix/<slug>` branch from `main`. In it, set the next patch
+   version and add its `CHANGELOG.md` section, as step 2 says.
+2. Run `node scripts/release-notes.mjs 1.x.y`. Open the pull request against
+   `main`, with the title `fix(<scope>): <subject>`, and squash-merge it.
+3. Sign and push the tag, as step 5 says.
+4. Cherry-pick the squashed commit to `mochitsuki`:
+
+   ```bash
+   git fetch origin
+   git switch -c fix/<slug>-mochitsuki origin/mochitsuki
+   git cherry-pick <squashed commit on main>   # resolve a conflict in CHANGELOG.md, then git cherry-pick --continue
+   git push -u origin fix/<slug>-mochitsuki
+   ```
+
+   Open its pull request against `mochitsuki` and squash-merge it.
