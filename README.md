@@ -67,10 +67,12 @@ The `--scope local` option writes the install to
 effect on your team.
 
 The marketplace follows the `main` branch, which holds only releases. To stay
-on one release, add a tag to the marketplace source:
+on one release, add its tag from the
+[releases](https://github.com/negimatare/negima-mochi/releases) to the
+marketplace source. Replace `v1.x.y` with that tag:
 
 ```bash
-claude plugin marketplace add negimatare/negima-mochi#v1.3.1
+claude plugin marketplace add negimatare/negima-mochi#v1.x.y
 ```
 
 To move a pinned install to a different release:
