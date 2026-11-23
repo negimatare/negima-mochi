@@ -59,8 +59,8 @@ session in this repository, the plugin is usually not loaded: read
   for each changed plugin, with `####` topics when it has several. `### For
   contributors` is last. Each item starts with a bold lead. Give no test
   details: no case names and no run counts.
-- A version in a docs example is a placeholder such as `v1.x.y`, never a
-  real release: a real one goes out of date and readers copy it as it is.
+- Write a version in a docs example as `1.x.y`, and its tag as `v1.x.y`.
+  Never use a real release: it goes out of date, and readers copy it.
 - In the README, only the opening paragraph can be creative. Each badge links
   to its target and shows something useful: the release, the licence, CI or
   CodeQL.

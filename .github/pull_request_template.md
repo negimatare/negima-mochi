@@ -4,7 +4,7 @@
 
 ## Checklist
 
-- [ ] The base is `mochitsuki`. Only a `release/<version>` branch or a
+- [ ] The base is `mochitsuki`. Only a `release/1.x.y` branch or a
       hotfix targets `main`
       ([Branches](https://github.com/negimatare/negima-mochi/blob/main/CONTRIBUTING.md#branches))
 - [ ] A changed skill or agent has an eval case that fails on the old version
