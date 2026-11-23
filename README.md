@@ -66,6 +66,21 @@ The `--scope local` option writes the install to
 `.claude/settings.local.json`. Git ignores this file, so the install has no
 effect on your team.
 
+The marketplace follows the `main` branch, which holds only releases. To stay
+on one release, add a tag to the marketplace source:
+
+```bash
+claude plugin marketplace add negimatare/negima-mochi#v1.3.1
+```
+
+To move a pinned install to a different release:
+
+1. Remove the marketplace with
+   `claude plugin marketplace remove negima-mochi`. This also uninstalls its
+   plugins.
+2. Add the marketplace again with the new tag.
+3. Install the plugins again, with the same commands as before.
+
 Then run `/mochi:setup-project` one time. This command writes a short
 `CLAUDE.md` with the commands that your project really uses for verification,
 and the commands of your pull request CI to run before a push. It also makes

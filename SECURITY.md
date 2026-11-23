@@ -4,7 +4,8 @@
 
 Only the latest release of `mochi`, `mochi-react` and `mochi-python` gets
 fixes. To get the latest release, run
-`claude plugin update <plugin>@negima-mochi`.
+`claude plugin update <plugin>@negima-mochi`. An install pinned to a tag
+moves with the steps in the README Install section.
 
 ## Scope
 
