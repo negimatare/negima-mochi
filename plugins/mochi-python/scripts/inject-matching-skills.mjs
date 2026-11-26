@@ -37,6 +37,7 @@ const globToRegExp = (glob) =>
       .replace(/\u0001/g, '.*')}$`,
   );
 
+// The Skill tool resolves `${CLAUDE_PLUGIN_ROOT}` in a skill; this hook does too.
 const skillFile = join(process.env.CLAUDE_PLUGIN_ROOT, 'skills', name, 'SKILL.md');
 const [, frontmatter = '', body = ''] = readFileSync(skillFile, 'utf8').match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/) ?? [];
 const pathsBlock = frontmatter.match(/^paths:\n((?:[ \t]+-.*(?:\n|$))+)/m)?.[1] ?? '';
@@ -57,7 +58,7 @@ process.stdout.write(
   JSON.stringify({
     hookSpecificOutput: {
       hookEventName: input.hook_event_name,
-      additionalContext: `The mochi-python \`${name}\` skill applies to ${where}. Follow it, even where nearby code does otherwise:\n\n${body.trim()}`,
+      additionalContext: `The mochi-python \`${name}\` skill applies to ${where}. Follow it, even where nearby code does otherwise:\n\n${body.trim().replaceAll('${CLAUDE_PLUGIN_ROOT}', process.env.CLAUDE_PLUGIN_ROOT)}`,
     },
   }),
 );

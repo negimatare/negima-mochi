@@ -364,6 +364,19 @@ test('python: a CLAUDE.md without a block keeps the tools', () => {
   assert.deepEqual(tools(dir), ['mypy app/b.py', 'pytest -q -x']);
 });
 
+test('python: a skill that names a plugin file reaches Claude with the path resolved', () => {
+  const dir = pythonRepo();
+  const root = join(PLUGINS, 'mochi-python');
+  const result = spawnSync(process.execPath, [join(root, 'scripts', 'inject-matching-skills.mjs'), 'service-layer'], {
+    input: JSON.stringify({ hook_event_name: 'SessionStart', session_id: session(), cwd: dir }),
+    encoding: 'utf8',
+    env: hookEnv({ CLAUDE_PLUGIN_ROOT: root }),
+  });
+  const context = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
+  assert.ok(context.includes(`${root}/presets/ruff-lint.toml`), 'the preset path');
+  assert.ok(!context.includes('${CLAUDE_PLUGIN_ROOT}'));
+});
+
 const edited = (plugin, file) => hook(plugin, 'lint-edited-file.mjs', { hook_event_name: 'PostToolUse', tool_name: 'Edit', tool_input: { file_path: file } });
 
 test('react lint: problems block, a crash tells Claude without blocking, and no linter is silent', () => {
