@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { cpSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -11,7 +11,7 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 // A copy of the parts of the kit that the checks read, to plant a mistake in.
 const copy = () => {
   const dir = mkdtempSync(join(tmpdir(), 'kit-rules-test-'));
-  for (const path of ['.claude-plugin', 'plugins', 'CLAUDE.md', 'CONTRIBUTING.md', 'README.md', 'CHANGELOG.md', 'docs'])
+  for (const path of ['.claude-plugin', 'plugins', 'CLAUDE.md', 'CONTRIBUTING.md', 'README.md', 'CHANGELOG.md', 'docs', 'extras'])
     cpSync(join(ROOT, path), join(dir, path), { recursive: true, verbatimSymlinks: true, filter: (from) => !from.includes('/evals/results') });
   return dir;
 };
@@ -69,5 +69,55 @@ test('an agent id that resolves to no agent is named, in skill text and in grade
   assert.deepEqual(checks.agentRefs(dir), [
     `${grader}: 049-abject-testamint is no agent's name.`,
     'plugins/mochi/skills/plan/SKILL.md: mochi:05-032-mendicant-bais is no agent of mochi.',
+  ]);
+});
+
+test('an eval case off the layout is named', () => {
+  const dir = copy();
+  const evals = 'plugins/mochi/evals';
+  const link = `${evals}/commit-splits-unrelated-changes/graders/git-worked.md`;
+  const target = readFileSync(join(dir, link), 'utf8');
+  rmSync(join(dir, link));
+  writeFileSync(join(dir, link), target);
+  edit(dir, `${evals}/tidy-removes-comments-that-restate-the-code/case.yaml`, (text) => text.replace(/^name: .*$/m, 'name: tidy-removes-comments'));
+  edit(dir, `${evals}/pr-drafts-without-gh/prompt.md`, (text) => text.replace(/^tags: \[(.*)\]$/m, 'tags: [$1, deploy]'));
+  edit(dir, `${evals}/commit-splits-unrelated-changes/prompt.md`, (text) => text.replace(/^tags: \[(.*)\]$/m, 'tags: [$1, smoke]'));
+  rmSync(join(dir, `${evals}/fix-bug-asks-for-missing-steps/fixture.sh`));
+  assert.deepEqual(checks.evalLayout(dir), [
+    `${evals}/commit-splits-unrelated-changes/graders/git-worked.md: not a link to ../../_shared/git-worked.md.`,
+    `${evals}/fix-bug-asks-for-missing-steps: no fixture.sh.`,
+    `${evals}/pr-drafts-without-gh/prompt.md: tag deploy is not in CONTRIBUTING's list for mochi.`,
+    `${evals}/tidy-removes-comments-that-restate-the-code/case.yaml: name is tidy-removes-comments, not its folder.`,
+    `plugins/mochi/evals: 2 cases have the smoke tag; CONTRIBUTING gives it to one.`,
+  ]);
+});
+
+test('a real version in a docs example is named', () => {
+  const dir = copy();
+  edit(dir, 'README.md', (text) => `${text}\nPin it: \`claude plugin install mochi@negima-mochi#v1.3.1\`.\n\n\`\`\`bash\ngit tag -s v2.0.0\n\`\`\`\n`);
+  edit(dir, 'CONTRIBUTING.md', (text) => `${text}\nThe figures come from the 1.2.0 runs.\n`);
+  const lines = readFileSync(join(dir, 'README.md'), 'utf8').split('\n');
+  const at = (needle) => lines.findIndex((line) => line.includes(needle)) + 1;
+  assert.deepEqual(checks.docVersions(dir), [
+    `README.md:${at('Pin it')}: v1.3.1 in an example; write 1.x.y, or v1.x.y for a tag.`,
+    `README.md:${at('git tag -s v2.0.0')}: v2.0.0 in an example; write 1.x.y, or v1.x.y for a tag.`,
+  ]);
+});
+
+test('a CHANGELOG release off the shape is named', () => {
+  const dir = copy();
+  edit(dir, 'CHANGELOG.md', (text) =>
+    text
+      .replace('## 1.3.1 — 2026-11-20', '## 1.3.1')
+      .replace('### For contributors\n\n- **A new integration branch.**', '### For contributors\n\n- A new integration branch.')
+      .replace(/(## 1\.3\.0 — [^\n]*\n[\s\S]*?)### mochi plugin/, '$1### For contributors\n\n- **Planted.** Text.\n\n### mochi plugin')
+      .replace(/(## 1\.1\.0 — [^\n]*\n[\s\S]*?)### mochi-react plugin/, '$1### Notes'),
+  );
+  assert.deepEqual(checks.changelog(dir), [
+    'CHANGELOG.md: "## 1.3.1" is not "## X.Y.Z — YYYY-MM-DD" or "— unreleased".',
+    'CHANGELOG.md: in 1.1.0, "### Notes" is not Update, a "<plugin> plugin" or For contributors.',
+    'CHANGELOG.md: in 1.3.0, "### For contributors" appears twice.',
+    'CHANGELOG.md: in 1.3.0, "### mochi plugin" comes after For contributors, which is last.',
+    'CHANGELOG.md: in 1.3.2, the item "- A new integration branch. Pull requests target `mochitsuki`. Only a" has no bold lead.',
   ]);
 });
