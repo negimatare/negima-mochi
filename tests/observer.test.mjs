@@ -52,6 +52,16 @@ test('outside an eval repository, or with bad input, it writes nothing and stays
   assert.equal(existsSync(join(dir, '.eval')), false);
 });
 
+test('the working files are copied, each after its path', () => {
+  const dir = scaffold('commit-leaves-working-state-out');
+  sh(dir, 'mkdir -p .reviews && printf "## Bugs\\n- x\\n" > .reviews/REF-20261102-checkout.md');
+  observe(dir);
+  assert.equal(
+    readFileSync(join(dir, '.eval/working-files.txt'), 'utf8'),
+    '=== .plans/20261102-item-count.md\n# Item count\n\n=== .reviews/REF-20261102-checkout.md\n## Bugs\n- x\n',
+  );
+});
+
 test('a git failure still leaves a dump that says so', () => {
   const dir = scaffold('commit-leaves-working-state-out');
   writeFileSync(join(dir, '.eval/fixture-refs'), 'not-a-commit\n');

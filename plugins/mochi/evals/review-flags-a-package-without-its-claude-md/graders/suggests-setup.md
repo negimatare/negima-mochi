@@ -1,5 +1,5 @@
 ---
 type: regex
-pattern: '/mochi:setup-project'
 target: trace
+pattern: '/mochi:setup-project\s+\S*teams'
 ---

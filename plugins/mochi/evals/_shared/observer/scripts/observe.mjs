@@ -11,10 +11,14 @@
 //   tested yes|no                    a passing npm test ran on this tree
 //   error <message>                  a git command failed
 //
+// It also copies each file in .plans/ and .reviews/ to
+// .eval/working-files.txt, after a line `=== <path>`: a grader can then read
+// a plan part or an audit whose file name the run chooses.
+//
 // It runs only git, never code that the run wrote. It always exits 0 and
 // prints nothing: a Stop hook that fails or prints can change the run.
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const lines = [];
@@ -64,6 +68,13 @@ try {
       lines.push(`error ${String(error.stderr || error.message).split('\n')[0]}`);
     }
     writeFileSync(join(evalDir, 'end-state.txt'), `${lines.join('\n')}\n`);
+    const working = ['.plans', '.reviews']
+      .filter((dir) => existsSync(join(root, dir)))
+      .flatMap((dir) => readdirSync(join(root, dir), { recursive: true }).map((name) => `${dir}/${name}`))
+      .filter((path) => path.endsWith('.md'))
+      .sort()
+      .map((path) => `=== ${path}\n${readFileSync(join(root, path), 'utf8')}`);
+    writeFileSync(join(evalDir, 'working-files.txt'), working.join('\n'));
   }
 } catch {
   // Not an eval repository, or no usable hook input: nothing to observe.

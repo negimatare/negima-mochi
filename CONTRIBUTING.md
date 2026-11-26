@@ -122,6 +122,20 @@ GitHub workflow `Hook tests` runs them on each push. A test sets the
 `CLAUDE_*` folders to temporary folders when its hook reads them, so that
 it does not read your own `~/.claude`.
 
+Two of these tests check the kit itself:
+
+- **`kit-rules.test.mjs`** runs `scripts/kit-rules.mjs`, which checks the
+  rules of `CLAUDE.md` and of this file that have an exact answer: the model
+  of the inherit reviewers, the manifests and their versions, the
+  frontmatter of skills and agents, the agent ids in skill text and in
+  graders, the layout and tags of the eval cases, versions in docs examples,
+  and the shape of `CHANGELOG.md`. Run `node scripts/kit-rules.mjs` to see
+  each problem with its file.
+- **`graders.test.mjs`** builds the fixture of an eval case, plays a run
+  by script, and applies the graders of the case as `claude plugin eval`
+  does. It shows that a grader passes a good run and fails a bad one, with
+  no model call.
+
 ## Evals
 
 Each plugin has an eval suite in its `evals/` folder. Run it with
@@ -136,9 +150,16 @@ The workflow cases send the text that a user types. The reviewer cases call
 the reviewer directly, to test the agent alone.
 
 When you change the behaviour of a skill or an agent, add or update a
-grader that fails on the old version. No check enforces this rule, but it is
-how a kit change gets a test. Each new case makes all later changes slower
-and more expensive, so:
+grader that fails on the old version. It is how a kit change gets a test.
+Grade what the run did, not what it said: the commits, the pushes and the
+files, from the observer (see Shared fixtures), before a phrase in the reply
+or a command line in the trace. A trace also holds the text of each skill
+that the run read, so a phrase from a skill always matches there.
+
+Each grader of the observer's files needs a run that it fails in
+`tests/graders.test.mjs`, and the test fails without one. For other
+graders, no check enforces the rule. Each new case makes all later changes
+slower and more expensive, so:
 
 - Add a new case only when a regression is likely and costly: a push, a
   force-push, a loss of data, or work on the wrong branch.
@@ -193,7 +214,7 @@ node scripts/eval-history.mjs ./plugins/mochi --demote
 ```
 
 `evals/history.tsv` has one row for each case, release, model and arm, with
-the passes and the runs. The first command replaces the rows of that
+the passes, the runs, and the graders that failed. The first command replaces the rows of that
 release, so give it every JSON of the release: then a rerun that passes
 does not hide the failure before it. A run that the cost cap cut off before
 its paid graders is not counted. `--demote` lists the core cases that
@@ -252,11 +273,31 @@ of the tags.
   this condition when you change it. Also generate the embedded
   `openapi.json` again from the app.
 - **Cases that commit or push** use `evals/_shared/shop-lib.sh`. Eval runs
-  disable git hooks, so this script gives two different signals to the
-  graders:
-  - `npm test` writes a line to `.eval/test-runs.log` for each run.
+  disable git hooks, so this script gives these signals to the graders:
+  - `npm test` writes a line to `.eval/test-runs.log` for each run, and the
+    tree that it tested to `.eval/test-trees.log`.
   - Packed refs make a commit to `main` create a `refs/heads/main` file,
-    which `file_exists` can see.
+    which `file_exists` can see. A grader with `exists: false` on a ref is
+    an end state that also works without the observer.
+  - `finish_shop` writes the commit of each ref to `.eval/fixture-refs` and
+    `.eval/fixture-origin-refs`, for the observer.
+- **The observer**, `evals/_shared/observer/`, is a stub plugin with one
+  Stop hook. A `mochi` case loads it with
+  `plugins: ["../..", "../_shared/observer"]`. At the end of the run it
+  writes two files, with git only. It runs no code that the run wrote.
+  - `.eval/end-state.txt` has one fact on each line: each new commit as
+    `local <branch> <subject>` and `origin <branch> <subject>`, each file of
+    a new commit as `file <branch> <subject> <path>`, each uncommitted
+    change as `status <line>`, and `tested yes` or `tested no` for a final
+    tree that a passing `npm test` saw. A new commit is one that no ref of
+    the fixture reaches.
+  - `.eval/working-files.txt` has each file of `.plans/` and `.reviews/`,
+    after a line `=== <path>`, for a file whose name the run chooses.
+
+  Read them with `target: {source: file, path: .eval/end-state.txt}` and
+  `flags: m`. The baseline arm loads no plugin, so give each such grader
+  `arm: with-only`. The stack plugins cannot load it: a case loads only
+  plugins inside its own plugin.
 - **Most review and `pr` cases for a stack** use
   `evals/_shared/order-exports-stack.sh`. This script builds the
   `shop-lib.sh` repository with two stacked branches. Part 2 calls a
@@ -341,7 +382,7 @@ Two branch rulesets protect the branches:
 | Exuberant Witness | `mochitsuki` |
 
 Each one requires a pull request with a squash merge, signed commits, linear
-history, and the `Analyze` and `Skill map` checks. Each one also blocks force
+history, and the `Analyze`, `Skill map` and `Hook tests` checks. Each one also blocks force
 pushes and deletion.
 
 ## Release

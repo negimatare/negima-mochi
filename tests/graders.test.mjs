@@ -10,7 +10,8 @@ import { fileURLToPath } from 'node:url';
 import { observe, scaffold, sh } from './eval-fixture.mjs';
 
 const PLUGINS = fileURLToPath(new URL('../plugins/', import.meta.url));
-const END_STATE = '.eval/end-state.txt';
+// The files that the eval observer writes.
+const OBSERVED = ['.eval/end-state.txt', '.eval/working-files.txt'];
 
 // A YAML scalar as the grader files write it: plain, '…' or "…".
 const scalar = (value) => {
@@ -79,6 +80,13 @@ const P1 = 'feat/order-exports-1-monthly-csv';
 const P2 = 'feat/order-exports-2-customer-statement';
 const FIX_CENTS = "perl -pi -e 's|cents / 10\\)|cents / 100)|' src/exports.ts";
 const fixOn = (part) => `git switch -q ${part} && ${FIX_CENTS} && git commit -qam "fix(exports): divide the cents by 100"`;
+
+// Writes the text as it is: base64 passes through bash unchanged.
+const write = (path, text) =>
+  `mkdir -p "$(dirname ${path})" && printf '%s' ${Buffer.from(text).toString('base64')} | base64 --decode > ${path}`;
+const AUDIT = '.reviews/REF-20261102-checkout.md';
+const PART_2 = '.plans/20261102-order-exports-2-customer-statement.md';
+const part2 = (header) => write(PART_2, `# Customer statement\n\nPart 2 of 2 of .plans/20261102-order-exports.md. ${header}\n`);
 
 const SCENARIOS = {
   'mochi/commit-leaves-working-state-out': {
@@ -158,6 +166,45 @@ const SCENARIOS = {
     good: fixOn(P2),
     bad: { 'commits-on-part-2': `${FIX_CENTS}` },
   },
+  'mochi/refactor-lists-bugs-apart': {
+    good: write(AUDIT, '# Checkout\n\n## Bugs, for /mochi:fix-bug\n- 🟠 High  src/checkout/refund.ts:3 — floors the refund.\n\n## Candidates\n- [ ] R-1 🟠 High · S    One discount rule. Files: src/checkout/{cart,invoice,refund}.ts.\n'),
+    bad: {
+      'grades-the-bug': write(AUDIT, '# Checkout\n\n## Bugs, for /mochi:fix-bug\n- 🟡 Medium  src/checkout/refund.ts:3 — floors the refund.\n'),
+      'lists-the-bug-apart': write(AUDIT, '# Checkout\n\n## Bugs, for /mochi:fix-bug\n- none\n\n## Candidates\n- [ ] R-1 🟠 High  src/checkout/refund.ts:3 — floors the refund.\n'),
+    },
+  },
+  'mochi/split-stacks-the-parts-when-asked': {
+    good: part2('Stacked on part 1: build on its branch.'),
+    bad: { 'later-parts-stack': `${part2('Build after part 1 is merged.')} && echo 'Stacked on part 1' >> .plans/20261102-order-exports.md` },
+  },
+  'mochi/split-writes-the-parts-and-an-index': {
+    good: part2('Build after part 1 is merged, and its code is on main.'),
+    bad: { 'later-parts-wait': `${part2('Stacked on part 1: build on its branch.')} && echo 'Build after part 1' >> .plans/20261102-order-exports.md` },
+  },
+  'mochi-python/architecture-uses-another-module-through-its-public-api': {
+    good: `printf 'from app.billing import InvoiceSummary\\n' >> app/shipping/get_shipment/handler.py`,
+    bad: { 'imports-the-public-api': `printf '# from app.billing import InvoiceSummary, later\\nfrom app.billing.domain.tariff import price_for\\n' >> app/shipping/get_shipment/handler.py` },
+  },
+  'mochi-python/openapi-documents-a-new-route': {
+    good: write('app/shipping/hold_shipment/endpoint.py', 'from fastapi import APIRouter\n\n@router.post("/holds")\nasync def hold_shipment(\n    shipment_id: str, uow: Annotated[UnitOfWork, Depends(get_uow)]\n) -> HoldOut:\n    """Hold a shipment until its customs papers arrive."""\n'),
+    bad: { 'has-a-description': write('app/shipping/hold_shipment/endpoint.py', 'MESSAGE = """Held."""\n\n@router.post("/holds")\nasync def hold_shipment(shipment_id: str) -> HoldOut:\n    return HoldOut()\n') },
+  },
+  'mochi-python/service-layer-takes-the-time-from-the-clock': {
+    good: write('app/shipping/cancel_shipment/handler.py', 'def handle(command: CancelShipment, uow: UnitOfWork, clock: Clock) -> None:\n    ...\n'),
+    bad: { 'handler-takes-a-clock': write('app/shipping/cancel_shipment/handler.py', '# TODO: take a clock\ndef handle(command: CancelShipment, uow: UnitOfWork) -> None:\n    now = datetime.now(UTC)\n') },
+  },
+  'mochi-python/persistence-refuses-lazy-loads': {
+    good: `printf '        parcels=[ParcelOut.from_domain(p) for p in shipment.parcels],\\n' >> app/shipping/get_shipment/handler.py`,
+    bad: { 'returns-the-parcels': `printf '        # the parcel list comes later\\n' >> app/shipping/get_shipment/handler.py` },
+  },
+  'mochi-python/api-design-pages-a-new-list': {
+    good: write('app/shipping/list_shipments/endpoint.py', 'async def list_shipments(cursor: str | None = None, limit: Annotated[int, Query(le=100)] = 20) -> Page[ShipmentOut]:\n    ...\n'),
+    bad: { 'takes-a-cursor': write('app/shipping/list_shipments/endpoint.py', '# next: a cursor instead of the offset\nasync def list_shipments(offset: int = 0) -> list[ShipmentOut]:\n    ...\n') },
+  },
+  'mochi-react/performance-virtualizes-a-long-list': {
+    good: `printf 'import { useVirtualizer } from "@tanstack/react-virtual";\\n' >> src/features/orders/components/OrderList/OrderList.tsx`,
+    bad: { 'virtualizes-through-tanstack': `printf '// TODO: import { useVirtualizer } from @tanstack/react-virtual\\n' >> src/features/orders/components/OrderList/OrderList.tsx` },
+  },
   'mochi/fix-bug-reproduces-then-waits': {
     good: TEST,
     bad: { 'commits-nothing': [EDIT, commit('fix(cart): round the total')].join(' && ') },
@@ -171,7 +218,7 @@ const graderFiles = (key) => {
     .filter((file) => file.endsWith('.md'))
     .map((file) => [file.replace(/\.md$/, ''), readGrader(join(dir, file))]);
 };
-const outcomeGraders = (key) => graderFiles(key).filter(([, grader]) => grader.type === 'regex' && grader.target?.path === END_STATE);
+const outcomeGraders = (key) => graderFiles(key).filter(([, grader]) => grader.type === 'regex' && OBSERVED.includes(grader.target?.path));
 
 const play = (key, script) => {
   const [plugin, name] = key.split('/');
@@ -181,7 +228,7 @@ const play = (key, script) => {
   return dir;
 };
 
-test('each grader of the end state has a scenario that breaks it', () => {
+test('each grader of the observer has a scenario that breaks it', () => {
   for (const plugin of ['mochi', 'mochi-react', 'mochi-python'])
     for (const name of readdirSync(join(PLUGINS, plugin, 'evals'))) {
       if (!existsSync(join(PLUGINS, plugin, 'evals', name, 'graders'))) continue;
@@ -196,13 +243,15 @@ test('each grader of the end state has a scenario that breaks it', () => {
 for (const [key, scenario] of Object.entries(SCENARIOS)) {
   test(`${key}: a good run passes each outcome grader`, () => {
     const dir = play(key, scenario.good);
-    for (const [name, grader] of outcomeGraders(key)) assert.ok(applyRegex(grader, { dir }), `${name} fails a good run:\n${readFileSync(join(dir, END_STATE), 'utf8')}`);
+    const all = Object.fromEntries(graderFiles(key));
+    const checked = new Map([...outcomeGraders(key), ...Object.keys(scenario.bad).map((name) => [name, all[name]])]);
+    for (const [name, grader] of checked) assert.ok(applyRegex(grader, { dir }), `${name} fails a good run in ${dir}`);
   });
   for (const [name, script] of Object.entries(scenario.bad))
     test(`${key}: ${name} fails a planted bad run`, () => {
       const dir = play(key, script);
       const grader = Object.fromEntries(graderFiles(key))[name];
       assert.ok(grader, `no grader ${name}`);
-      assert.equal(applyRegex(grader, { dir }), false, readFileSync(join(dir, END_STATE), 'utf8'));
+      assert.equal(applyRegex(grader, { dir }), false, `${name} passes a bad run in ${dir}`);
     });
 }
