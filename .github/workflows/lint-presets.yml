@@ -1,0 +1,37 @@
+# Runs the lint presets of the stack plugins with the real linters, on
+# planted violations. The kit installs nothing; this job installs pinned
+# versions in a temporary folder.
+name: Lint presets
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  presets:
+    name: Lint presets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MOCHI_PRESET_LINTERS: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Ruff
+        run: |
+          python3 -m venv "$RUNNER_TEMP/ruff"
+          "$RUNNER_TEMP/ruff/bin/pip" install --quiet ruff==0.17.6
+          echo "RUFF=$RUNNER_TEMP/ruff/bin/ruff" >> "$GITHUB_ENV"
+      - name: Install ESLint and the plugins of the React preset
+        run: |
+          mkdir -p "$RUNNER_TEMP/eslint"
+          cd "$RUNNER_TEMP/eslint"
+          npm init -y > /dev/null
+          npm install --ignore-scripts --no-audit --no-fund \
+            eslint@9.39.5 typescript@5.9.3 typescript-eslint@8.74.0 \
+            eslint-plugin-boundaries@7.4.5 eslint-import-resolver-typescript@4.4.5 \
+            eslint-plugin-react-hooks@7.1.1 eslint-plugin-react@7.37.5 \
+            @griffel/eslint-plugin@3.0.2
+          echo "MOCHI_ESLINT_TOOLS=$RUNNER_TEMP/eslint" >> "$GITHUB_ENV"
+      - run: node --test tests/presets.test.mjs

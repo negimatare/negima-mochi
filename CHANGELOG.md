@@ -28,6 +28,12 @@ one release.
   instead of reading git itself. Without `gh`, it asks you whether the base
   is merged. After `gh stack push`, a script names each branch that did not
   move, and the git path pushes with `--force-if-includes`.
+- **`/mochi:setup-project` adds the lint preset of each stack plugin.** It
+  copies the ESLint preset and spreads it in your config, and proves its
+  layer rule with a planted import, which it removes. When lint misses the
+  import, it removes the preset again and stops. It merges the Ruff
+  preset into the file that Ruff reads, and keeps your own `select`. You
+  agree before each edit.
 
 ### mochi-react plugin
 
@@ -41,7 +47,11 @@ one release.
   and `.cts` are found.
 - **The stop check runs your `CLAUDE.md` Verification block.** When the
   nearest `CLAUDE.md`, in the package or a folder above it, has one, its
-  commands run in place of `typecheck` and `test`. To keep the scripts, set `MOCHI_VERIFY_FROM_CLAUDE_MD=0`.
+  commands run in place of `typecheck` and `test`. To keep the scripts,
+  set `MOCHI_VERIFY_FROM_CLAUDE_MD=0`.
+- **An ESLint preset.** `presets/eslint-mochi.mjs` holds the layers of the
+  architecture skill, with `eslint-plugin-boundaries` 7, the `react-hooks`
+  `recommended` rules, the size warnings and the Griffel shorthand rule.
 
 ### mochi-python plugin
 
@@ -54,6 +64,9 @@ one release.
 - **The stop check runs your `CLAUDE.md` Verification block**, as in
   mochi-react, in place of the type checker, import-linter and pytest. A
   `uv run` in the block does not sync or install first.
+- **A Ruff preset.** `presets/ruff-lint.toml` bans the direct time and
+  environment calls outside `bootstrap.py` (`TID251`), and turns on `ASYNC`
+  and `S113`.
 
 ### For contributors
 
@@ -76,6 +89,9 @@ one release.
   line. CONTRIBUTING's Evals section gives the rules for a new grader.
 - **The eval history names the graders that failed.** Each row of
   `history.tsv` lists them, so a flaky grader is easy to see.
+- **The lint presets are proved with the real linters.** The
+  `Lint presets` workflow installs pinned Ruff, ESLint and the plugins of
+  the React preset. kit-rules checks that a skill names each preset.
 
 ## 1.3.1 — 2026-11-20
 

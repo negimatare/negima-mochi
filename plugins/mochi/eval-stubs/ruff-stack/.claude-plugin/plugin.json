@@ -1,0 +1,5 @@
+{
+  "name": "ruff-stack",
+  "version": "0.0.1",
+  "description": "Eval stub of mochi-python: one skill that names the Ruff lint preset, and the preset."
+}

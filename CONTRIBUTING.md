@@ -53,6 +53,13 @@ The kit uses the Claude Code plugin layout and the
   `${CLAUDE_PLUGIN_ROOT}` path.
 - **Hook scripts** are in the `scripts/` folder of the plugin, next to
   `hooks/`.
+- **Lint presets** are in the `presets/` folder of a stack plugin: the
+  rules of its skills that a linter enforces, as a config that
+  `/mochi:setup-project` copies or merges into a project. A skill of the
+  plugin names each preset as `${CLAUDE_PLUGIN_ROOT}/presets/<file>`, which
+  is how setup-project finds it. A preset holds only the rules that its
+  skill text gives exactly; a rule that the text gives only in words stays
+  prose.
 - **A skill is one `SKILL.md` file until it needs more.** Add the folders of
   the specification only when a file needs a location:
   - `assets/` for templates.
@@ -122,15 +129,19 @@ GitHub workflow `Hook tests` runs them on each push. A test sets the
 `CLAUDE_*` folders to temporary folders when its hook reads them, so that
 it does not read your own `~/.claude`.
 
-Two of these tests check the kit itself:
+Three of these tests check the kit itself:
 
 - **`kit-rules.test.mjs`** runs `scripts/kit-rules.mjs`, which checks the
   rules of `CLAUDE.md` and of this file that have an exact answer: the model
   of the inherit reviewers, the manifests and their versions, the
   frontmatter of skills and agents, the agent ids in skill text and in
   graders, the layout and tags of the eval cases, versions in docs examples,
-  and the shape of `CHANGELOG.md`. Run `node scripts/kit-rules.mjs` to see
-  each problem with its file.
+  the shape of `CHANGELOG.md`, and that a skill names each preset. Run
+  `node scripts/kit-rules.mjs` to see each problem with its file.
+- **`presets.test.mjs`** runs each lint preset with the real linter on
+  planted violations. The kit installs nothing, so the test skips when the
+  linter is missing. The GitHub workflow `Lint presets` installs pinned
+  versions of Ruff, ESLint and the plugins of the React preset, and runs it.
 - **`graders.test.mjs`** builds the fixture of an eval case, plays a run
   by script, and applies the graders of the case as `claude plugin eval`
   does. It shows that a grader passes a good run and fails a bad one, with
@@ -330,6 +341,13 @@ case that needs a stack plugin keeps a stub in its own subfolder. It lists
 the two plugins in its `plugins:` frontmatter. For an example, see
 `setup-adds-lint-rules-without-comments`:
 `plugins: ["../..", "./size-stack"]`.
+
+The run cannot read the files of its own case folder, so that it cannot
+read its graders: Claude loads a stub's skills, but a file that the skill
+tells Claude to read is blocked there. A stub with such a file, for example
+a lint preset, is in `plugins/mochi/eval-stubs/` instead, as
+`setup-merges-the-ruff-preset` shows:
+`plugins: ["../..", "../../eval-stubs/ruff-stack"]`.
 
 Eval runs have no network and no `gh` login, so cases cannot install
 packages or open pull requests. The `pr` and `dependencies` cases test the

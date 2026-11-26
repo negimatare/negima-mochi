@@ -364,6 +364,22 @@ test('python: a CLAUDE.md without a block keeps the tools', () => {
   assert.deepEqual(tools(dir), ['mypy app/b.py', 'pytest -q -x']);
 });
 
+for (const [plugin, skill, preset, repo, cwd] of [
+  ['mochi-python', 'service-layer', 'ruff-lint.toml', pythonRepo, ''],
+  ['mochi-react', 'architecture', 'eslint-mochi.mjs', reactRepo, 'packages/web'],
+])
+  test(`${plugin}: a skill that names its preset reaches Claude with the path resolved`, () => {
+    const root = join(PLUGINS, plugin);
+    const result = spawnSync(process.execPath, [join(root, 'scripts', 'inject-matching-skills.mjs'), skill], {
+      input: JSON.stringify({ hook_event_name: 'SessionStart', session_id: session(), cwd: join(repo(), cwd) }),
+      encoding: 'utf8',
+      env: hookEnv({ CLAUDE_PLUGIN_ROOT: root }),
+    });
+    const context = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
+    assert.ok(context.includes(`${root}/presets/${preset}`), 'the preset path');
+    assert.ok(!context.includes('${CLAUDE_PLUGIN_ROOT}'));
+  });
+
 const edited = (plugin, file) => hook(plugin, 'lint-edited-file.mjs', { hook_event_name: 'PostToolUse', tool_name: 'Edit', tool_input: { file_path: file } });
 
 test('react lint: problems block, a crash tells Claude without blocking, and no linter is silent', () => {
