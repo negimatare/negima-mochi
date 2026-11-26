@@ -255,6 +255,24 @@ export const checks = {
     }
     return problems.sort();
   },
+
+  // CONTRIBUTING: a stack skill names each preset of its plugin as
+  // `${CLAUDE_PLUGIN_ROOT}/presets/<file>`, which is how setup-project finds it.
+  presets(root) {
+    const problems = [];
+    for (const plugin of PLUGINS) {
+      const skills = skillFiles(root).filter((path) => path.startsWith(`plugins/${plugin}/`));
+      const named = new Set();
+      for (const skill of skills)
+        for (const [, file] of read(root, skill).matchAll(/\$\{CLAUDE_PLUGIN_ROOT\}\/presets\/([\w.-]+)/g)) {
+          named.add(file);
+          if (!existsSync(join(root, `plugins/${plugin}/presets/${file}`))) problems.push(`${skill}: names presets/${file}, which does not exist.`);
+        }
+      for (const file of list(root, `plugins/${plugin}/presets`))
+        if (!named.has(file)) problems.push(`plugins/${plugin}/presets/${file}: no skill of ${plugin} names it.`);
+    }
+    return problems.sort();
+  },
 };
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
