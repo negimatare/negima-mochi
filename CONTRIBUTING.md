@@ -177,7 +177,10 @@ look like a regression:
 M=claude-opus-5-5     # on Bedrock: global.anthropic.claude-opus-5-5
 J=claude-sonnet-5-5   # judge for llm graders; on Bedrock: global.anthropic.claude-sonnet-5-5
 eval_kit() {  # eval_kit <plugin dir> [claude plugin eval options]
-  claude plugin eval "$1" --model "$M" --judge-model "$J" \
+  local node_root  # for npm in the sandbox; see Options and limits
+  node_root=$(dirname "$(dirname "$(node -p process.execPath)")")
+  PATH="$node_root:$node_root/bin:$PATH" claude plugin eval "$1" \
+    --model "$M" --judge-model "$J" \
     --scaffold --allow-tools Bash Write Edit --no-publish "${@:2}"
 }
 
@@ -290,7 +293,9 @@ of the tags.
   run: the git settings that can start a command are off, and it does not
   read a repository whose config sets a filter. When it cannot read the
   state, it writes no `end-state.txt`, so each grader of it fails, and it
-  gives the reason in `.eval/observer-error.txt`.
+  gives the reason in `.eval/observer-error.txt`. A run that stops at its
+  `max_turns` gets no Stop, so the observer does not run and each grader of
+  it fails that run too: give an observer case room in `max_turns`.
   - `.eval/end-state.txt` has one fact on each line: each new commit as
     `local <branch> <subject>` and `origin <branch> <subject>`, each file of
     a new commit as `file <branch> <subject> <path>`, each uncommitted
@@ -347,12 +352,8 @@ steps before these calls, and the behaviour of the kit when the calls fail.
   folder, the sandbox can read only the folders on `PATH`. A Node from a
   version manager, for example mise or nvm, keeps npm in `lib/`. Its
   `bin/npm` is only a link or a wrapper that starts that npm, so the sandbox
-  blocks npm. Put the root folder of that Node on `PATH` too:
-
-  ```sh
-  node_root=$(dirname "$(dirname "$(node -p process.execPath)")")
-  PATH="$node_root:$node_root/bin:$PATH" claude plugin eval …
-  ```
+  blocks npm, and `npm test` fails with `Cannot find module …/npm-cli.js`.
+  `eval_kit` puts the root folder of that Node on `PATH` too.
 
   The eval run does not keep other environment variables. Thus each fixture
   with npm scripts sources `evals/_shared/npmrc.sh`, which writes an
