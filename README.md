@@ -86,7 +86,8 @@ To move a pinned install to a different release:
 Then run `/mochi:setup-project` one time. This command writes a short
 `CLAUDE.md` with the commands that your project really uses for verification,
 and the commands of your pull request CI to run before a push. It also makes
-sure that each command works.
+sure that each command works. With a stack plugin, it adds that plugin's lint
+preset to your ESLint or Ruff config, after you agree.
 
 | Plugin | Contents |
 |---|---|
@@ -221,12 +222,13 @@ plugins/                one folder for each plugin: mochi, mochi-react, mochi-py
   */agents/             the reviewers
   */hooks/, */scripts/  hooks.json and its Node scripts: they load conventions, run lint and
                         verification, check new dependencies and show the session banner
+  */presets/            the lint presets of a stack plugin, which /mochi:setup-project adds
   */evals/              claude plugin eval cases, each with a fixture.sh and graders
 docs/                   workflows.md and the skill map (svg, html, notes)
 docs/readme/            the images of this README
 extras/                 an optional context status line
 scripts/                skill-map.mjs: draws and checks the skill map
-.github/                the Skill map and CodeQL workflows, Dependabot, issue and pull request templates
+.github/                the Hook tests, Lint presets, Skill map and CodeQL workflows, Dependabot, issue and pull request templates
 ```
 
 </details>
