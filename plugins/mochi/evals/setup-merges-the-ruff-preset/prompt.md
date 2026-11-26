@@ -1,7 +1,7 @@
 ---
 description: Setting up a FastAPI project merges the stack plugin's Ruff preset into pyproject.toml, keeps the project's own select, and ignores the rule for the one file that breaks it today.
 tags: [setup]
-plugins: ["../..", "./ruff-stack"]
+plugins: ["../..", "../../eval-stubs/ruff-stack"]
 max_turns: 50
 timeout_seconds: 1500
 allowed_tools: [Read, Glob, Grep, Skill, Agent, Bash, Write, Edit]

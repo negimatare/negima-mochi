@@ -342,6 +342,13 @@ the two plugins in its `plugins:` frontmatter. For an example, see
 `setup-adds-lint-rules-without-comments`:
 `plugins: ["../..", "./size-stack"]`.
 
+The run cannot read the files of its own case folder, so that it cannot
+read its graders: Claude loads a stub's skills, but a file that the skill
+tells Claude to read is blocked there. A stub with such a file, for example
+a lint preset, is in `plugins/mochi/eval-stubs/` instead, as
+`setup-merges-the-ruff-preset` shows:
+`plugins: ["../..", "../../eval-stubs/ruff-stack"]`.
+
 Eval runs have no network and no `gh` login, so cases cannot install
 packages or open pull requests. The `pr` and `dependencies` cases test the
 steps before these calls, and the behaviour of the kit when the calls fail.

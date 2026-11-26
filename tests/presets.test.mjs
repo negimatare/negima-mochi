@@ -126,8 +126,8 @@ test('react preset: ESLint reports each planted violation, and not the edges the
 test('the eval stubs ship the presets of the stack plugins unchanged', () => {
   const evals = join(PLUGINS, 'mochi/evals');
   for (const [stub, preset] of [
-    ['setup-merges-the-ruff-preset/ruff-stack/presets/ruff-lint.toml', 'mochi-python/presets/ruff-lint.toml'],
-    ['setup-stops-when-the-react-preset-reports-nothing/react-stack/presets/eslint-mochi.mjs', 'mochi-react/presets/eslint-mochi.mjs'],
+    ['../eval-stubs/ruff-stack/presets/ruff-lint.toml', 'mochi-python/presets/ruff-lint.toml'],
+    ['../eval-stubs/react-stack/presets/eslint-mochi.mjs', 'mochi-react/presets/eslint-mochi.mjs'],
   ])
     assert.equal(readFileSync(join(evals, stub), 'utf8'), readFileSync(join(PLUGINS, preset), 'utf8'), stub);
 });
