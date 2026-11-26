@@ -132,10 +132,13 @@ test('a preset that no skill names, and a preset path that does not exist, are n
   const dir = copy();
   writeFileSync(join(dir, 'plugins/mochi-python/presets/extra.toml'), '# planted\n');
   writeFileSync(join(dir, 'plugins/mochi-python/presets/.DS_Store'), '');
-  edit(dir, 'plugins/mochi-react/skills/architecture/SKILL.md', (text) => text.replace('presets/eslint-mochi.mjs', 'presets/eslint-mochi.js'));
+  for (const skill of ['architecture', 'components-and-styling', 'state-and-di'])
+    edit(dir, `plugins/mochi-react/skills/${skill}/SKILL.md`, (text) => text.replace('presets/eslint-mochi.mjs', 'presets/eslint-mochi.js'));
   assert.deepEqual(checks.presets(dir), [
     'plugins/mochi-python/presets/extra.toml: no skill of mochi-python names it.',
     'plugins/mochi-react/presets/eslint-mochi.mjs: no skill of mochi-react names it.',
     'plugins/mochi-react/skills/architecture/SKILL.md: names presets/eslint-mochi.js, which does not exist.',
+    'plugins/mochi-react/skills/components-and-styling/SKILL.md: names presets/eslint-mochi.js, which does not exist.',
+    'plugins/mochi-react/skills/state-and-di/SKILL.md: names presets/eslint-mochi.js, which does not exist.',
   ]);
 });
