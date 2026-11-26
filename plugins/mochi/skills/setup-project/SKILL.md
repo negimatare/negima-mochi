@@ -93,6 +93,34 @@ dependency, with a config that names the missing entry points or decorators,
 and add it after the user agrees, following the `dependencies` skill. If the
 user declines, drop the section.
 
+When a stack skill you loaded names a preset
+(`<plugin root>/presets/<file>`), the preset holds that plugin's lint rules:
+propose it before any rule of the skill text, and use the steps of the next
+paragraph only for rules outside it. Edit nothing before the user agrees.
+
+- **ESLint preset** (a `.mjs` module). List its rules and the ESLint plugins
+  it needs. After the user agrees, add the missing plugins with the
+  `dependencies` skill, copy the file unchanged beside the package's
+  `eslint.config.*`, and spread it in the config's array before the
+  project's own entries. Prove the layers: add one import from one feature
+  slice into another, check that lint reports it, and remove the import.
+  When lint does not report it, the preset does not fit this package: stop
+  and tell the user. Then run lint, report the violations by file, and ask
+  error or warn as the next paragraph says. Write the levels and the
+  overrides in the project's config after the spread, never in the copy.
+- **Ruff preset** (a `.toml` file of keys). First run Ruff with the
+  preset's rules from the command line, without a write: `--extend-select`
+  with its codes, and `--config` with its banned-api table. Report the
+  violations by file. Ruff has no `warn`: for each rule with violations,
+  ask whether to turn it on with a commented per-file ignore for each file
+  that breaks it today, or to leave it out. After the user agrees, merge the
+  keys into the file Ruff reads: `ruff.toml` or `.ruff.toml` when one
+  exists, with the keys under `[lint]`, else `pyproject.toml`. Keep the
+  project's own `select`.
+- When the project already has each rule of the preset with a setting, say
+  that the preset is in place. When the preset has a rule that the project
+  lacks, propose only that difference.
+
 When a stack skill you loaded sets a lint rule the project's lint config
 lacks, list each rule with its setting and propose adding it. Run lint with
 the rule first and report how many existing violations it finds, and in

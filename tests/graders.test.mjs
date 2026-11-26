@@ -88,7 +88,39 @@ const AUDIT = '.reviews/REF-20261102-checkout.md';
 const PART_2 = '.plans/20261102-order-exports-2-customer-statement.md';
 const part2 = (header) => write(PART_2, `# Customer statement\n\nPart 2 of 2 of .plans/20261102-order-exports.md. ${header}\n`);
 
+// The pyproject.toml of a setup run that merged the Ruff preset, with one
+// part of the merge left out for each planted failure.
+const ruffPyproject = ({ select = true, codes = '"ASYNC", "S113", "TID251"', banned = true, root = true, clock = true } = {}) =>
+  write(
+    'pyproject.toml',
+    [
+      '[project]\nname = "orders"\nversion = "0.1.0"\ndependencies = ["fastapi"]\n',
+      '[tool.ruff]\nline-length = 100\n',
+      `[tool.ruff.lint]\n${select ? 'select = ["E", "F"]\n' : ''}extend-select = [${codes}]\n`,
+      banned ? '[tool.ruff.lint.flake8-tidy-imports.banned-api]\n"datetime.datetime.now".msg = "Take the time from the injected clock."\n' : '',
+      `[tool.ruff.lint.extend-per-file-ignores]\n${root ? '"**/bootstrap.py" = ["TID251"]\n' : ''}${clock ? '# app/clock.py reads the time directly today.\n"app/clock.py" = ["TID251"]\n' : ''}`,
+    ].join('\n'),
+  );
+const COPY_PRESET = write('eslint-mochi.mjs', "export default [{ rules: { 'boundaries/dependencies': ['error', {}] } }];\n");
+
 const SCENARIOS = {
+  'mochi/setup-merges-the-ruff-preset': {
+    good: ruffPyproject(),
+    bad: {
+      'merges-the-rule-codes': ruffPyproject({ codes: '"ASYNC", "S113"' }),
+      'merges-the-banned-api': ruffPyproject({ banned: false }),
+      'keeps-the-project-select': ruffPyproject({ select: false }),
+      'ignores-the-file-that-breaks-it': ruffPyproject({ clock: false }),
+      'keeps-the-composition-root-exempt': ruffPyproject({ root: false }),
+    },
+  },
+  'mochi/setup-stops-when-the-react-preset-reports-nothing': {
+    good: COPY_PRESET,
+    bad: {
+      'copies-the-preset': NOTHING,
+      'removes-the-planted-import': `${COPY_PRESET} && printf "import { orderCount } from '../orders/index.ts';\\n" >> src/features/billing/index.ts`,
+    },
+  },
   'mochi/commit-leaves-working-state-out': {
     good: 'bash scripts/test.sh >/dev/null 2>&1; git add src && git commit -q -m "feat(cart): count the items"',
     bad: {
