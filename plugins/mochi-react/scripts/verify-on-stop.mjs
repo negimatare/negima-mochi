@@ -51,7 +51,12 @@ if (existsSync(stateFile) && readFileSync(stateFile, 'utf8') === fingerprint) pr
 
 const scriptsOf = (dir) => JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).scripts ?? {};
 const fromClaudeMd = process.env.MOCHI_VERIFY_FROM_CLAUDE_MD !== '0';
-const blockOf = (dir) => (fromClaudeMd ? verificationCommands(dir, root) : undefined);
+const blockOfDir = new Map();
+const blockOf = (dir) => {
+  if (!fromClaudeMd) return undefined;
+  if (!blockOfDir.has(dir)) blockOfDir.set(dir, verificationCommands(dir, root));
+  return blockOfDir.get(dir);
+};
 const packages = new Set();
 const failures = [];
 for (const path of changed) {

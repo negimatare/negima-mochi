@@ -1,7 +1,7 @@
 // The hook scripts of mochi-react and mochi-python, run as Claude Code runs
 // them, on temp packages with fake tools.
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
@@ -20,11 +20,18 @@ const write = (path, text, mode) => {
   writeFileSync(path, text);
   if (mode) chmodSync(path, mode);
 };
+// The hooks' own settings, and UV_NO_SYNC, come from each test, not from the
+// shell that runs the tests.
+const hookEnv = (env = {}) => ({
+  ...Object.fromEntries(Object.entries(ENV).filter(([name]) => !/^(MOCHI_VERIFY_|UV_NO_SYNC$)/.test(name))),
+  TMPDIR: TMP,
+  ...env,
+});
 const hook = (plugin, script, input, env = {}) => {
   const result = spawnSync(process.execPath, [join(PLUGINS, plugin, 'scripts', script)], {
     input: JSON.stringify(input),
     encoding: 'utf8',
-    env: { ...ENV, TMPDIR: TMP, ...env },
+    env: hookEnv(env),
   });
   return { status: result.status, stdout: result.stdout, stderr: result.stderr };
 };
@@ -166,70 +173,99 @@ test('python: a check that does not finish is reported once, and the next is not
 });
 
 // The two plugins install apart, so each keeps its own copy of the module
-// that reads the CLAUDE.md verification block.
-const claudeMd = (plugin) => import(join(PLUGINS, plugin, 'scripts', 'claude-md.mjs'));
+// that reads the CLAUDE.md verification block. The copies are the same bytes,
+// so the module cases run against one of them.
+const moduleOf = (plugin) => join(PLUGINS, plugin, 'scripts', 'claude-md.mjs');
+const { verificationCommands } = await import(moduleOf('mochi-react'));
 
 test('both stack plugins keep the same CLAUDE.md module', () => {
-  const read = (plugin) => readFileSync(join(PLUGINS, plugin, 'scripts', 'claude-md.mjs'), 'utf8');
-  assert.equal(read('mochi-python'), read('mochi-react'));
+  assert.equal(readFileSync(moduleOf('mochi-python'), 'utf8'), readFileSync(moduleOf('mochi-react'), 'utf8'));
 });
 
-for (const plugin of ['mochi-react', 'mochi-python']) {
-  test(`${plugin} CLAUDE.md: the commands of the Verification block, without comments and with continued lines`, async () => {
-    const { verificationCommands } = await claudeMd(plugin);
-    const dir = tempDir('claude-md-');
-    write(
-      join(dir, 'CLAUDE.md'),
-      [
-        '# Shop',
-        '',
-        'Tests: `npm test`. One file: `npm test -- src/cart.test.ts`.',
-        '',
-        '## Verification',
-        '',
-        'Run from this folder before calling a change done:',
-        '',
-        '```bash',
-        'npm run typecheck   # tsc -b, the solution config',
-        '',
-        '# lint enforces the layers',
-        'npm run lint',
-        'npm test -- \\',
-        '  --run',
-        '```',
-        '',
-        '```bash',
-        'echo not this block',
-        '```',
-        '',
-        '## Before a push to an open PR',
-        '',
-        '```bash',
-        'npm run e2e',
-        '```',
-      ].join('\n'),
-    );
-    assert.deepEqual(verificationCommands(join(dir, 'src'), dir), {
-      dir,
-      commands: ['npm run typecheck   # tsc -b, the solution config', 'npm run lint', 'npm test -- \\\n  --run'],
-    });
+test('CLAUDE.md: the commands of the Verification block only, without comments and with continued lines', () => {
+  const dir = tempDir('claude-md-');
+  write(
+    join(dir, 'CLAUDE.md'),
+    [
+      '# Shop',
+      '',
+      'Tests: `npm test`. One file: `npm test -- src/cart.test.ts`.',
+      '',
+      '## Setup',
+      '',
+      '```bash',
+      'npm install',
+      '```',
+      '',
+      '## Verification',
+      '',
+      'Run from this folder before calling a change done:',
+      '',
+      '```text',
+      'not a command',
+      '```',
+      '',
+      '```bash',
+      'npm run typecheck   # tsc -b, the solution config',
+      '',
+      '# lint enforces the layers',
+      'npm run lint',
+      'npm test -- \\',
+      '  --run',
+      '```',
+      '',
+      '```bash',
+      'echo not this block',
+      '```',
+      '',
+      '## Before a push to an open PR',
+      '',
+      '```bash',
+      'npm run e2e',
+      '```',
+    ].join('\n'),
+  );
+  assert.deepEqual(verificationCommands(join(dir, 'src'), dir), {
+    dir,
+    commands: ['npm run typecheck   # tsc -b, the solution config', 'npm run lint', 'npm test -- \\\n  --run'],
   });
+});
 
-  test(`${plugin} CLAUDE.md: the nearest file counts, and one without a block gives none`, async () => {
-    const { verificationCommands } = await claudeMd(plugin);
-    const dir = tempDir('claude-md-');
-    write(join(dir, 'CLAUDE.md'), '## Verification\n\n```bash\nmake check\n```\n');
-    write(join(dir, 'packages/web/CLAUDE.md'), '# Web\n\n## Scope override\n\nThe root commands do not apply here.\n');
-    write(join(dir, 'packages/web/src/a.ts'), 'export const a = 1;\n');
-    assert.equal(verificationCommands(join(dir, 'packages/web/src'), dir), undefined, 'a closer file without a block');
-    assert.deepEqual(verificationCommands(join(dir, 'packages/api'), dir), { dir, commands: ['make check'] }, 'the root file');
-    assert.equal(verificationCommands(join(dir, 'packages/api'), join(dir, 'packages')), undefined, 'not above the root it is given');
-  });
-}
+test('CLAUDE.md: CRLF line ends are not part of a command, and a last line that ends in \\ is kept', () => {
+  const dir = tempDir('claude-md-');
+  write(join(dir, 'CLAUDE.md'), '## Verification\r\n\r\n```bash\r\nnpm test -- \\\r\n  --run\r\nmake check \\\r\n```\r\n');
+  assert.deepEqual(verificationCommands(dir, dir), { dir, commands: ['npm test -- \\\n  --run', 'make check \\'] });
+});
 
-// A Verification block whose commands log where and how they ran.
+test('CLAUDE.md: the nearest file counts, and one without a block gives none', () => {
+  const dir = tempDir('claude-md-');
+  write(join(dir, 'CLAUDE.md'), '## Verification\n\n```bash\nmake check\n```\n');
+  write(join(dir, 'packages/web/CLAUDE.md'), '# Web\n\n## Scope override\n\nThe root commands do not apply here.\n');
+  write(join(dir, 'packages/web/src/a.ts'), 'export const a = 1;\n');
+  assert.equal(verificationCommands(join(dir, 'packages/web/src'), dir), undefined, 'a closer file without a block');
+  assert.deepEqual(verificationCommands(join(dir, 'packages/api'), dir), { dir, commands: ['make check'] }, 'the root file');
+  assert.equal(verificationCommands(join(dir, 'packages/api'), join(dir, 'packages')), undefined, 'not above the root it is given');
+});
+
+// A CLAUDE.md with these commands in its Verification block.
 const block = (...commands) => `# Package\n\n## Verification\n\n\`\`\`bash\n${commands.join('\n')}\n\`\`\`\n`;
 const lines = (path) => (existsSync(path) ? readFileSync(path, 'utf8').trim().split('\n') : []);
+const isRunning = (pid) => {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+};
+// Waits for a condition, for at most `ms`, and gives its last value.
+const waitFor = async (condition, ms) => {
+  for (const end = Date.now() + ms; !condition() && Date.now() < end; ) await new Promise((done) => setTimeout(done, 50));
+  return condition();
+};
+// A line whose child writes its pid, then runs far past any deadline here.
+const LONG_LINE = "sh -c 'echo $$ > child.pid; sleep 30' && true";
+const childPid = (dir) => Number(readFileSync(join(dir, 'child.pid'), 'utf8'));
 
 test('react: the CLAUDE.md block runs from its folder in place of the scripts, and a failing line blocks with its output', () => {
   const dir = reactRepo();
@@ -240,6 +276,16 @@ test('react: the CLAUDE.md block runs from its folder in place of the scripts, a
   assert.match(result.stderr, /`echo "lint: 2 problems" && exit 3` failed in .*packages\/web:\nlint: 2 problems/);
   assert.deepEqual(lines(join(dir, 'packages/web/block.log')).map((line) => line.endsWith('packages/web')), [true, true], 'each line, from the folder of the CLAUDE.md');
   assert.equal(runs(dir), 0, 'not the test script');
+});
+
+test('react: a CLAUDE.md that cannot be read is reported with its path', () => {
+  const dir = reactRepo();
+  mkdirSync(join(dir, 'packages/web/CLAUDE.md'));
+  sh(dir, 'echo "export const d = 1;" > packages/web/src/d.ts');
+  const result = stop('mochi-react', dir, session());
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /Could not read `CLAUDE\.md` in .*packages\/web: /);
+  assert.doesNotMatch(result.stderr, /package\.json/);
 });
 
 test('react: a closer CLAUDE.md without a block, or the off switch, keeps the scripts', () => {
@@ -269,27 +315,43 @@ test('react: packages that share a CLAUDE.md run its block one time, even withou
   assert.deepEqual(lines(join(dir, 'shared.log')), ['ran'], 'a package with a block and no scripts');
 });
 
-test('react: at the deadline a compound line stops with its children', async () => {
+test('react: at the deadline a compound line stops with its children, and the next line is not run', async () => {
   const dir = reactRepo();
-  write(join(dir, 'packages/web/CLAUDE.md'), block("sh -c 'sleep 4; echo late >> late.log' && true"));
+  write(join(dir, 'packages/web/CLAUDE.md'), block(LONG_LINE, 'echo next'));
   sh(dir, 'echo "export const d = 1;" > packages/web/src/d.ts');
   const result = stop('mochi-react', dir, session(), { MOCHI_VERIFY_DEADLINE_SECONDS: '2' });
   assert.equal(result.status, 2);
   assert.match(result.stderr, /did not finish in 2 s/);
-  await new Promise((done) => setTimeout(done, 3500));
-  assert.equal(existsSync(join(dir, 'packages/web/late.log')), false, 'the child of the line is stopped too');
+  assert.match(result.stderr, /`echo next` not run: no time left before the deadline/);
+  assert.equal(await waitFor(() => !isRunning(childPid(join(dir, 'packages/web'))), 5000), true, 'the child of the line is stopped too');
 });
 
-test('python: the CLAUDE.md block runs in place of the tools, without a uv sync, and the off switch keeps the tools', () => {
+test('react: a hook that is stopped stops the running line with its children', async () => {
+  const dir = reactRepo();
+  const web = join(dir, 'packages/web');
+  write(join(web, 'CLAUDE.md'), block(LONG_LINE));
+  sh(dir, 'echo "export const d = 1;" > packages/web/src/d.ts');
+  const child = spawn(process.execPath, [join(PLUGINS, 'mochi-react', 'scripts', 'verify-on-stop.mjs')], { env: hookEnv(), stdio: ['pipe', 'ignore', 'ignore'] });
+  child.stdin.end(JSON.stringify({ hook_event_name: 'Stop', session_id: session(), cwd: dir }));
+  assert.equal(await waitFor(() => existsSync(join(web, 'child.pid')), 10000), true, 'the line started');
+  const exited = new Promise((done) => child.on('exit', done));
+  child.kill('SIGTERM');
+  await exited;
+  assert.equal(await waitFor(() => !isRunning(childPid(web)), 5000), true, 'the child of the line is stopped too');
+});
+
+test('python: the CLAUDE.md block runs in place of the tools, one time for projects that share it, without a uv sync, and the off switch keeps the tools', () => {
   const dir = pythonRepo();
   write(join(dir, 'CLAUDE.md'), block('echo "UV_NO_SYNC=$UV_NO_SYNC" >> block.log', 'echo "2 failed" && exit 1'));
+  write(join(dir, 'services/billing/pyproject.toml'), '[project]\nname = "billing"\ndependencies = ["fastapi"]\n');
+  write(join(dir, 'services/billing/app/c.py'), 'C = 1\n');
   sh(dir, 'echo "B = 2" > app/b.py');
   const result = stop('mochi-python', dir, session());
   assert.equal(result.status, 2);
   assert.match(result.stderr, /`echo "2 failed" && exit 1` failed in .*:\n2 failed/);
-  assert.deepEqual(lines(join(dir, 'block.log')), ['UV_NO_SYNC=1']);
+  assert.deepEqual(lines(join(dir, 'block.log')), ['UV_NO_SYNC=1'], 'one run for the two projects');
   assert.deepEqual(tools(dir), [], 'not mypy or pytest');
-  sh(dir, 'echo "B = 3" > app/b.py');
+  sh(dir, 'rm -r services && echo "B = 3" > app/b.py');
   stop('mochi-python', dir, session(), { MOCHI_VERIFY_FROM_CLAUDE_MD: '0' });
   assert.deepEqual(tools(dir), ['mypy app/b.py', 'pytest -q -x']);
 });

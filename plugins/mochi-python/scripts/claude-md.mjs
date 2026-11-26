@@ -6,16 +6,20 @@
 // mochi-python keep the same copy of this file.
 import { spawn } from 'node:child_process';
 import { closeSync, existsSync, mkdtempSync, openSync, readFileSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import os, { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+
+const STOP_SIGNALS = ['SIGTERM', 'SIGINT', 'SIGHUP'];
 
 // Runs each command of the block in `dir` and returns one failure text for
 // each command that fails, does not finish, or gets no time, as the hooks'
 // own checks report them. Each command is `sh -c` in its own process group,
 // stopped as a group at the deadline: `sh` does not pass SIGTERM on to the
-// children of a compound line. `uv run` must not sync or install first, as
-// the hooks never install, so `UV_NO_SYNC` is set.
-export async function runVerificationCommands({ dir, commands }, deadline) {
+// children of a compound line. When the hook itself is stopped, it stops the
+// running group first, so that no check outlives it. `uv run` must not sync
+// or install first, as the hooks never install, so `UV_NO_SYNC` is set.
+export async function runVerificationCommands({ dir, commands, error }, deadline) {
+  if (error) return [`Could not read \`CLAUDE.md\` in ${dir}: ${error}`];
   const failures = [];
   for (const command of commands) {
     const left = deadline - Date.now();
@@ -32,18 +36,27 @@ export async function runVerificationCommands({ dir, commands }, deadline) {
       env: { ...process.env, UV_NO_SYNC: '1' },
       stdio: ['ignore', fd, fd],
     });
-    let timedOut = false;
-    const timer = setTimeout(() => {
-      timedOut = true;
+    const stopGroup = () => {
       try {
         process.kill(-child.pid, 'SIGTERM');
       } catch {}
+    };
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      stopGroup();
     }, left);
+    const onStop = (signal) => {
+      stopGroup();
+      process.exit(128 + os.constants.signals[signal]);
+    };
+    for (const signal of STOP_SIGNALS) process.once(signal, onStop);
     const result = await new Promise((done) => {
-      child.on('error', (error) => done({ error }));
+      child.on('error', (spawnError) => done({ error: spawnError }));
       child.on('exit', (status) => done({ status }));
     });
     clearTimeout(timer);
+    for (const signal of STOP_SIGNALS) process.removeListener(signal, onStop);
     closeSync(fd);
     const output = readFileSync(log, 'utf8').split('\n').slice(-60).join('\n');
     rmSync(logDir, { recursive: true, force: true });
@@ -55,12 +68,19 @@ export async function runVerificationCommands({ dir, commands }, deadline) {
 }
 
 // Each command of the block, from the folder of its CLAUDE.md, or undefined.
+// A CLAUDE.md that cannot be read gives its error, for the hook to report.
 // The search goes from `fromDir` up to `root`, both included.
 export function verificationCommands(fromDir, root) {
   for (let dir = fromDir; dir.startsWith(root); dir = dirname(dir)) {
     const file = join(dir, 'CLAUDE.md');
     if (existsSync(file)) {
-      const commands = commandsOf(readFileSync(file, 'utf8'));
+      let text;
+      try {
+        text = readFileSync(file, 'utf8');
+      } catch (readError) {
+        return { dir, commands: [], error: readError.message };
+      }
+      const commands = commandsOf(text);
       return commands.length ? { dir, commands } : undefined;
     }
     if (dirname(dir) === dir) break;
@@ -73,7 +93,7 @@ export function verificationCommands(fromDir, root) {
 function blockOf(text) {
   let inSection = false;
   let fence;
-  for (const line of text.split('\n')) {
+  for (const line of text.split(/\r?\n/)) {
     if (fence !== undefined) {
       if (/^```\s*$/.test(line)) {
         if (inSection && fence.isBash) return fence.lines;
@@ -89,7 +109,8 @@ function blockOf(text) {
 }
 
 // A line that ends in `\` goes on with the next line, as in the shell, so it
-// stays one command. An empty line and a comment line run nothing.
+// stays one command; a last line that ends in `\` is kept, for the shell to
+// report. An empty line and a comment line run nothing.
 function commandsOf(text) {
   const block = blockOf(text);
   if (!block) return [];
@@ -104,5 +125,6 @@ function commandsOf(text) {
     pending = '';
     if (command.trim() && !command.trim().startsWith('#')) commands.push(command);
   }
+  if (pending) commands.push(pending);
   return commands;
 }

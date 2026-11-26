@@ -159,8 +159,10 @@ The page also shows all links in a table.
   `## Verification` in the nearest `CLAUDE.md`, as `/mochi:setup-project`
   writes it. Each command runs from the folder of that `CLAUDE.md`. Only the
   nearest `CLAUDE.md` counts: when it has no block, the stack plugin runs its
-  own checks. Each command must end: a watcher is stopped at the deadline and
-  reported as not finished. A `uv run` in the block does not sync or install
+  own checks. Each command must end, and exit 0 when the checks pass: a
+  watcher is stopped at the deadline and reported as not finished, and
+  pytest with no tests exits 5, so write `pytest || [ $? -eq 5 ]` for a
+  project that has no tests yet. A `uv run` in the block does not sync or install
   first. When a React package and a FastAPI package share one `CLAUDE.md`,
   both plugins run its block at the same time: give each package its own
   `CLAUDE.md`. To keep the plugins' own checks, set

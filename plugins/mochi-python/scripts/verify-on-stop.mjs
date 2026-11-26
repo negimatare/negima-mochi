@@ -100,8 +100,8 @@ const run = (tool, args, dir) => {
 
 const NO_TESTS_COLLECTED = 5;
 const failures = [];
-// Projects that share one CLAUDE.md run its block one time.
 const fromClaudeMd = process.env.MOCHI_VERIFY_FROM_CLAUDE_MD !== '0';
+// Projects that share one CLAUDE.md run its block one time.
 const blocks = new Map();
 for (const [dir, files] of projects) {
   const block = fromClaudeMd && verificationCommands(dir, root);
