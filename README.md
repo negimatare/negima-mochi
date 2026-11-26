@@ -147,11 +147,26 @@ The page also shows all links in a table.
 - In a React + Fluent UI package, `mochi-react` adds its conventions to the
   context. It does this when a session starts in the package, or when Claude
   reads, writes or edits a file that a convention covers. It runs ESLint `--fix`
-  after each edit. Before Claude ends a turn, it runs `typecheck` and `test`.
+  after each edit. Before Claude ends a turn, it runs the verification of the
+  package: the commands of its `CLAUDE.md` Verification block, or, without a
+  block, `typecheck` and `test`.
 - In a FastAPI package, `mochi-python` does the same with the tools in the
   virtualenv of your project. It runs Ruff `--fix` after each edit. Before
-  Claude ends a turn, it runs the type checker (pyright or mypy), the
-  import-linter contracts and pytest.
+  Claude ends a turn, it runs the commands of the Verification block, or,
+  without a block, the type checker (pyright or mypy), the import-linter
+  contracts and pytest.
+- The Verification block is the first `bash` block under
+  `## Verification` in the nearest `CLAUDE.md`, as `/mochi:setup-project`
+  writes it. Each command runs from the folder of that `CLAUDE.md`. Only the
+  nearest `CLAUDE.md` counts: when it has no block, the stack plugin runs its
+  own checks. Each command must end, and exit 0 when the checks pass: a
+  watcher is stopped at the deadline and reported as not finished, and
+  pytest with no tests exits 5, so write `pytest || [ $? -eq 5 ]` for a
+  project that has no tests yet. A `uv run` in the block does not sync or install
+  first. When a React package and a FastAPI package share one `CLAUDE.md`,
+  both plugins run its block at the same time: give each package its own
+  `CLAUDE.md`. To keep the plugins' own checks, set
+  `MOCHI_VERIFY_FROM_CLAUDE_MD=0`.
 
 ---
 
