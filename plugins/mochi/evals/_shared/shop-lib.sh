@@ -7,6 +7,9 @@
 #   whether src/cart.ts still matches the fixture ("cart:unchanged").
 # - finish_shop packs every ref, so a commit to main, local or pushed, writes
 #   a new refs/heads/main file, which file_exists graders see.
+# - `npm test` also logs "pass <tree>" or "fail <tree>" to .eval/test-trees.log,
+#   and finish_shop records main in .eval/base and .eval/origin-base. The
+#   eval observer (_shared/observer) reads them for the end state of a run.
 git init -q -b main
 git config user.name eval && git config user.email eval@example.invalid
 mkdir -p src scripts .eval
@@ -29,7 +32,13 @@ cat > scripts/test.sh <<'X'
 node --test "${@:-src/**/*.test.ts}"
 status=$?
 cmp -s src/cart.ts .eval/cart.orig && state=unchanged || state=changed
-echo "$([ "$status" -eq 0 ] && echo pass || echo fail) cart:$state" >> .eval/test-runs.log
+result=$([ "$status" -eq 0 ] && echo pass || echo fail)
+echo "$result cart:$state" >> .eval/test-runs.log
+# The tree that these tests ran on, as the eval observer computes it.
+rm -f .eval/test.index
+tree=$(GIT_INDEX_FILE=.eval/test.index git add -A && GIT_INDEX_FILE=.eval/test.index git write-tree) || tree=unknown
+rm -f .eval/test.index
+echo "$result $tree" >> .eval/test-trees.log
 exit "$status"
 X
 cat > src/cart.ts <<'X'
@@ -57,4 +66,6 @@ git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
 finish_shop() {
     git pack-refs --all
     git --git-dir .remote/origin.git pack-refs --all
+    git rev-parse main > .eval/base
+    git --git-dir .remote/origin.git rev-parse main > .eval/origin-base
 }
