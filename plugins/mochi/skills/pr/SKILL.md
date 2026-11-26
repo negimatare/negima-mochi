@@ -43,7 +43,11 @@ The user's notes: `$ARGUMENTS`
     is not empty.
   - `merged: null` means that gh cannot tell. Ask the user whether the base
     is merged, unless the arguments say so; `base-gone` makes a merge
-    likely. Step 6 takes the base's last commit from `headRefOid`.
+    likely. A yes counts as `base-merged`: restack. Step 6 takes the base's
+    last commit from `headRefOid`.
+  - `base-gone` with `merged: false` means that the base's branch is gone
+    but its PR is not merged (closed, or never pushed): stop and ask the
+    user what the base is now.
   - When `lost` is not empty, another person pushed to this branch, and the
     restack push would delete those commits: stop, show them, and restack
     nothing.
@@ -234,14 +238,17 @@ restack the whole stack with `gh stack`:
    `node ${CLAUDE_SKILL_DIR}/scripts/pushed.mjs <branch>...` with each
    branch of the stack: `gh stack push` can report success and push
    nothing. When it names a branch that did not move, name each such branch
-   and stop. Do not push it in a different way.
+   and stop. Do not push it in a different way. When it fails, show its
+   message and stop.
 
 When the check fails, restack this branch with git:
 
 1. `git fetch`. Base merged:
    `git rebase --onto origin/<default> <base's last commit>`, with the
-   `headRefOid` of the stack check, or `git merge-base HEAD origin/<base>`
-   when it is null. A squash merge puts the base's commits on the default branch under
+   `headRefOid` of the stack check. When it is null, use
+   `git merge-base HEAD origin/<base>`, or `git merge-base HEAD <base>` when
+   `origin/<base>` is gone; when neither ref exists, stop and ask the user
+   for the base's last commit. A squash merge puts the base's commits on the default branch under
    new hashes; this replays only this branch's own commits. Base moved:
    `git rebase <base>` when the local base is ahead of `origin/<base>` (a
    review fix that is not pushed yet), else `git rebase origin/<base>`.

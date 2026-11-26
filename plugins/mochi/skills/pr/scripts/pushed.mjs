@@ -5,7 +5,7 @@
 //
 // Prints one line for each branch that did not move, and exits 1 when there
 // is one. It compares refs/heads/<branch> only, so a tag of the same name
-// does not count.
+// does not count. A git failure exits 2 with git's message.
 import { execFileSync } from 'node:child_process';
 
 const branches = process.argv.slice(2);
@@ -26,6 +26,6 @@ try {
   }
 } catch (error) {
   console.error(String(error.stderr || error.message).trim());
-  process.exit(1);
+  process.exit(2);
 }
 process.exit(stale ? 1 : 0);

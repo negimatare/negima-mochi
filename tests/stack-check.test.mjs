@@ -4,26 +4,31 @@ import { chmodSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { scaffold, sh, tempDir } from './eval-fixture.mjs';
+import { ENV, scaffold, sh, tempDir } from './eval-fixture.mjs';
 
 const SCRIPTS = fileURLToPath(new URL('../plugins/mochi/skills/pr/scripts/', import.meta.url));
 const P1 = 'feat/order-exports-1-monthly-csv';
 const P2 = 'feat/order-exports-2-customer-statement';
 
 const which = (name) => spawnSync('bash', ['-c', `command -v ${name}`], { encoding: 'utf8' }).stdout.trim();
-// A PATH with git and, when given, a fake gh that prints this JSON.
+// A PATH with git and, when given, a fake gh. Its `pr view` answers only
+// `pr view <P1> --json state,headRefOid`: with this JSON, or with gh's error
+// for a branch with no pull request when the value is the string "none".
 const pathWith = (gh) => {
   const bin = tempDir('stack-check-bin-');
   symlinkSync(which('git'), join(bin, 'git'));
   if (gh !== undefined) {
-    writeFileSync(join(bin, 'gh'), `#!/bin/bash\n[ "$1" = auth ] && exit 0\n[ "$1 $2" = "pr view" ] && { printf '%s' '${JSON.stringify(gh)}'; exit 0; }\nexit 1\n`);
+    const answer =
+      gh === 'none'
+        ? `echo 'no pull requests found for branch "${P1}"' >&2; exit 1`
+        : `printf '%s' '${JSON.stringify(gh)}'; exit 0`;
+    writeFileSync(join(bin, 'gh'), `#!/bin/bash\n[ "$1" = auth ] && exit 0\n[ "$*" = "pr view ${P1} --json state,headRefOid" ] && { ${answer}; }\nexit 1\n`);
     chmodSync(join(bin, 'gh'), 0o755);
   }
   return bin;
 };
 const run = (script, dir, args, gh) => {
-  const env = { ...process.env, PATH: pathWith(gh), GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1' };
-  delete env.CLAUDE_PROJECT_DIR;
+  const env = { ...ENV, PATH: pathWith(gh) };
   const result = spawnSync(process.execPath, [join(SCRIPTS, script), ...args], { cwd: dir, encoding: 'utf8', env });
   return { ...result, json: result.status === 0 && script === 'stack-check.mjs' ? JSON.parse(result.stdout) : undefined };
 };
@@ -73,6 +78,16 @@ test('gh says the base is merged, and gives its last commit', () => {
   assert.equal(json.headRefOid, 'abc123');
   assert.deepEqual(json.restack, ['base-merged']);
   assert.equal(check(dir, P1, { state: 'OPEN', headRefOid: 'abc123' }).json.merged, false);
+  assert.equal(check(dir, P1, 'none').json.merged, false, 'a base with no pull request is not merged');
+  assert.equal(check(dir, P2, { state: 'MERGED', headRefOid: 'abc123' }).json.merged, null, 'gh was asked for the base, not another branch');
+});
+
+test('a branch that is only ahead of its upstream, and a clone with no local base, need no restack', () => {
+  const dir = scaffold('review-fixes-on-the-owning-part');
+  sh(dir, 'git fetch -q && git -c user.name=r -c user.email=r@example.invalid commit -q --allow-empty -m "feat: more"');
+  assert.deepEqual(check(dir, P1).json, { merged: null, headRefOid: null, restack: [], lost: [] });
+  sh(dir, `git branch -q -D ${P1}`);
+  assert.deepEqual(check(dir, P1).json.restack, []);
 });
 
 test('outside a repository, or with no base, it fails and says why', () => {
@@ -92,8 +107,12 @@ test('pushed names each branch whose remote tip is not its local tip', () => {
   result = run('pushed.mjs', dir, [P1, P2]);
   assert.equal(result.status, 0, result.stdout);
   assert.equal(result.stdout, '');
-  sh(dir, `git tag ${P1}-tag && git switch -q -c only-local`);
+  // A tag with the branch's name on origin does not count as the branch.
+  sh(dir, 'git switch -q -c only-local && git tag only-local && git push -q origin refs/tags/only-local');
   result = run('pushed.mjs', dir, ['only-local']);
   assert.equal(result.status, 1);
   assert.match(result.stdout, /only-local: origin has no such branch/);
+  result = run('pushed.mjs', dir, ['no-such-branch']);
+  assert.equal(result.status, 2, 'a git failure is not "did not move"');
+  assert.equal(result.stdout, '');
 });

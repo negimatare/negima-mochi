@@ -3,32 +3,38 @@
 // rules: no push to the default branch, no force push without the lease, no
 // staging or committing of everything, no skipping of the git hooks. The
 // command is read as a shell reads it, so the words of a commit message, a
-// quoted string or a heredoc are not commands.
+// quoted string, a comment or a heredoc are not commands.
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { isAbsolute, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // Splits a command line into commands, each a list of words. Quotes, $(...),
-// backticks and heredoc bodies stay inside their word; newline, ;, &, &&, |,
-// ||, ( and ) end a command.
+// $((...)), backticks, heredoc bodies and comments stay out of the command
+// structure; newline, ;, &, &&, |, ||, ( and ) end a command. A redirection
+// and its target are dropped.
 export const commandsOf = (text) => {
   const commands = [];
   let words = [];
   let word = '';
   let inWord = false;
+  let redirect = false;
   const heredocs = [];
   const endWord = () => {
-    if (inWord) words.push(word);
+    if (inWord) {
+      if (redirect) redirect = false;
+      else words.push(word);
+    }
     word = '';
     inWord = false;
   };
   const endCommand = () => {
     endWord();
+    redirect = false;
     if (words.length) commands.push(words);
     words = [];
   };
-  // Skips a heredoc body that starts at index i; returns the index after it.
+  // Skips each pending heredoc body from index i; returns the index after them.
   const skipBodies = (i) => {
     while (heredocs.length) {
       const { delimiter, tabs } = heredocs.shift();
@@ -41,8 +47,8 @@ export const commandsOf = (text) => {
     }
     return i;
   };
-  // Reads the heredoc operator at index i (after <<); returns the index after
-  // its delimiter word.
+  // Reads a heredoc operator's delimiter from index i (after <<); returns
+  // the index after it.
   const readHeredoc = (i) => {
     const tabs = text[i] === '-';
     if (tabs) i += 1;
@@ -52,19 +58,26 @@ export const commandsOf = (text) => {
     heredocs.push({ delimiter: match[1] ?? match[2] ?? match[3], tabs });
     return i + match[0].length;
   };
-  // Skips a $( ... ) or a backtick span that starts at index i; returns the
-  // index after it. Quotes and heredocs inside it are skipped too.
-  const skipSubstitution = (i, close) => {
-    let depth = 1;
+  // The index after a $'...' string that starts at index i (at the $).
+  const skipAnsi = (i) => {
+    i += 2;
+    while (i < text.length && text[i] !== "'") i += text[i] === '\\' ? 2 : 1;
+    return i + 1;
+  };
+  // Skips a $( ... ), $(( ... )) or backtick span from index i (after its
+  // opening); returns the index after it.
+  const skipSubstitution = (i, close, arithmetic = false) => {
+    let depth = arithmetic ? 2 : 1;
     while (i < text.length && depth > 0) {
       const c = text[i];
       if (c === '\\') i += 2;
       else if (c === "'" && close === ')') i = text.indexOf("'", i + 1) + 1 || text.length;
       else if (c === '"' && close === ')') i = skipDouble(i + 1);
-      else if (close === ')' && text.startsWith('$(', i)) {
+      else if (close === ')' && c === '(') {
         depth += 1;
-        i += 2;
-      } else if (close === ')' && text.startsWith('<<', i) && text[i + 2] !== '<') i = readHeredoc(i + 2);
+        i += 1;
+      } else if (close === ')' && !arithmetic && text.startsWith('<<<', i)) i += 3;
+      else if (close === ')' && !arithmetic && text.startsWith('<<', i)) i = readHeredoc(i + 2);
       else if (c === '\n' && heredocs.length) i = skipBodies(i + 1);
       else if (c === close) {
         depth -= 1;
@@ -77,6 +90,7 @@ export const commandsOf = (text) => {
   const skipDouble = (i) => {
     while (i < text.length && text[i] !== '"') {
       if (text[i] === '\\') i += 2;
+      else if (text.startsWith('$((', i)) i = skipSubstitution(i + 3, ')', true);
       else if (text.startsWith('$(', i)) i = skipSubstitution(i + 2, ')');
       else if (text[i] === '`') i = skipSubstitution(i + 1, '`');
       else i += 1;
@@ -93,20 +107,48 @@ export const commandsOf = (text) => {
     } else if (c === ' ' || c === '\t') {
       endWord();
       i += 1;
+    } else if (c === '#' && !inWord) {
+      const end = text.indexOf('\n', i);
+      i = end === -1 ? text.length : end;
+    } else if (c === '\\' && text[i + 1] === '\n') i += 2;
+    else if (c === '\\') {
+      word += text[i + 1] ?? '';
+      inWord = true;
+      i += 2;
+    } else if (text.startsWith('<<<', i)) {
+      endWord();
+      i += 3;
+    } else if (text.startsWith('<<', i)) {
+      endWord();
+      i = readHeredoc(i + 2);
+    } else if (c === '<' || c === '>' || (c === '&' && text[i + 1] === '>') || (/\d/.test(c) && !inWord && /^\d+[<>]/.test(text.slice(i)))) {
+      // A redirection: drop its operator, and its target word unless it
+      // only copies a file descriptor (2>&1).
+      const operator = text.slice(i).match(/^(?:\d*|&)(?:>>|<>|>\||>&|<&|>|<)(?:\d+-?|-)?/)[0];
+      endWord();
+      i += operator.length;
+      redirect = !/&(?:\d+-?|-)$/.test(operator);
     } else if (';&|()'.includes(c)) {
       endCommand();
       i += text[i + 1] === c && (c === '&' || c === '|') ? 2 : 1;
-    } else if (text.startsWith('<<', i) && text[i + 2] !== '<') {
-      endWord();
-      i = readHeredoc(i + 2);
     } else if (c === "'") {
       const end = text.indexOf("'", i + 1);
       word += text.slice(i + 1, end === -1 ? text.length : end);
       inWord = true;
       i = end === -1 ? text.length : end + 1;
+    } else if (text.startsWith("$'", i)) {
+      const end = skipAnsi(i);
+      word += text.slice(i + 2, end - 1);
+      inWord = true;
+      i = end;
     } else if (c === '"') {
       const end = skipDouble(i + 1);
       word += text.slice(i + 1, end - 1);
+      inWord = true;
+      i = end;
+    } else if (text.startsWith('$((', i)) {
+      const end = skipSubstitution(i + 3, ')', true);
+      word += text.slice(i, end);
       inWord = true;
       i = end;
     } else if (text.startsWith('$(', i)) {
@@ -119,10 +161,6 @@ export const commandsOf = (text) => {
       word += text.slice(i, end);
       inWord = true;
       i = end;
-    } else if (c === '\\') {
-      word += text[i + 1] ?? '';
-      inWord = true;
-      i += 2;
     } else {
       word += c;
       inWord = true;
@@ -133,10 +171,14 @@ export const commandsOf = (text) => {
   return commands;
 };
 
+// Words that can come before the command itself.
+const PREFIXES = new Set(['if', 'then', 'else', 'elif', 'do', 'while', 'until', '!', '{', 'time', 'command', 'exec', 'env', 'nohup']);
 // git's options before the subcommand that take a value as the next word.
 const GLOBAL_WITH_VALUE = new Set(['-C', '-c', '--git-dir', '--work-tree', '--namespace', '--exec-path', '--config-env']);
-// Short options of commit that take a value: the rest of the cluster or the next word.
+// Short options of commit that take a value: the rest of the cluster or the
+// next word. S and u take an optional value only in the same word.
 const COMMIT_VALUE = 'mFCct';
+const COMMIT_ATTACHED = 'Su';
 const COMMIT_LONG_VALUE = new Set(['--message', '--file', '--reuse-message', '--reedit-message', '--template', '--author', '--date', '--cleanup', '--fixup', '--squash', '--trailer', '--pathspec-from-file']);
 const PUSH_LONG_VALUE = new Set(['--repo', '--push-option', '--receive-pack', '--exec']);
 
@@ -167,7 +209,7 @@ const pushProblems = (args, cwd) => {
     if (arg === '-n' || arg === '--dry-run') return [];
     if (arg === '--no-verify') problems.push('verify');
     else if (arg.startsWith('--force-with-lease')) lease = true;
-    else if (arg === '--force' || arg === '--force-if-includes') force ||= arg === '--force';
+    else if (arg === '--force') force = true;
     else if (arg === '--tags') tags = true;
     else if (arg === '--all' || arg === '--mirror') problems.push('default');
     else if (PUSH_LONG_VALUE.has(arg) || arg === '-o') k += 1;
@@ -183,7 +225,7 @@ const pushProblems = (args, cwd) => {
     ? specs.map((spec) => {
         const [src, dst] = spec.replace(/^\+/, '').split(':');
         const target = dst ?? src;
-        return (target === 'HEAD' ? current : target).replace(/^refs\/heads\//, '');
+        return (target === 'HEAD' || target === '@' ? current : target).replace(/^refs\/heads\//, '');
       })
     : tags
       ? []
@@ -211,6 +253,7 @@ const commitProblems = (args) => {
     else if (/^-[a-zA-Z]/.test(arg) && !arg.startsWith('--')) {
       for (let at = 1; at < arg.length; at += 1) {
         const flag = arg[at];
+        if (COMMIT_ATTACHED.includes(flag)) break;
         if (COMMIT_VALUE.includes(flag)) {
           if (at === arg.length - 1) k += 1;
           break;
@@ -225,9 +268,9 @@ const commitProblems = (args) => {
 
 // The problems of one command, given the folder it runs in.
 const problemsOf = (words, cwd) => {
-  let at = words.findIndex((word) => !/^[A-Za-z_][A-Za-z0-9_]*=/.test(word));
-  if (words[at] === 'command' || words[at] === 'exec') at += 1;
-  if (at < 0 || !/(^|\/)git$/.test(words[at] ?? '')) return [];
+  let at = 0;
+  while (at < words.length && (PREFIXES.has(words[at]) || /^[A-Za-z_][A-Za-z0-9_]*=/.test(words[at]))) at += 1;
+  if (!/(^|\/)git$/.test(words[at] ?? '')) return [];
   let dir = cwd;
   let k = at + 1;
   while (k < words.length && words[k].startsWith('-')) {

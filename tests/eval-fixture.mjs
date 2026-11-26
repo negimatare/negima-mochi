@@ -13,7 +13,7 @@ const OBSERVER = join(PLUGINS, 'mochi/eval-observer/scripts/observe.mjs');
 // Git and the observer see only the fixture: not your git config, and not
 // the session that runs the tests. NODE_TEST_CONTEXT would make the
 // fixture's own `node --test` report to this runner and exit 0 on a failure.
-const ENV = Object.fromEntries(
+export const ENV = Object.fromEntries(
   Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_') && !name.startsWith('NODE_TEST') && name !== 'CLAUDE_PROJECT_DIR'),
 );
 Object.assign(ENV, { GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1' });
