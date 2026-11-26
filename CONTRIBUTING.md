@@ -274,8 +274,8 @@ of the tags.
   `openapi.json` again from the app.
 - **Cases that commit or push** use `evals/_shared/shop-lib.sh`. Eval runs
   disable git hooks, so this script gives these signals to the graders:
-  - `npm test` writes a line to `.eval/test-runs.log` for each run, and the
-    tree that it tested to `.eval/test-trees.log`.
+  - `npm test` writes a line to `.eval/test-runs.log` for each run. A full
+    run also writes the tree that it tested to `.eval/test-trees.log`.
   - Packed refs make a commit to `main` create a `refs/heads/main` file,
     which `file_exists` can see. A grader with `exists: false` on a ref is
     an end state that also works without the observer.
@@ -284,12 +284,16 @@ of the tags.
 - **The observer**, `evals/_shared/observer/`, is a stub plugin with one
   Stop hook. A `mochi` case loads it with
   `plugins: ["../..", "../_shared/observer"]`. At the end of the run it
-  writes two files, with git only. It runs no code that the run wrote.
+  writes two files. It runs git only, never the tests or other code of the
+  run: the git settings that can start a command are off, and it does not
+  read a repository whose config sets a filter. When it cannot read the
+  state, it writes no `end-state.txt`, so each grader of it fails, and it
+  gives the reason in `.eval/observer-error.txt`.
   - `.eval/end-state.txt` has one fact on each line: each new commit as
     `local <branch> <subject>` and `origin <branch> <subject>`, each file of
     a new commit as `file <branch> <subject> <path>`, each uncommitted
     change as `status <line>`, and `tested yes` or `tested no` for a final
-    tree that a passing `npm test` saw. A new commit is one that no ref of
+    tree that a full, passing `npm test` saw. A new commit is one that no ref of
     the fixture reaches.
   - `.eval/working-files.txt` has each file of `.plans/` and `.reviews/`,
     after a line `=== <path>`, for a file whose name the run chooses.

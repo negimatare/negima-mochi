@@ -7,7 +7,7 @@
 #   whether src/cart.ts still matches the fixture ("cart:unchanged").
 # - finish_shop packs every ref, so a commit to main, local or pushed, writes
 #   a new refs/heads/main file, which file_exists graders see.
-# - `npm test` also logs "pass <tree>" or "fail <tree>" to .eval/test-trees.log,
+# - a full `npm test` also logs "pass <tree>" or "fail <tree>" to .eval/test-trees.log,
 #   and finish_shop records the commit of every ref in .eval/fixture-refs and
 #   .eval/fixture-origin-refs. The eval observer (_shared/observer) reads them
 #   for the end state of a run.
@@ -35,8 +35,10 @@ status=$?
 cmp -s src/cart.ts .eval/cart.orig && state=unchanged || state=changed
 result=$([ "$status" -eq 0 ] && echo pass || echo fail)
 echo "$result cart:$state" >> .eval/test-runs.log
-# The tree that these tests ran on, as the eval observer computes it:
-# without the working state in .plans/ and .reviews/.
+# The tree that a full run passed or failed on, as the eval observer
+# computes it: without the working state in .plans/ and .reviews/. A run of
+# one file says nothing about the whole tree.
+[ "$#" -eq 0 ] || exit "$status"
 rm -f .eval/test.index
 tree=$(export GIT_INDEX_FILE=.eval/test.index &&
     git add -A && git rm -r -q --cached --ignore-unmatch .plans .reviews && git write-tree) || tree=unknown

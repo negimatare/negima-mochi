@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { observe, scaffold, sh } from './eval-fixture.mjs';
+import { observe, scaffold, sh, tempDir } from './eval-fixture.mjs';
 
 const dump = (dir) => readFileSync(join(dir, '.eval/end-state.txt'), 'utf8');
 
@@ -25,6 +24,35 @@ test('the dump lists the commits that the run made, each line with its branch', 
   assert.match(dump(dir), /^tree [0-9a-f]{40}$/m);
 });
 
+test('a failing or partial test run does not make the tree tested', () => {
+  const dir = scaffold('commit-leaves-working-state-out');
+  sh(dir, 'echo \'throw new Error("broken");\' >> src/cart.ts && { bash scripts/test.sh >/dev/null 2>&1 || true; }');
+  observe(dir);
+  assert.match(dump(dir), /^tested no$/m, 'a failing run');
+  sh(dir, "perl -ni -e 'print unless /broken/' src/cart.ts && bash scripts/test.sh src/cart.test.ts >/dev/null 2>&1");
+  observe(dir);
+  assert.match(dump(dir), /^tested no$/m, 'a run of one file');
+});
+
+test('a tag with the name of a branch, and a deleted file, read right', () => {
+  const dir = scaffold('commit-leaves-working-state-out');
+  sh(dir, 'git switch -q -c feat/x && git rm -q CLAUDE.md && git commit -q -m "test: drop" && git tag feat/x');
+  observe(dir);
+  assert.match(dump(dir), /^local feat\/x test: drop$/m);
+  assert.doesNotMatch(dump(dir), /^file feat\/x test: drop CLAUDE\.md$/m, 'a deleted file is not a file of the commit');
+});
+
+test('a repository whose config sets a filter is not read, and no dump is left', () => {
+  const dir = scaffold('commit-leaves-working-state-out');
+  observe(dir);
+  assert.ok(existsSync(join(dir, '.eval/end-state.txt')));
+  sh(dir, 'git config filter.x.clean "touch .eval/ran" && echo "*.ts filter=x" > .gitattributes');
+  assert.equal(observe(dir).status, 0);
+  assert.equal(existsSync(join(dir, '.eval/end-state.txt')), false, 'a stale dump would pass the not_contains graders');
+  assert.equal(existsSync(join(dir, '.eval/ran')), false, 'the filter ran');
+  assert.match(readFileSync(join(dir, '.eval/observer-error.txt'), 'utf8'), /filter/);
+});
+
 test('the dump says whether the final tree is one that passed its tests', () => {
   const dir = scaffold('commit-leaves-working-state-out');
   sh(dir, 'bash scripts/test.sh >/dev/null 2>&1');
@@ -42,7 +70,7 @@ test('the dump says whether the final tree is one that passed its tests', () => 
 });
 
 test('outside an eval repository, or with bad input, it writes nothing and stays silent', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'observer-none-'));
+  const dir = tempDir('observer-none-');
   sh(dir, 'git init -q');
   for (const result of [observe(dir), observe(dir, 'not json'), observe(dir, { cwd: join(dir, 'missing') })]) {
     assert.equal(result.status, 0);
@@ -62,9 +90,10 @@ test('the working files are copied, each after its path', () => {
   );
 });
 
-test('a git failure still leaves a dump that says so', () => {
+test('a git failure leaves no dump, so that each grader of it fails', () => {
   const dir = scaffold('commit-leaves-working-state-out');
   writeFileSync(join(dir, '.eval/fixture-refs'), 'not-a-commit\n');
   assert.equal(observe(dir).status, 0);
-  assert.match(dump(dir), /^error /m);
+  assert.equal(existsSync(join(dir, '.eval/end-state.txt')), false);
+  assert.ok(readFileSync(join(dir, '.eval/observer-error.txt'), 'utf8').length > 1);
 });
