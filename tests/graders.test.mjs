@@ -75,6 +75,11 @@ const stopsBeforeCode = {
   },
 };
 
+const P1 = 'feat/order-exports-1-monthly-csv';
+const P2 = 'feat/order-exports-2-customer-statement';
+const FIX_CENTS = "perl -pi -e 's|cents / 10\\)|cents / 100)|' src/exports.ts";
+const fixOn = (part) => `git switch -q ${part} && ${FIX_CENTS} && git commit -qam "fix(exports): divide the cents by 100"`;
+
 const SCENARIOS = {
   'mochi/commit-leaves-working-state-out': {
     good: 'bash scripts/test.sh >/dev/null 2>&1; git add src && git commit -q -m "feat(cart): count the items"',
@@ -127,6 +132,31 @@ const SCENARIOS = {
       'pushes-one-fix-commit': [branch('fix/cart-rounding'), EDIT, commit('test(cart): reproduce'), EDIT, TEST, commit('fix(cart): round the total'), push('fix/cart-rounding')].join(' && '),
       'ends-on-a-tested-tree': [branch('fix/cart-rounding'), EDIT, commit('fix(cart): round the total'), push('fix/cart-rounding')].join(' && '),
     },
+  },
+  'mochi/pr-pushes-a-review-fix-on-the-base': {
+    good: `git push -q origin ${P1} && git push -q --force-with-lease origin ${P2}`,
+    bad: {
+      'pushes-part-1': `git push -q --force-with-lease origin ${P2}`,
+      'pushes-part-2': `git push -q origin ${P1}`,
+    },
+  },
+  'mochi/pr-restacks-after-the-base-merges': {
+    good: `git rebase -q --onto origin/main ${P1}`,
+    bad: {
+      'restacks-its-own-commit': NOTHING,
+      'replays-no-commit-of-part-1': `git rebase -q --onto origin/main ${P1} && git commit -q --allow-empty -m "feat(exports): add a header row to the monthly CSV"`,
+    },
+  },
+  'mochi/review-fixes-on-the-owning-part': {
+    good: `${fixOn(P1)} && git switch -q ${P2} && git rebase -q ${P1}`,
+    bad: {
+      'commits-on-part-1': fixOn(P2),
+      'part-2-holds-the-fix': `${fixOn(P1)} && git switch -q ${P2}`,
+    },
+  },
+  'mochi/review-keeps-build-fixes-on-the-built-part': {
+    good: fixOn(P2),
+    bad: { 'commits-on-part-2': `${FIX_CENTS}` },
   },
   'mochi/fix-bug-reproduces-then-waits': {
     good: TEST,
