@@ -3,11 +3,11 @@
 // what the run did and not what it said. Graders read it with
 // `target: {source: file, path: .eval/end-state.txt}` and flag `m`.
 //
-//   local <branch> <subject>         a commit since the fixture, oldest first
+//   local <branch> <subject>         a commit that the run made, oldest first
 //   origin <branch> <subject>        the same, in .remote/origin.git
 //   file <branch> <subject> <path>   a file that the commit changes
 //   status <porcelain line>          an uncommitted change
-//   tree <hash>                      the working tree, as git would commit it
+//   tree <hash>                      the working tree without .plans/ and .reviews/
 //   tested yes|no                    a passing npm test ran on this tree
 //   error <message>                  a git command failed
 //
@@ -27,14 +27,16 @@ try {
   // Only a repository that an eval fixture built has .eval/.
   if (existsSync(evalDir)) {
     try {
-      // main at the end of the fixture, in the clone and in the remote.
-      const baseOf = (file) => (existsSync(join(evalDir, file)) ? readFileSync(join(evalDir, file), 'utf8').trim() : undefined);
+      // The commits of every ref at the end of the fixture, in the clone and
+      // in the remote: a commit that none of them reaches is the run's.
+      const tipsOf = (file) =>
+        existsSync(join(evalDir, file)) ? readFileSync(join(evalDir, file), 'utf8').split('\n').filter(Boolean) : undefined;
       const remote = join(root, '.remote/origin.git');
-      const commits = (prefix, base, gitDir) => {
+      const commits = (prefix, tips, gitDir) => {
         const repo = gitDir ? ['--git-dir', gitDir] : [];
         const branches = git([...repo, 'for-each-ref', '--format=%(refname:short)', 'refs/heads']).split('\n').filter(Boolean);
         for (const branch of branches) {
-          const log = git([...repo, 'log', '--reverse', '--format=%H %s', `${base}..refs/heads/${branch}`]).split('\n').filter(Boolean);
+          const log = git([...repo, 'log', '--reverse', '--format=%H %s', `refs/heads/${branch}`, '--not', ...tips]).split('\n').filter(Boolean);
           for (const entry of log) {
             const [sha, subject] = [entry.slice(0, 40), entry.slice(41)];
             lines.push(`${prefix} ${branch} ${subject}`);
@@ -44,13 +46,14 @@ try {
           }
         }
       };
-      if (baseOf('base')) commits('local', baseOf('base'));
-      if (baseOf('origin-base') && existsSync(remote)) commits('origin', baseOf('origin-base'), remote);
+      if (tipsOf('fixture-refs')) commits('local', tipsOf('fixture-refs'));
+      if (tipsOf('fixture-origin-refs') && existsSync(remote)) commits('origin', tipsOf('fixture-origin-refs'), remote);
       for (const line of git(['status', '--porcelain', '--untracked-files=all']).split('\n').filter(Boolean)) lines.push(`status ${line}`);
       const index = join(evalDir, 'observer.index');
       rmSync(index, { force: true });
       const env = { ...process.env, GIT_INDEX_FILE: index };
       git(['add', '-A'], { env });
+      git(['rm', '-r', '-q', '--cached', '--ignore-unmatch', '.plans', '.reviews'], { env });
       const tree = git(['write-tree'], { env });
       rmSync(index, { force: true });
       lines.push(`tree ${tree}`);

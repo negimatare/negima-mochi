@@ -58,6 +58,23 @@ export const applyRegex = (grader, { dir, reply = '' }) => {
 
 // For each case: the script of a run that does the job, the reply it
 // gives, and for each outcome grader a script of a run that breaks it.
+const TEST = 'bash scripts/test.sh >/dev/null 2>&1';
+const EDIT = 'echo "// edited" >> src/cart.ts';
+const NOTHING = 'true';
+const commit = (message, paths = 'src') => `git add ${paths} && git commit -q -m "${message}"`;
+const push = (branch) => `git push -q -u origin ${branch}`;
+const branch = (name, from = '') => `git switch -q -c ${name} ${from}`;
+// Two slices on a feature branch, tested and pushed.
+const twoSlices = (pushIt = true, testLast = true) =>
+  [branch('feat/member-discount'), EDIT, commit('feat(cart): slice 1'), EDIT, commit('feat(cart): slice 2'), testLast ? TEST : NOTHING, pushIt ? push('feat/member-discount') : NOTHING, testLast ? NOTHING : EDIT].join(' && ');
+const stopsBeforeCode = {
+  good: NOTHING,
+  bad: {
+    'commits-nothing': `echo notes > notes.md && ${commit('docs: notes', 'notes.md')}`,
+    'edits-no-source': EDIT,
+  },
+};
+
 const SCENARIOS = {
   'mochi/commit-leaves-working-state-out': {
     good: 'bash scripts/test.sh >/dev/null 2>&1; git add src && git commit -q -m "feat(cart): count the items"',
@@ -67,6 +84,53 @@ const SCENARIOS = {
       'commits-the-item-count': 'bash scripts/test.sh >/dev/null 2>&1',
       'commits-a-tested-tree': 'git add src && git commit -q -m "feat(cart): count the items"',
     },
+  },
+  'mochi/commit-branches-off-the-default': {
+    good: [TEST, branch('feat/cart-total'), commit('feat(cart): x'), push('feat/cart-total')].join(' && '),
+    bad: { 'pushes-a-feature-branch': [TEST, branch('feat/cart-total'), commit('feat(cart): x')].join(' && ') },
+  },
+  'mochi/commit-splits-unrelated-changes': {
+    good: [TEST, commit('docs: readme', 'README.md'), commit('feat(cart): x')].join(' && '),
+    bad: {
+      'commits-the-readme': commit('feat(cart): x'),
+      'commits-the-cart-change': commit('docs: readme', 'README.md'),
+      'commits-them-apart': commit('feat(cart): x and readme', 'README.md src'),
+    },
+  },
+  'mochi/build-commits-each-slice-to-a-branch': {
+    good: twoSlices(),
+    bad: {
+      'commits-each-slice': [branch('feat/member-discount'), EDIT, commit('feat(cart): both slices'), TEST, push('feat/member-discount')].join(' && '),
+      'pushes-the-feature-branch': twoSlices(false),
+      'ends-on-a-tested-tree': twoSlices(true, false),
+    },
+  },
+  'mochi/build-offers-a-fresh-session-for-the-review': {
+    good: twoSlices(),
+    bad: { 'commits-each-slice': [branch('feat/member-discount'), EDIT, commit('feat(cart): both slices')].join(' && ') },
+  },
+  'mochi/build-offers-a-split-for-a-deploy-order': stopsBeforeCode,
+  'mochi/build-offers-a-split-for-a-plan-over-400-lines': stopsBeforeCode,
+  'mochi/build-waits-for-the-earlier-part': stopsBeforeCode,
+  'mochi/build-stacks-on-the-open-part': {
+    good: [branch('feat/order-exports-2-customer-csv', 'feat/order-exports-1-monthly-csv'), EDIT, commit('feat(exports): customer csv'), push('feat/order-exports-2-customer-csv')].join(' && '),
+    bad: {
+      // A branch cut from part 1 holds part 1's commits: they are not part 2's.
+      'commits-part-2': [branch('feat/order-exports-2-customer-csv', 'feat/order-exports-1-monthly-csv'), push('feat/order-exports-2-customer-csv')].join(' && '),
+      'pushes-part-2s-branch': [branch('feat/order-exports-2-customer-csv', 'feat/order-exports-1-monthly-csv'), EDIT, commit('feat(exports): customer csv')].join(' && '),
+    },
+  },
+  'mochi/fix-bug-asks-for-missing-steps': { good: NOTHING, bad: { 'changes-nothing': EDIT } },
+  'mochi/fix-bug-fixes-when-asked': {
+    good: [branch('fix/cart-rounding'), EDIT, TEST, commit('fix(cart): round the total'), push('fix/cart-rounding')].join(' && '),
+    bad: {
+      'pushes-one-fix-commit': [branch('fix/cart-rounding'), EDIT, commit('test(cart): reproduce'), EDIT, TEST, commit('fix(cart): round the total'), push('fix/cart-rounding')].join(' && '),
+      'ends-on-a-tested-tree': [branch('fix/cart-rounding'), EDIT, commit('fix(cart): round the total'), push('fix/cart-rounding')].join(' && '),
+    },
+  },
+  'mochi/fix-bug-reproduces-then-waits': {
+    good: TEST,
+    bad: { 'commits-nothing': [EDIT, commit('fix(cart): round the total')].join(' && ') },
   },
 };
 

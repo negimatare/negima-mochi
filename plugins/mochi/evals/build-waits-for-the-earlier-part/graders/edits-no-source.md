@@ -1,7 +1,10 @@
 ---
-type: tool_used
-tool: Edit
-input_match: 'src/'
-min: 0
-max: 0
+type: regex
+target:
+  source: file
+  path: .eval/end-state.txt
+pattern: '^(status .. |file \S+ .+ )src/'
+flags: m
+match: not_contains
+arm: with-only
 ---

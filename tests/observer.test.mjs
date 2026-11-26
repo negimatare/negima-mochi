@@ -7,7 +7,7 @@ import { observe, scaffold, sh } from './eval-fixture.mjs';
 
 const dump = (dir) => readFileSync(join(dir, '.eval/end-state.txt'), 'utf8');
 
-test('the dump lists the commits since the fixture, each line with its branch', () => {
+test('the dump lists the commits that the run made, each line with its branch', () => {
   const dir = scaffold('commit-leaves-working-state-out');
   sh(dir, 'git add src scratch.txt && git commit -q -m "feat(cart): count the items" && git switch -q -c feat/item-count && git push -q -u origin feat/item-count');
   const result = observe(dir);
@@ -30,6 +30,9 @@ test('the dump says whether the final tree is one that passed its tests', () => 
   sh(dir, 'bash scripts/test.sh >/dev/null 2>&1');
   observe(dir);
   assert.match(dump(dir), /^tested yes$/m);
+  sh(dir, 'mkdir -p .reviews && echo "# Findings" > .reviews/REV-20261102-item-count.md');
+  observe(dir);
+  assert.match(dump(dir), /^tested yes$/m, 'working state is not part of the tree');
   sh(dir, 'echo "// later" >> src/cart.ts');
   observe(dir);
   assert.match(dump(dir), /^tested no$/m);
@@ -51,7 +54,7 @@ test('outside an eval repository, or with bad input, it writes nothing and stays
 
 test('a git failure still leaves a dump that says so', () => {
   const dir = scaffold('commit-leaves-working-state-out');
-  writeFileSync(join(dir, '.eval/base'), 'not-a-commit\n');
+  writeFileSync(join(dir, '.eval/fixture-refs'), 'not-a-commit\n');
   assert.equal(observe(dir).status, 0);
   assert.match(dump(dir), /^error /m);
 });
