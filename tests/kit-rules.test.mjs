@@ -41,7 +41,7 @@ test('a manifest whose name is not its marketplace entry is named', () => {
 
 test('a manifest that does not parse is named', () => {
   const dir = copy();
-  edit(dir, '.claude-plugin/marketplace.json', (text) => text.replace('{', '{,'));
+  edit(dir, '.claude-plugin/marketplace.json', (text) => `{,${text.slice(1)}`);
   assert.match(checks.manifests(dir).join('\n'), /\.claude-plugin\/marketplace\.json: not valid JSON/);
 });
 
