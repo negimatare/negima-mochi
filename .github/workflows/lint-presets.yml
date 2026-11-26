@@ -23,4 +23,15 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/ruff"
           "$RUNNER_TEMP/ruff/bin/pip" install --quiet ruff==0.17.6
           echo "RUFF=$RUNNER_TEMP/ruff/bin/ruff" >> "$GITHUB_ENV"
+      - name: Install ESLint and the plugins of the React preset
+        run: |
+          mkdir -p "$RUNNER_TEMP/eslint"
+          cd "$RUNNER_TEMP/eslint"
+          npm init -y > /dev/null
+          npm install --ignore-scripts --no-audit --no-fund \
+            eslint@9.39.5 typescript@5.9.3 typescript-eslint@8.74.0 \
+            eslint-plugin-boundaries@7.4.5 eslint-import-resolver-typescript@4.4.5 \
+            eslint-plugin-react-hooks@7.1.1 eslint-plugin-react@7.37.5 \
+            @griffel/eslint-plugin@3.0.2
+          echo "MOCHI_ESLINT_TOOLS=$RUNNER_TEMP/eslint" >> "$GITHUB_ENV"
       - run: node --test tests/presets.test.mjs
