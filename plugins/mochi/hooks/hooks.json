@@ -26,6 +26,10 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}\"/scripts/ask-before-adding-dependency.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}\"/scripts/guard-git.mjs"
           }
         ]
       }
