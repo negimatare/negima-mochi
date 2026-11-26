@@ -60,9 +60,7 @@ bundle can never import test code.
 
 ## Enforced dependency direction
 
-The layering is a lint error to violate (`eslint-plugin-boundaries`, aliases
-resolved through `eslint-import-resolver-typescript`, each layer's barrel
-classified explicitly). Typical allowed edges:
+The layering is a lint error to violate. Typical allowed edges:
 
 ```
 app       -> app, pages, features, common, contexts, lib, test
