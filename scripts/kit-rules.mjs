@@ -268,7 +268,7 @@ export const checks = {
           named.add(file);
           if (!existsSync(join(root, `plugins/${plugin}/presets/${file}`))) problems.push(`${skill}: names presets/${file}, which does not exist.`);
         }
-      for (const file of list(root, `plugins/${plugin}/presets`))
+      for (const file of list(root, `plugins/${plugin}/presets`).filter((name) => !name.startsWith('.')))
         if (!named.has(file)) problems.push(`plugins/${plugin}/presets/${file}: no skill of ${plugin} names it.`);
     }
     return problems.sort();

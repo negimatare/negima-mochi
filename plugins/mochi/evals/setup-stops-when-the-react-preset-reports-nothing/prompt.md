@@ -1,5 +1,5 @@
 ---
-description: Setting up a React + Fluent package with the stack plugin's ESLint preset proves the layer rule with a planted cross-slice import, and stops when lint does not report it.
+description: Setting up a React + Fluent package with the stack plugin's ESLint preset proves the layer rule with a planted cross-slice import, and, when lint does not report it, removes the preset again and stops.
 tags: [setup]
 plugins: ["../..", "../../eval-observer", "../../eval-stubs/react-stack"]
 max_turns: 50

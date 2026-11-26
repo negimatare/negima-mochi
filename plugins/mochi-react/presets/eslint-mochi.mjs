@@ -13,12 +13,17 @@ const SOURCE = ['src/**/*.{ts,tsx}'];
 const TESTS = ['src/**/*.test.{ts,tsx}'];
 
 // The layers of the architecture skill, and the edges each may import along.
+// A feature imports only its own slice: an import inside one slice stays in
+// its element, which the rule does not check, and another slice is another
+// element, which no edge allows.
 const LAYERS = {
   app: ['app', 'pages', 'feature', 'common', 'contexts', 'lib', 'test'],
-  pages: ['pages', 'feature', 'common', 'contexts', 'lib', 'test'],
+  pages: ['feature', 'common', 'contexts', 'lib', 'test'],
+  feature: ['common', 'contexts', 'lib', 'test'],
   contexts: ['contexts', 'lib', 'test'],
   common: ['common', 'lib', 'test'],
   lib: ['lib', 'test'],
+  test: ['app', 'pages', 'feature', 'common', 'contexts', 'lib', 'test'],
 };
 
 export default [
@@ -27,11 +32,10 @@ export default [
     plugins: { boundaries },
     settings: {
       'import/resolver': { typescript: { alwaysTryTypes: true } },
-      'boundaries/legacy-templates': false,
       'boundaries/elements': [
         { type: 'app', mode: 'file', pattern: 'src/*.{ts,tsx}' },
         { type: 'pages', pattern: 'src/pages' },
-        { type: 'feature', pattern: 'src/features/*', capture: ['name'] },
+        { type: 'feature', pattern: 'src/features/*' },
         { type: 'common', pattern: 'src/common' },
         { type: 'contexts', pattern: 'src/contexts' },
         { type: 'lib', pattern: 'src/lib' },
@@ -43,22 +47,10 @@ export default [
         'error',
         {
           default: 'disallow',
-          policies: [
-            ...Object.entries(LAYERS).map(([layer, types]) => ({
-              from: { element: { type: layer } },
-              allow: { to: { element: { types } } },
-            })),
-            // A feature imports only its own slice of the features layer.
-            {
-              from: { element: { type: 'feature' } },
-              allow: { to: { element: { types: ['common', 'contexts', 'lib', 'test'] } } },
-            },
-            {
-              from: { element: { type: 'feature' } },
-              allow: { to: { element: { type: 'feature', captured: { name: '{{ from.element.captured.name }}' } } } },
-            },
-            { from: { element: { type: 'test' } }, allow: { to: { element: { types: ['app', 'pages', 'feature', 'common', 'contexts', 'lib', 'test'] } } } },
-          ],
+          policies: Object.entries(LAYERS).map(([layer, types]) => ({
+            from: { element: { type: layer } },
+            allow: { to: { element: { types } } },
+          })),
         },
       ],
     },

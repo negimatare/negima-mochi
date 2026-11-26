@@ -97,8 +97,15 @@ test('react preset: ESLint reports each planted violation, and not the edges the
       'src/pages/Orders.tsx': "import { useOrders } from '../features/orders/index.ts';\n\nexport const Orders = () => <p>{useOrders()}</p>;\n",
       'src/features/orders/index.ts': "export { useOrders } from './hooks/useOrders.ts';\n",
       'src/features/orders/hooks/useOrders.ts': "import { bill } from '../../billing/index.ts';\n\nexport const useOrders = () => bill;\n",
-      'src/features/billing/index.ts': 'export const bill = 1;\n',
+      'src/features/billing/index.ts': "import { cents } from '../../lib/money.ts';\n\nexport const bill = cents;\n",
+      'src/lib/money.ts': 'export const cents = 100;\n',
       'src/lib/http.ts': "import { useOrders } from '../features/orders/index.ts';\n\nexport const http = useOrders;\n",
+      'src/lib/routes.ts': "import { Orders } from '../pages/Orders.tsx';\n\nexport const routes = [Orders];\n",
+      'src/lib/config.ts': "import { App } from '../App.tsx';\n\nexport const config = App;\n",
+      'src/pages/Home.tsx': "import { App } from '../App.tsx';\n\nexport const Home = () => <App />;\n",
+      'src/common/Price.tsx': "import { useOrders } from '../features/orders/index.ts';\n\nexport const Price = () => <b>{useOrders()}</b>;\n",
+      'src/contexts/Cart.tsx': "import { Badge } from '../common/Badge.tsx';\n\nexport const Cart = Badge;\n",
+      'src/test/fixtures.ts': "import { useOrders } from '../features/orders/index.ts';\n\nexport const fixture = useOrders;\n",
       'src/common/Badge.tsx':
         "import { useEffect, useState } from 'react';\n\nexport function Badge({ first, last }: { first: string; last: string }) {\n  const [label, setLabel] = useState('');\n  useEffect(() => setLabel(`${first} ${last}`), [first, last]);\n  return <span>{label}</span>;\n}\n",
       'src/common/Deep.tsx': `export const Deep = () => ${nested(8)};\n`,
@@ -113,7 +120,14 @@ test('react preset: ESLint reports each planted violation, and not the edges the
       'src/features/orders/index.ts': [],
       'src/features/orders/hooks/useOrders.ts': ['boundaries/dependencies:2'],
       'src/features/billing/index.ts': [],
+      'src/lib/money.ts': [],
       'src/lib/http.ts': ['boundaries/dependencies:2'],
+      'src/lib/routes.ts': ['boundaries/dependencies:2'],
+      'src/lib/config.ts': ['boundaries/dependencies:2'],
+      'src/pages/Home.tsx': ['boundaries/dependencies:2'],
+      'src/common/Price.tsx': ['boundaries/dependencies:2'],
+      'src/contexts/Cart.tsx': ['boundaries/dependencies:2'],
+      'src/test/fixtures.ts': [],
       'src/common/Badge.tsx': ['react-hooks/set-state-in-effect:2'],
       'src/common/Deep.tsx': ['react/jsx-max-depth:1'],
       'src/common/Long.ts': ['max-lines:1'],
@@ -124,10 +138,10 @@ test('react preset: ESLint reports each planted violation, and not the edges the
 });
 
 test('the eval stubs ship the presets of the stack plugins unchanged', () => {
-  const evals = join(PLUGINS, 'mochi/evals');
+  const stubs = join(PLUGINS, 'mochi/eval-stubs');
   for (const [stub, preset] of [
-    ['../eval-stubs/ruff-stack/presets/ruff-lint.toml', 'mochi-python/presets/ruff-lint.toml'],
-    ['../eval-stubs/react-stack/presets/eslint-mochi.mjs', 'mochi-react/presets/eslint-mochi.mjs'],
+    ['ruff-stack/presets/ruff-lint.toml', 'mochi-python/presets/ruff-lint.toml'],
+    ['react-stack/presets/eslint-mochi.mjs', 'mochi-react/presets/eslint-mochi.mjs'],
   ])
-    assert.equal(readFileSync(join(evals, stub), 'utf8'), readFileSync(join(PLUGINS, preset), 'utf8'), stub);
+    assert.equal(readFileSync(join(stubs, stub), 'utf8'), readFileSync(join(PLUGINS, preset), 'utf8'), stub);
 });

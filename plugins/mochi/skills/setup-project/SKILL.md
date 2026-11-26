@@ -95,8 +95,9 @@ user declines, drop the section.
 
 When a stack skill you loaded names a preset
 (`<plugin root>/presets/<file>`), the preset holds that plugin's lint rules:
-propose it before any rule of the skill text, and use the steps of the next
-paragraph only for rules outside it. Edit nothing before the user agrees.
+propose it before any rule of the skill text, and use the steps for a
+single lint rule below only for rules outside it. Edit nothing before the
+user agrees.
 
 - **ESLint preset** (a `.mjs` module). List its rules and the ESLint plugins
   it needs. After the user agrees, add the missing plugins with the
@@ -104,18 +105,24 @@ paragraph only for rules outside it. Edit nothing before the user agrees.
   `eslint.config.*`, and spread it in the config's array before the
   project's own entries. Prove the layers: add one import from one feature
   slice into another, check that lint reports it, and remove the import.
-  When lint does not report it, the preset does not fit this package: stop
-  and tell the user. Then run lint, report the violations by file, and ask
-  error or warn as the next paragraph says. Write the levels and the
-  overrides in the project's config after the spread, never in the copy.
-- **Ruff preset** (a `.toml` file of keys). First run Ruff with the
-  preset's rules from the command line, without a write: `--extend-select`
-  with its codes, and `--config` with its banned-api table. Report the
-  violations by file. Ruff has no `warn`: for each rule with violations,
-  ask whether to turn it on with a commented per-file ignore for each file
-  that breaks it today, or to leave it out. After the user agrees, merge the
-  keys into the file Ruff reads: `ruff.toml` or `.ruff.toml` when one
-  exists, with the keys under `[lint]`, else `pyproject.toml`. Keep the
+  With fewer than two feature slices, add an import of a feature or a page
+  to a file of `lib/` instead. When lint does not report it, the preset
+  does not fit this package: remove the copy and the spread, so that the
+  package is as it was, stop, and tell the user. Then run lint, report the
+  violations by file, and ask error or warn as the steps for a single lint
+  rule below say. Write the levels and the overrides in the project's
+  config after the spread, never in the copy.
+- **Ruff preset** (a `.toml` file of keys). First find the file that Ruff
+  uses for the project: `ruff check --show-settings <a Python file>` names
+  it. When that file is in a folder above the project, ask whether to merge
+  there, or to give the project its own Ruff table that extends it. Then
+  run Ruff with the preset's rules from the command line, without a write:
+  `--extend-select` with its codes, and `--config` with each of its tables.
+  Report the violations by file. Ruff has no `warn`: for each rule with
+  violations, ask whether to turn it on with a commented per-file ignore
+  for each file that breaks it today, or to leave it out. After the user
+  agrees, merge the keys into that file: under `[lint]` in `ruff.toml` or
+  `.ruff.toml`, under `[tool.ruff.lint]` in `pyproject.toml`. Keep the
   project's own `select`.
 - When the project already has each rule of the preset with a setting, say
   that the preset is in place. When the preset has a rule that the project

@@ -136,8 +136,8 @@ Three of these tests check the kit itself:
   of the inherit reviewers, the manifests and their versions, the
   frontmatter of skills and agents, the agent ids in skill text and in
   graders, the layout and tags of the eval cases, versions in docs examples,
-  the shape of `CHANGELOG.md`, and that a skill names each preset. Run `node scripts/kit-rules.mjs` to see
-  each problem with its file.
+  the shape of `CHANGELOG.md`, and that a skill names each preset. Run
+  `node scripts/kit-rules.mjs` to see each problem with its file.
 - **`presets.test.mjs`** runs each lint preset with the real linter on
   planted violations. The kit installs nothing, so the test skips when the
   linter is missing. The GitHub workflow `Lint presets` installs pinned

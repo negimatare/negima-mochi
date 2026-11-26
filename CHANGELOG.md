@@ -30,7 +30,8 @@ one release.
   move, and the git path pushes with `--force-if-includes`.
 - **`/mochi:setup-project` adds the lint preset of each stack plugin.** It
   copies the ESLint preset and spreads it in your config, and proves its
-  layer rule with a planted import, which it removes. It merges the Ruff
+  layer rule with a planted import, which it removes. When lint misses the
+  import, it removes the preset again and stops. It merges the Ruff
   preset into the file that Ruff reads, and keeps your own `select`. You
   agree before each edit.
 
@@ -90,8 +91,7 @@ one release.
   `history.tsv` lists them, so a flaky grader is easy to see.
 - **The lint presets are proved with the real linters.** The
   `Lint presets` workflow installs pinned Ruff, ESLint and the plugins of
-  the React preset, and runs each preset on planted violations. kit-rules
-  checks that a skill names each preset.
+  the React preset. kit-rules checks that a skill names each preset.
 
 ## 1.3.1 — 2026-11-20
 

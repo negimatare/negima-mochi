@@ -101,7 +101,6 @@ const ruffPyproject = ({ select = true, codes = '"ASYNC", "S113", "TID251"', ban
       `[tool.ruff.lint.extend-per-file-ignores]\n${root ? '"**/bootstrap.py" = ["TID251"]\n' : ''}${clock ? '# app/clock.py reads the time directly today.\n"app/clock.py" = ["TID251"]\n' : ''}`,
     ].join('\n'),
   );
-const COPY_PRESET = write('eslint-mochi.mjs', "export default [{ rules: { 'boundaries/dependencies': ['error', {}] } }];\n");
 
 const SCENARIOS = {
   'mochi/setup-merges-the-ruff-preset': {
@@ -115,10 +114,13 @@ const SCENARIOS = {
     },
   },
   'mochi/setup-stops-when-the-react-preset-reports-nothing': {
-    good: COPY_PRESET,
+    good: NOTHING,
     bad: {
-      'copies-the-preset': NOTHING,
-      'removes-the-planted-import': `${COPY_PRESET} && printf "import { orderCount } from '../orders/index.ts';\\n" >> src/features/billing/index.ts`,
+      'leaves-the-package-as-it-was': [
+        write('eslint-mochi.mjs', 'export default [];\n'),
+        `printf "import { orderCount } from '../orders/index.ts';\\n" >> src/features/billing/index.ts`,
+        `printf "// spread the preset\\n" >> eslint.config.js`,
+      ],
     },
   },
   'mochi/commit-leaves-working-state-out': {

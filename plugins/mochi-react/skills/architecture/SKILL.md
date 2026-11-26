@@ -65,12 +65,13 @@ resolved through `eslint-import-resolver-typescript`, each layer's barrel
 classified explicitly). Typical allowed edges:
 
 ```
-app       -> pages, features, common, contexts, lib, test
+app       -> app, pages, features, common, contexts, lib, test
 pages     -> features, common, contexts, lib, test
 features  -> features (own slice only), common, contexts, lib, test
 contexts  -> contexts, lib, test
 common    -> common, lib, test
 lib       -> lib, test
+test      -> any layer
 ```
 
 When adding a layer, add its element pattern and its allowed edges, then prove

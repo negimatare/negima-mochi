@@ -131,6 +131,7 @@ test('a CHANGELOG release off the shape is named', () => {
 test('a preset that no skill names, and a preset path that does not exist, are named', () => {
   const dir = copy();
   writeFileSync(join(dir, 'plugins/mochi-python/presets/extra.toml'), '# planted\n');
+  writeFileSync(join(dir, 'plugins/mochi-python/presets/.DS_Store'), '');
   edit(dir, 'plugins/mochi-react/skills/architecture/SKILL.md', (text) => text.replace('presets/eslint-mochi.mjs', 'presets/eslint-mochi.js'));
   assert.deepEqual(checks.presets(dir), [
     'plugins/mochi-python/presets/extra.toml: no skill of mochi-python names it.',
