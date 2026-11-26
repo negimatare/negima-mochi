@@ -83,10 +83,12 @@ test('an eval case off the layout is named', () => {
   edit(dir, `${evals}/pr-drafts-without-gh/prompt.md`, (text) => text.replace(/^tags: \[(.*)\]$/m, 'tags: [$1, deploy]'));
   edit(dir, `${evals}/commit-splits-unrelated-changes/prompt.md`, (text) => text.replace(/^tags: \[(.*)\]$/m, 'tags: [$1, smoke]'));
   rmSync(join(dir, `${evals}/fix-bug-asks-for-missing-steps/fixture.sh`));
+  edit(dir, `${evals}/split-proposes-parts-and-stops/prompt.md`, (text) => text.replace(/^tags: \[.*\]$/m, 'tags: [core]'));
   assert.deepEqual(checks.evalLayout(dir), [
     `${evals}/commit-splits-unrelated-changes/graders/git-worked.md: not a link to ../../_shared/git-worked.md.`,
     `${evals}/fix-bug-asks-for-missing-steps: no fixture.sh.`,
     `${evals}/pr-drafts-without-gh/prompt.md: tag deploy is not in CONTRIBUTING's list for mochi.`,
+    `${evals}/split-proposes-parts-and-stops/prompt.md: no subject tag from CONTRIBUTING's list for mochi.`,
     `${evals}/tidy-removes-comments-that-restate-the-code/case.yaml: name is tidy-removes-comments, not its folder.`,
     `plugins/mochi/evals: 2 cases have the smoke tag; CONTRIBUTING gives it to one.`,
   ]);

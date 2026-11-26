@@ -31,7 +31,7 @@ const read = (root, path) => readFileSync(join(root, path), 'utf8');
 const list = (root, dir) => (existsSync(join(root, dir)) ? readdirSync(join(root, dir)).sort() : []);
 
 // The top-level `key: value` lines between the first two `---` lines.
-export const frontmatterOf = (text) => {
+const frontmatterOf = (text) => {
   const block = text.match(/^---\n([\s\S]*?)\n---(?:\n|$)/)?.[1];
   if (block === undefined) return undefined;
   return Object.fromEntries([...block.matchAll(/^([\w-]+):[ \t]*(.*)$/gm)].map(([, key, value]) => [key, value.trim()]));
@@ -187,12 +187,14 @@ export const checks = {
   docVersions(root) {
     const problems = [];
     for (const path of docFiles(root)) {
-      let fence = false;
+      // The marker that opened the code block, until a line closes it.
+      let fence;
       read(root, path)
         .split('\n')
         .forEach((line, index) => {
-          if (/^\s*(```|~~~)/.test(line)) {
-            fence = !fence;
+          const marker = line.match(/^\s*(```+|~~~+)/)?.[1];
+          if (marker && (!fence || marker.startsWith(fence))) {
+            fence = fence ? undefined : marker;
             return;
           }
           const code = fence ? [line] : [...line.matchAll(/`([^`]+)`/g)].map((match) => match[1]);

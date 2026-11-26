@@ -20,7 +20,7 @@ const scalar = (value) => {
   return value;
 };
 
-export const readGrader = (path) => {
+const readGrader = (path) => {
   const block = readFileSync(path, 'utf8').match(/^---\n([\s\S]*?)\n---/)[1];
   const grader = {};
   let key;
@@ -39,7 +39,7 @@ export const readGrader = (path) => {
 // The regex grader of claude plugin eval 2.1.332: flags default to none,
 // match defaults to contains, count:N counts global matches, and a file
 // target must exist for any match mode.
-export const applyRegex = (grader, { dir, reply = '' }) => {
+const applyRegex = (grader, { dir, reply = '' }) => {
   const target = grader.target ?? 'last_message';
   let text;
   if (target === 'last_message') text = reply;
@@ -95,7 +95,7 @@ const SCENARIOS = {
       'leaves-scratch-out': 'bash scripts/test.sh >/dev/null 2>&1; git add src scratch.txt && git commit -q -m "feat(cart): count the items"',
       'leaves-the-plan-out': 'bash scripts/test.sh >/dev/null 2>&1; git add src .plans && git commit -q -m "feat(cart): count the items"',
       'commits-the-item-count': 'bash scripts/test.sh >/dev/null 2>&1',
-      'commits-a-tested-tree': 'git add src && git commit -q -m "feat(cart): count the items"',
+      'ends-on-a-tested-tree': 'git add src && git commit -q -m "feat(cart): count the items"',
     },
   },
   'mochi/commit-branches-off-the-default': {
@@ -152,7 +152,8 @@ const SCENARIOS = {
     good: `git rebase -q --onto origin/main ${P1}`,
     bad: {
       'restacks-its-own-commit': NOTHING,
-      'replays-no-commit-of-part-1': `git rebase -q --onto origin/main ${P1} && git commit -q --allow-empty -m "feat(exports): add a header row to the monthly CSV"`,
+      // A plain rebase onto the squash merge replays part 1's commits.
+      'replays-no-commit-of-part-1': 'git rebase -q -X theirs origin/main',
     },
   },
   'mochi/review-fixes-on-the-owning-part': {
@@ -187,7 +188,12 @@ const SCENARIOS = {
   },
   'mochi-python/openapi-documents-a-new-route': {
     good: write('app/shipping/hold_shipment/endpoint.py', 'from fastapi import APIRouter\n\n@router.post("/holds")\nasync def hold_shipment(\n    shipment_id: str, uow: Annotated[UnitOfWork, Depends(get_uow)]\n) -> HoldOut:\n    """Hold a shipment until its customs papers arrive."""\n'),
-    bad: { 'has-a-description': write('app/shipping/hold_shipment/endpoint.py', 'MESSAGE = """Held."""\n\n@router.post("/holds")\nasync def hold_shipment(shipment_id: str) -> HoldOut:\n    return HoldOut()\n') },
+    bad: {
+      'has-a-description': [
+        write('app/shipping/hold_shipment/endpoint.py', '@router.post("/holds", status_code=202)\nasync def hold_shipment(shipment_id: str) -> HoldOut:\n    return _to_out(shipment_id)\n\n\ndef _to_out(shipment_id: str) -> HoldOut:\n    """Map a held shipment to its response."""\n'),
+        write('app/shipping/hold_shipment/endpoint.py', '@router.post("/holds", responses=problem_response(description="No such shipment"))\nasync def hold_shipment(shipment_id: str) -> HoldOut:\n    return HoldOut()\n\n\nclass HoldOut(ApiSchema):\n    reason: str = Field(description="Why it is held.")\n'),
+      ],
+    },
   },
   'mochi-python/service-layer-takes-the-time-from-the-clock': {
     good: write('app/shipping/cancel_shipment/handler.py', 'def handle(command: CancelShipment, uow: UnitOfWork, clock: Clock) -> None:\n    ...\n'),
@@ -195,7 +201,7 @@ const SCENARIOS = {
   },
   'mochi-python/persistence-refuses-lazy-loads': {
     good: `printf '        parcels=[ParcelOut.from_domain(p) for p in shipment.parcels],\\n' >> app/shipping/get_shipment/handler.py`,
-    bad: { 'returns-the-parcels': `printf '        # the parcel list comes later\\n' >> app/shipping/get_shipment/handler.py` },
+    bad: { 'returns-the-parcels': `printf '        # TODO: return the parcels, as in shipment.parcels\\n' >> app/shipping/get_shipment/handler.py` },
   },
   'mochi-python/api-design-pages-a-new-list': {
     good: write('app/shipping/list_shipments/endpoint.py', 'async def list_shipments(cursor: str | None = None, limit: Annotated[int, Query(le=100)] = 20) -> Page[ShipmentOut]:\n    ...\n'),
@@ -203,7 +209,12 @@ const SCENARIOS = {
   },
   'mochi-react/performance-virtualizes-a-long-list': {
     good: `printf 'import { useVirtualizer } from "@tanstack/react-virtual";\\n' >> src/features/orders/components/OrderList/OrderList.tsx`,
-    bad: { 'virtualizes-through-tanstack': `printf '// TODO: import { useVirtualizer } from @tanstack/react-virtual\\n' >> src/features/orders/components/OrderList/OrderList.tsx` },
+    bad: {
+      'virtualizes-through-tanstack': [
+        `printf 'import { FixedSizeList } from "react-window";\\n' >> src/features/orders/components/OrderList/OrderList.tsx`,
+        `printf '// import { useVirtualizer } from "@tanstack/react-virtual";\\n' >> src/features/orders/components/OrderList/OrderList.tsx`,
+      ],
+    },
   },
   'mochi/fix-bug-reproduces-then-waits': {
     good: TEST,
@@ -236,6 +247,8 @@ test('each grader of the observer has a scenario that breaks it', () => {
       for (const [grader, fields] of outcomeGraders(key)) {
         assert.ok(SCENARIOS[key]?.bad[grader], `${key}/graders/${grader}.md has no planted failure in tests/graders.test.mjs`);
         assert.equal(fields.arm, 'with-only', `${key}/graders/${grader}.md reads the observer, which the baseline arm does not load`);
+        const prompt = readFileSync(join(PLUGINS, plugin, 'evals', name, 'prompt.md'), 'utf8');
+        assert.match(prompt, /^plugins: .*"\.\.\/_shared\/observer"/m, `${key}/prompt.md does not load the observer that ${grader}.md reads`);
       }
     }
 });
@@ -247,11 +260,13 @@ for (const [key, scenario] of Object.entries(SCENARIOS)) {
     const checked = new Map([...outcomeGraders(key), ...Object.keys(scenario.bad).map((name) => [name, all[name]])]);
     for (const [name, grader] of checked) assert.ok(applyRegex(grader, { dir }), `${name} fails a good run in ${dir}`);
   });
-  for (const [name, script] of Object.entries(scenario.bad))
-    test(`${key}: ${name} fails a planted bad run`, () => {
-      const dir = play(key, script);
+  for (const [name, scripts] of Object.entries(scenario.bad))
+    test(`${key}: ${name} fails each planted bad run`, () => {
       const grader = Object.fromEntries(graderFiles(key))[name];
       assert.ok(grader, `no grader ${name}`);
-      assert.equal(applyRegex(grader, { dir }), false, `${name} passes a bad run in ${dir}`);
+      for (const script of [scripts].flat()) {
+        const dir = play(key, script);
+        assert.equal(applyRegex(grader, { dir }), false, `${name} passes a bad run in ${dir}`);
+      }
     });
 }
