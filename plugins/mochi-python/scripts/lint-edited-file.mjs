@@ -9,8 +9,11 @@ import { findTool, isFastApiProject, nearestProjectDir, virtualenvBins } from '.
 // A linter that exits 1 left problems: block, so Claude fixes them. One that
 // crashes (a broken config, exit 2) gets a note for Claude that does not
 // block; one that cannot start stays silent.
+// The cause comes after the linter's own first line ("Oops! Something went
+// wrong!", "ruff failed"), so the note keeps the last lines.
 const note = (linter, file, result) => {
-  const first = `${result.stderr}\n${result.stdout}`.split('\n').find((line) => line.trim()) ?? `exit ${result.status}`;
+  const lines = `${result.stdout}\n${result.stderr}`.split('\n').map((line) => line.trim()).filter(Boolean);
+  const first = lines.length ? lines.slice(-5).join(' / ').slice(0, 400) : `exit ${result.status}`;
   process.stdout.write(
     JSON.stringify({
       hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: `${linter} could not run on ${file}: ${first.trim()}` },

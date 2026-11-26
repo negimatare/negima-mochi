@@ -3,7 +3,7 @@
 // changes touch, with the tools each project installed. A change to the
 // project's config counts, and so does a deleted or renamed file.
 import { spawnSync } from 'node:child_process';
-import { closeSync, existsSync, openSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { closeSync, existsSync, mkdtempSync, openSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, relative } from 'node:path';
 import { findTool, isFastApiProject, nearestProjectDir, tomlTables, virtualenvBins } from './stack.mjs';
@@ -21,15 +21,21 @@ const root = git(['rev-parse', '--show-toplevel']).stdout?.trim();
 if (!root) process.exit(0);
 
 // `git status --porcelain -z` gives "XY path" for each entry, and after a
-// rename or a copy (R, C) one more entry with the original path.
+// rename or a copy (R, C) one more entry with the original path. The
+// original of a rename is gone, so its project lost a file: it counts.
 const entries = git(['status', '--porcelain', '-z', '--untracked-files=all']).stdout.split('\0');
 const changed = [];
 for (let k = 0; k < entries.length; k += 1) {
   const entry = entries[k];
   if (!entry) continue;
-  if (/[RC]/.test(entry.slice(0, 2))) k += 1;
-  const path = join(root, entry.slice(3));
-  if (/\.pyi?$/.test(path) || CONFIG_FILES.includes(basename(path))) changed.push(path);
+  const status = entry.slice(0, 2);
+  const paths = [entry.slice(3)];
+  if (/[RC]/.test(status)) {
+    k += 1;
+    if (status.includes('R')) paths.push(entries[k]);
+  }
+  for (const path of paths.map((name) => join(root, name)))
+    if (/\.pyi?$/.test(path) || CONFIG_FILES.includes(basename(path))) changed.push(path);
 }
 if (changed.length === 0) process.exit(0);
 
@@ -63,25 +69,30 @@ const typecheck = (dir, bins, files) => {
   const usesMypy = configured(dir, 'tool.mypy', ['mypy.ini', '.mypy.ini']);
   if (pyright && (usesPyright || !usesMypy)) return [pyright, []];
   if (!mypy) return undefined;
-  const mypyFiles = /^files\s*=/m.test(tomlTables(readFileSync(join(dir, 'pyproject.toml'), 'utf8')).get('tool.mypy') ?? '');
+  const iniFiles = ['mypy.ini', '.mypy.ini']
+    .filter((name) => existsSync(join(dir, name)))
+    .some((name) => /^files\s*=/m.test(readFileSync(join(dir, name), 'utf8').match(/^\[mypy\][^\n]*\n([\s\S]*?)(?=^\[|$(?![\s\S]))/m)?.[1] ?? ''));
+  const mypyFiles =
+    iniFiles || /^files\s*=/m.test(tomlTables(readFileSync(join(dir, 'pyproject.toml'), 'utf8')).get('tool.mypy') ?? '');
   if (mypyFiles) return [mypy, []];
   const targets = files.filter((path) => /\.pyi?$/.test(path) && existsSync(path));
   return targets.length ? [mypy, targets.map((path) => relative(dir, path))] : undefined;
 };
 
 // Runs one check into a file, not a pipe: a child process that the check
-// leaves behind could hold a pipe open after the deadline.
-let runs = 0;
+// leaves behind could hold a pipe open after the deadline. SIGTERM lets a
+// wrapper pass the stop on to the tool it started.
 const run = (tool, args, dir) => {
   const left = deadline - Date.now();
   if (left < 1000) return { skipped: true };
-  const log = join(tmpdir(), `negima-python-verify-output-${process.pid}-${(runs += 1)}.txt`);
-  const fd = openSync(log, 'w');
-  const result = spawnSync(tool, args, { cwd: dir, stdio: ['ignore', fd, fd], timeout: left, killSignal: 'SIGKILL' });
+  const logDir = mkdtempSync(join(tmpdir(), 'negima-python-verify-'));
+  const log = join(logDir, 'output.txt');
+  const fd = openSync(log, 'wx');
+  const result = spawnSync(tool, args, { cwd: dir, stdio: ['ignore', fd, fd], timeout: left, killSignal: 'SIGTERM' });
   closeSync(fd);
   const output = readFileSync(log, 'utf8');
-  rmSync(log, { force: true });
-  return { ...result, output };
+  rmSync(logDir, { recursive: true, force: true });
+  return { ...result, output, seconds: Math.round(left / 1000) };
 };
 
 const NO_TESTS_COLLECTED = 5;
@@ -99,7 +110,8 @@ for (const [dir, files] of projects) {
     const command = [basename(tool), ...args].join(' ');
     const result = run(tool, args, dir);
     if (result.skipped) failures.push(`\`${command}\` not run: no time left before the deadline (${dir}).`);
-    else if (result.error?.code === 'ETIMEDOUT') failures.push(`\`${command}\` did not finish in ${DEADLINE_SECONDS} s in ${dir}.`);
+    else if (result.error?.code === 'ETIMEDOUT')
+      failures.push(`\`${command}\` did not finish in ${result.seconds} s in ${dir}:\n${result.output.split('\n').slice(-60).join('\n')}`);
     else if (result.error) failures.push(`Could not run \`${command}\` in ${dir}: ${result.error.message}`);
     else if (result.status !== 0 && !(tool === pytest && result.status === NO_TESTS_COLLECTED)) {
       const output = result.output.split('\n').slice(-60).join('\n');

@@ -2,7 +2,7 @@
 // typecheck and test scripts of every React + Fluent package those changes touch.
 // A change to a package.json counts, and so does a deleted or renamed file.
 import { spawnSync } from 'node:child_process';
-import { closeSync, existsSync, openSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { closeSync, existsSync, mkdtempSync, openSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
 import { isReactFluentPackage } from './stack.mjs';
@@ -19,16 +19,21 @@ const root = git(['rev-parse', '--show-toplevel']).stdout?.trim();
 if (!root) process.exit(0);
 
 // `git status --porcelain -z` gives "XY path" for each entry, and after a
-// rename or a copy (R, C) one more entry with the original path.
+// rename or a copy (R, C) one more entry with the original path. The
+// original of a rename is gone, so its package lost a file: it counts.
 const entries = git(['status', '--porcelain', '-z', '--untracked-files=all']).stdout.split('\0');
 const changed = [];
 for (let k = 0; k < entries.length; k += 1) {
   const entry = entries[k];
   if (!entry) continue;
   const status = entry.slice(0, 2);
-  if (/[RC]/.test(status)) k += 1;
-  const path = join(root, entry.slice(3));
-  if (/\.(c|m)?(j|t)sx?$/.test(path) || basename(path) === 'package.json') changed.push(path);
+  const paths = [entry.slice(3)];
+  if (/[RC]/.test(status)) {
+    k += 1;
+    if (status.includes('R')) paths.push(entries[k]);
+  }
+  for (const path of paths.map((name) => join(root, name)))
+    if (/\.(c|m)?(j|t)sx?$/.test(path) || basename(path) === 'package.json') changed.push(path);
 }
 if (changed.length === 0) process.exit(0);
 
@@ -43,12 +48,18 @@ if (existsSync(stateFile) && readFileSync(stateFile, 'utf8') === fingerprint) pr
 
 const scriptsOf = (dir) => JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).scripts ?? {};
 const packages = new Set();
+const failures = [];
 for (const path of changed) {
   let dir = dirname(path);
   while (dir.startsWith(root)) {
     if (existsSync(join(dir, 'package.json'))) {
-      const scripts = scriptsOf(dir);
-      if ((scripts.typecheck || scripts.test) && isReactFluentPackage(dir)) packages.add(dir);
+      try {
+        const scripts = scriptsOf(dir);
+        if ((scripts.typecheck || scripts.test) && isReactFluentPackage(dir)) packages.add(dir);
+      } catch (error) {
+        const failure = `\`package.json\` in ${dir} is not valid JSON: ${error.message}`;
+        if (!failures.includes(failure)) failures.push(failure);
+      }
       break;
     }
     dir = dirname(dir);
@@ -68,7 +79,12 @@ const lockfiles = [
 const runner = (dir) => {
   for (let current = dir; ; current = dirname(current)) {
     const manifest = join(current, 'package.json');
-    const declared = existsSync(manifest) && JSON.parse(readFileSync(manifest, 'utf8')).packageManager;
+    let declared;
+    try {
+      declared = existsSync(manifest) && JSON.parse(readFileSync(manifest, 'utf8')).packageManager;
+    } catch {
+      declared = undefined;
+    }
     if (declared) return declared.split('@')[0];
     const lockfile = lockfiles.find(([name]) => existsSync(join(current, name)));
     if (lockfile) return lockfile[1];
@@ -77,24 +93,24 @@ const runner = (dir) => {
 };
 
 // Runs one check into a file, not a pipe: a child process that the check
-// leaves behind could hold a pipe open after the deadline.
-let runs = 0;
+// leaves behind could hold a pipe open after the deadline. SIGTERM, which
+// npm, pnpm and yarn pass on to the script, stops the check itself too.
 const check = (label, command, args, dir) => {
   const left = deadline - Date.now();
   if (left < 1000) return `\`${label}\` not run: no time left before the deadline (${dir}).`;
-  const log = join(tmpdir(), `negima-verify-output-${process.pid}-${(runs += 1)}.txt`);
-  const fd = openSync(log, 'w');
-  const result = spawnSync(command, args, { cwd: dir, stdio: ['ignore', fd, fd], timeout: left, killSignal: 'SIGKILL' });
+  const logDir = mkdtempSync(join(tmpdir(), 'negima-verify-'));
+  const log = join(logDir, 'output.txt');
+  const fd = openSync(log, 'wx');
+  const result = spawnSync(command, args, { cwd: dir, stdio: ['ignore', fd, fd], timeout: left, killSignal: 'SIGTERM' });
   closeSync(fd);
   const output = readFileSync(log, 'utf8').split('\n').slice(-60).join('\n');
-  rmSync(log, { force: true });
-  if (result.error?.code === 'ETIMEDOUT') return `\`${label}\` did not finish in ${DEADLINE_SECONDS} s in ${dir}.`;
+  rmSync(logDir, { recursive: true, force: true });
+  if (result.error?.code === 'ETIMEDOUT') return `\`${label}\` did not finish in ${Math.round(left / 1000)} s in ${dir}:\n${output}`;
   if (result.error) return `Could not run \`${command} ${args.join(' ')}\` in ${dir}: ${result.error.message}`;
   if (result.status !== 0) return `\`${label}\` failed in ${dir}:\n${output}`;
   return undefined;
 };
 
-const failures = [];
 for (const dir of packages) {
   const scripts = scriptsOf(dir);
   const command = runner(dir);
