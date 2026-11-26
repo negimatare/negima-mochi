@@ -1,11 +1,14 @@
-// Stop: before Claude ends a turn with uncommitted Python changes, run the type
-// checker, the import contracts, and the tests of every FastAPI project those
-// changes touch, with the tools each project installed. A change to the
-// project's config counts, and so does a deleted or renamed file.
+// Stop: before Claude ends a turn with uncommitted Python changes, run the
+// verification of every FastAPI project those changes touch: the commands of
+// its CLAUDE.md Verification block, else the type checker, the import
+// contracts, and the tests, with the tools each project installed.
+// MOCHI_VERIFY_FROM_CLAUDE_MD=0 keeps the tools. A change to the project's
+// config counts, and so does a deleted or renamed file.
 import { spawnSync } from 'node:child_process';
 import { closeSync, existsSync, mkdtempSync, openSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, relative } from 'node:path';
+import { runVerificationCommands, verificationCommands } from './claude-md.mjs';
 import { findTool, isFastApiProject, nearestProjectDir, tomlTables, virtualenvBins } from './stack.mjs';
 
 const input = JSON.parse(readFileSync(0, 'utf8'));
@@ -97,7 +100,15 @@ const run = (tool, args, dir) => {
 
 const NO_TESTS_COLLECTED = 5;
 const failures = [];
+// Projects that share one CLAUDE.md run its block one time.
+const fromClaudeMd = process.env.MOCHI_VERIFY_FROM_CLAUDE_MD !== '0';
+const blocks = new Map();
 for (const [dir, files] of projects) {
+  const block = fromClaudeMd && verificationCommands(dir, root);
+  if (block) {
+    blocks.set(block.dir, block);
+    continue;
+  }
   const bins = virtualenvBins(dir);
   const importLinter = findTool(bins, 'lint-imports');
   const pytest = findTool(bins, 'pytest');
@@ -119,6 +130,7 @@ for (const [dir, files] of projects) {
     }
   }
 }
+for (const block of blocks.values()) failures.push(...(await runVerificationCommands(block, deadline)));
 writeFileSync(stateFile, fingerprint);
 if (failures.length === 0) process.exit(0);
 

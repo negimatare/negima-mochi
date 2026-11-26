@@ -227,6 +227,81 @@ for (const plugin of ['mochi-react', 'mochi-python']) {
   });
 }
 
+// A Verification block whose commands log where and how they ran.
+const block = (...commands) => `# Package\n\n## Verification\n\n\`\`\`bash\n${commands.join('\n')}\n\`\`\`\n`;
+const lines = (path) => (existsSync(path) ? readFileSync(path, 'utf8').trim().split('\n') : []);
+
+test('react: the CLAUDE.md block runs from its folder in place of the scripts, and a failing line blocks with its output', () => {
+  const dir = reactRepo();
+  write(join(dir, 'packages/web/CLAUDE.md'), block('pwd >> block.log', 'echo "lint: 2 problems" && exit 3', 'pwd >> block.log'));
+  sh(dir, 'echo "export const d = 1;" > packages/web/src/d.ts');
+  const result = stop('mochi-react', dir, session());
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /`echo "lint: 2 problems" && exit 3` failed in .*packages\/web:\nlint: 2 problems/);
+  assert.deepEqual(lines(join(dir, 'packages/web/block.log')).map((line) => line.endsWith('packages/web')), [true, true], 'each line, from the folder of the CLAUDE.md');
+  assert.equal(runs(dir), 0, 'not the test script');
+});
+
+test('react: a closer CLAUDE.md without a block, or the off switch, keeps the scripts', () => {
+  const dir = reactRepo();
+  write(join(dir, 'CLAUDE.md'), block('echo root >> root.log'));
+  write(join(dir, 'packages/web/CLAUDE.md'), '# Web\n\n## Scope override\n\nThe root commands do not apply here.\n');
+  sh(dir, 'echo "export const d = 1;" > packages/web/src/d.ts');
+  stop('mochi-react', dir, session());
+  assert.equal(runs(dir), 1);
+  assert.equal(existsSync(join(dir, 'root.log')), false);
+  sh(dir, 'rm packages/web/CLAUDE.md && echo "export const e = 1;" > packages/web/src/e.ts');
+  stop('mochi-react', dir, session(), { MOCHI_VERIFY_FROM_CLAUDE_MD: '0' });
+  assert.equal(runs(dir), 2, 'the off switch');
+  assert.equal(existsSync(join(dir, 'root.log')), false);
+});
+
+test('react: packages that share a CLAUDE.md run its block one time, even without scripts', () => {
+  const dir = reactRepo();
+  write(join(dir, 'packages/admin/package.json'), JSON.stringify({ name: 'admin', dependencies: { react: '19', '@fluentui/react-components': '9' } }));
+  write(join(dir, 'CLAUDE.md'), block('echo ran >> shared.log'));
+  sh(dir, 'echo "export const d = 1;" > packages/web/src/d.ts && mkdir -p packages/admin/src && echo "export const a = 1;" > packages/admin/src/a.ts');
+  const result = stop('mochi-react', dir, session());
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(lines(join(dir, 'shared.log')), ['ran']);
+  sh(dir, 'rm shared.log && echo "export const b = 1;" > packages/admin/src/b.ts');
+  stop('mochi-react', dir, session());
+  assert.deepEqual(lines(join(dir, 'shared.log')), ['ran'], 'a package with a block and no scripts');
+});
+
+test('react: at the deadline a compound line stops with its children', async () => {
+  const dir = reactRepo();
+  write(join(dir, 'packages/web/CLAUDE.md'), block("sh -c 'sleep 4; echo late >> late.log' && true"));
+  sh(dir, 'echo "export const d = 1;" > packages/web/src/d.ts');
+  const result = stop('mochi-react', dir, session(), { MOCHI_VERIFY_DEADLINE_SECONDS: '2' });
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /did not finish in 2 s/);
+  await new Promise((done) => setTimeout(done, 3500));
+  assert.equal(existsSync(join(dir, 'packages/web/late.log')), false, 'the child of the line is stopped too');
+});
+
+test('python: the CLAUDE.md block runs in place of the tools, without a uv sync, and the off switch keeps the tools', () => {
+  const dir = pythonRepo();
+  write(join(dir, 'CLAUDE.md'), block('echo "UV_NO_SYNC=$UV_NO_SYNC" >> block.log', 'echo "2 failed" && exit 1'));
+  sh(dir, 'echo "B = 2" > app/b.py');
+  const result = stop('mochi-python', dir, session());
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /`echo "2 failed" && exit 1` failed in .*:\n2 failed/);
+  assert.deepEqual(lines(join(dir, 'block.log')), ['UV_NO_SYNC=1']);
+  assert.deepEqual(tools(dir), [], 'not mypy or pytest');
+  sh(dir, 'echo "B = 3" > app/b.py');
+  stop('mochi-python', dir, session(), { MOCHI_VERIFY_FROM_CLAUDE_MD: '0' });
+  assert.deepEqual(tools(dir), ['mypy app/b.py', 'pytest -q -x']);
+});
+
+test('python: a CLAUDE.md without a block keeps the tools', () => {
+  const dir = pythonRepo();
+  write(join(dir, 'CLAUDE.md'), '# Shipping\n\nA FastAPI service.\n');
+  sh(dir, 'echo "B = 2" > app/b.py');
+  stop('mochi-python', dir, session());
+  assert.deepEqual(tools(dir), ['mypy app/b.py', 'pytest -q -x']);
+});
+
 const edited = (plugin, file) => hook(plugin, 'lint-edited-file.mjs', { hook_event_name: 'PostToolUse', tool_name: 'Edit', tool_input: { file_path: file } });
 
 test('react lint: problems block, a crash tells Claude without blocking, and no linter is silent', () => {

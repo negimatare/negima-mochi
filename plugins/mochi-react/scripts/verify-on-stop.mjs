@@ -1,10 +1,13 @@
 // Stop: before Claude ends a turn with uncommitted TypeScript changes, run the
-// typecheck and test scripts of every React + Fluent package those changes touch.
-// A change to a package.json counts, and so does a deleted or renamed file.
+// verification of every React + Fluent package those changes touch: the
+// commands of its CLAUDE.md Verification block, else its typecheck and test
+// scripts. MOCHI_VERIFY_FROM_CLAUDE_MD=0 keeps the scripts. A change to a
+// package.json counts, and so does a deleted or renamed file.
 import { spawnSync } from 'node:child_process';
 import { closeSync, existsSync, mkdtempSync, openSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
+import { runVerificationCommands, verificationCommands } from './claude-md.mjs';
 import { isReactFluentPackage } from './stack.mjs';
 
 const input = JSON.parse(readFileSync(0, 'utf8'));
@@ -47,6 +50,8 @@ const stateFile = join(tmpdir(), `negima-verify-${input.session_id}.txt`);
 if (existsSync(stateFile) && readFileSync(stateFile, 'utf8') === fingerprint) process.exit(0);
 
 const scriptsOf = (dir) => JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).scripts ?? {};
+const fromClaudeMd = process.env.MOCHI_VERIFY_FROM_CLAUDE_MD !== '0';
+const blockOf = (dir) => (fromClaudeMd ? verificationCommands(dir, root) : undefined);
 const packages = new Set();
 const failures = [];
 for (const path of changed) {
@@ -55,7 +60,7 @@ for (const path of changed) {
     if (existsSync(join(dir, 'package.json'))) {
       try {
         const scripts = scriptsOf(dir);
-        if ((scripts.typecheck || scripts.test) && isReactFluentPackage(dir)) packages.add(dir);
+        if ((blockOf(dir) || scripts.typecheck || scripts.test) && isReactFluentPackage(dir)) packages.add(dir);
       } catch (error) {
         const failure = `\`package.json\` in ${dir} is not valid JSON: ${error.message}`;
         if (!failures.includes(failure)) failures.push(failure);
@@ -111,7 +116,14 @@ const check = (label, command, args, dir) => {
   return undefined;
 };
 
+// Packages that share one CLAUDE.md run its block one time.
+const blocks = new Map();
 for (const dir of packages) {
+  const block = blockOf(dir);
+  if (block) {
+    blocks.set(block.dir, block);
+    continue;
+  }
   const scripts = scriptsOf(dir);
   const command = runner(dir);
   for (const script of ['typecheck', 'test'].filter((name) => scripts[name])) {
@@ -119,6 +131,7 @@ for (const dir of packages) {
     if (failure) failures.push(failure);
   }
 }
+for (const block of blocks.values()) failures.push(...(await runVerificationCommands(block, deadline)));
 writeFileSync(stateFile, fingerprint);
 if (failures.length === 0) process.exit(0);
 
