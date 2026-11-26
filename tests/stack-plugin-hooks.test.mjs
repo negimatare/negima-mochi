@@ -165,6 +165,68 @@ test('python: a check that does not finish is reported once, and the next is not
   assert.equal(stop('mochi-python', dir, id, { MOCHI_VERIFY_DEADLINE_SECONDS: '2' }).status, 0);
 });
 
+// The two plugins install apart, so each keeps its own copy of the module
+// that reads the CLAUDE.md verification block.
+const claudeMd = (plugin) => import(join(PLUGINS, plugin, 'scripts', 'claude-md.mjs'));
+
+test('both stack plugins keep the same CLAUDE.md module', () => {
+  const read = (plugin) => readFileSync(join(PLUGINS, plugin, 'scripts', 'claude-md.mjs'), 'utf8');
+  assert.equal(read('mochi-python'), read('mochi-react'));
+});
+
+for (const plugin of ['mochi-react', 'mochi-python']) {
+  test(`${plugin} CLAUDE.md: the commands of the Verification block, without comments and with continued lines`, async () => {
+    const { verificationCommands } = await claudeMd(plugin);
+    const dir = tempDir('claude-md-');
+    write(
+      join(dir, 'CLAUDE.md'),
+      [
+        '# Shop',
+        '',
+        'Tests: `npm test`. One file: `npm test -- src/cart.test.ts`.',
+        '',
+        '## Verification',
+        '',
+        'Run from this folder before calling a change done:',
+        '',
+        '```bash',
+        'npm run typecheck   # tsc -b, the solution config',
+        '',
+        '# lint enforces the layers',
+        'npm run lint',
+        'npm test -- \\',
+        '  --run',
+        '```',
+        '',
+        '```bash',
+        'echo not this block',
+        '```',
+        '',
+        '## Before a push to an open PR',
+        '',
+        '```bash',
+        'npm run e2e',
+        '```',
+      ].join('\n'),
+    );
+    assert.deepEqual(verificationCommands(join(dir, 'src'), dir), {
+      dir,
+      commands: ['npm run typecheck   # tsc -b, the solution config', 'npm run lint', 'npm test -- \\\n  --run'],
+    });
+  });
+
+  test(`${plugin} CLAUDE.md: the nearest file counts, and one without a block gives none`, async () => {
+    const { verificationCommands } = await claudeMd(plugin);
+    const dir = tempDir('claude-md-');
+    write(join(dir, 'CLAUDE.md'), '## Verification\n\n```bash\nmake check\n```\n');
+    write(join(dir, 'packages/web/CLAUDE.md'), '# Web\n\n## Scope override\n\nThe root commands do not apply here.\n');
+    write(join(dir, 'packages/web/src/a.ts'), 'export const a = 1;\n');
+    assert.equal(verificationCommands(join(dir, 'packages/web/src'), dir), undefined, 'a closer file without a block');
+    assert.deepEqual(verificationCommands(join(dir, 'packages/api'), dir), { dir, commands: ['make check'] }, 'the root file');
+    assert.equal(verificationCommands(join(dir, 'packages/api'), join(dir, 'packages')), undefined, 'not above the root it is given');
+  });
+}
+
 const edited = (plugin, file) => hook(plugin, 'lint-edited-file.mjs', { hook_event_name: 'PostToolUse', tool_name: 'Edit', tool_input: { file_path: file } });
 
 test('react lint: problems block, a crash tells Claude without blocking, and no linter is silent', () => {
