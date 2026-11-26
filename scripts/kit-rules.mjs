@@ -6,7 +6,7 @@
 //   node scripts/kit-rules.mjs [repository root]
 //     Prints each problem and exits 1, or exits 0 when there is none.
 import { existsSync, lstatSync, readdirSync, readFileSync, readlinkSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const PLUGINS = ['mochi', 'mochi-react', 'mochi-python'];
@@ -174,6 +174,15 @@ export const checks = {
         for (const tag of tags) if (!allowed.has(tag)) problems.push(`${dir}/prompt.md: tag ${tag} is not in CONTRIBUTING's list for ${plugin}.`);
         if (!tags.some((tag) => subjects.has(tag))) problems.push(`${dir}/prompt.md: no subject tag from CONTRIBUTING's list for ${plugin}.`);
         if (tags.includes('smoke')) smoke += 1;
+        // The eval runner refuses a plugin inside the eval directory that is
+        // not inside the case's own directory.
+        const entries = read(root, `${dir}/prompt.md`).match(/^plugins: *\[(.*)\]$/m)?.[1] ?? '';
+        for (const entry of [...entries.matchAll(/"([^"]*)"/g)].map(([, path]) => path)) {
+          const path = posix.normalize(posix.join(dir, entry));
+          if (!existsSync(join(root, path))) problems.push(`${dir}/prompt.md: plugin ${entry} does not exist.`);
+          else if (path.startsWith(`plugins/${plugin}/evals/`) && !path.startsWith(`${dir}/`))
+            problems.push(`${dir}/prompt.md: plugin ${entry} is in evals/ but not in this case; the eval runner refuses it.`);
+        }
       }
       if (ONE_SMOKE.includes(plugin) && smoke !== 1)
         problems.push(`plugins/${plugin}/evals: ${smoke} cases have the smoke tag; CONTRIBUTING gives it to one.`);

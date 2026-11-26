@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const PLUGINS = fileURLToPath(new URL('../plugins/', import.meta.url));
-const OBSERVER = join(PLUGINS, 'mochi/evals/_shared/observer/scripts/observe.mjs');
+const OBSERVER = join(PLUGINS, 'mochi/eval-observer/scripts/observe.mjs');
 
 // Git and the observer see only the fixture: not your git config, and not
 // the session that runs the tests. NODE_TEST_CONTEXT would make the

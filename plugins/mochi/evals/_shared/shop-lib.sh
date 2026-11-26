@@ -9,7 +9,7 @@
 #   a new refs/heads/main file, which file_exists graders see.
 # - a full `npm test` also logs "pass <tree>" or "fail <tree>" to .eval/test-trees.log,
 #   and finish_shop records the commit of every ref in .eval/fixture-refs and
-#   .eval/fixture-origin-refs. The eval observer (_shared/observer) reads them
+#   .eval/fixture-origin-refs. The eval observer (eval-observer/) reads them
 #   for the end state of a run.
 git init -q -b main
 git config user.name eval && git config user.email eval@example.invalid

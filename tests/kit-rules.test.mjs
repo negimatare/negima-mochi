@@ -84,7 +84,11 @@ test('an eval case off the layout is named', () => {
   edit(dir, `${evals}/commit-splits-unrelated-changes/prompt.md`, (text) => text.replace(/^tags: \[(.*)\]$/m, 'tags: [$1, smoke]'));
   rmSync(join(dir, `${evals}/fix-bug-asks-for-missing-steps/fixture.sh`));
   edit(dir, `${evals}/split-proposes-parts-and-stops/prompt.md`, (text) => text.replace(/^tags: \[.*\]$/m, 'tags: [core]'));
+  edit(dir, `${evals}/commit-leaves-working-state-out/prompt.md`, (text) => text.replace('"../../eval-observer"', '"../_shared"'));
+  edit(dir, `${evals}/commit-branches-off-the-default/prompt.md`, (text) => text.replace('"../../eval-observer"', '"../../observer"'));
   assert.deepEqual(checks.evalLayout(dir), [
+    `${evals}/commit-branches-off-the-default/prompt.md: plugin ../../observer does not exist.`,
+    `${evals}/commit-leaves-working-state-out/prompt.md: plugin ../_shared is in evals/ but not in this case; the eval runner refuses it.`,
     `${evals}/commit-splits-unrelated-changes/graders/git-worked.md: not a link to ../../_shared/git-worked.md.`,
     `${evals}/fix-bug-asks-for-missing-steps: no fixture.sh.`,
     `${evals}/pr-drafts-without-gh/prompt.md: tag deploy is not in CONTRIBUTING's list for mochi.`,

@@ -248,7 +248,7 @@ test('each grader of the observer has a scenario that breaks it', () => {
         assert.ok(SCENARIOS[key]?.bad[grader], `${key}/graders/${grader}.md has no planted failure in tests/graders.test.mjs`);
         assert.equal(fields.arm, 'with-only', `${key}/graders/${grader}.md reads the observer, which the baseline arm does not load`);
         const prompt = readFileSync(join(PLUGINS, plugin, 'evals', name, 'prompt.md'), 'utf8');
-        assert.match(prompt, /^plugins: .*"\.\.\/_shared\/observer"/m, `${key}/prompt.md does not load the observer that ${grader}.md reads`);
+        assert.match(prompt, /^plugins: .*"\.\.\/\.\.\/eval-observer"/m, `${key}/prompt.md does not load the observer that ${grader}.md reads`);
       }
     }
 });

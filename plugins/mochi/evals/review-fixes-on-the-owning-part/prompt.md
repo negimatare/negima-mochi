@@ -1,7 +1,7 @@
 ---
 description: A review of part 2 of a stack, which the user starts, finds a High bug in a line that part 1 added. It commits the fix on part 1's branch, rebases part 2 onto it, pushes nothing, and gives /mochi:pr to push the two branches.
 tags: [review, core]
-plugins: ["../..", "../_shared/observer"]
+plugins: ["../..", "../../eval-observer"]
 max_turns: 60
 timeout_seconds: 1500
 allowed_tools: [Read, Glob, Grep, Skill, Agent, Bash, Write, Edit]

@@ -1,7 +1,7 @@
 ---
 description: Building an approved plan with only three slices, whose estimates add up to about 670 lines, says it is too big for one pull request, suggests /mochi:split, and waits instead of building it whole.
 tags: [build, split, core]
-plugins: ["../..", "../_shared/observer"]
+plugins: ["../..", "../../eval-observer"]
 max_turns: 30
 timeout_seconds: 900
 allowed_tools: [Read, Glob, Grep, Skill, Agent, Bash, Write, Edit]

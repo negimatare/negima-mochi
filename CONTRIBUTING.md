@@ -281,9 +281,11 @@ of the tags.
     an end state that also works without the observer.
   - `finish_shop` writes the commit of each ref to `.eval/fixture-refs` and
     `.eval/fixture-origin-refs`, for the observer.
-- **The observer**, `evals/_shared/observer/`, is a stub plugin with one
-  Stop hook. A `mochi` case loads it with
-  `plugins: ["../..", "../_shared/observer"]`. At the end of the run it
+- **The observer**, `plugins/mochi/eval-observer/`, is a stub plugin with
+  one Stop hook. A `mochi` case loads it with
+  `plugins: ["../..", "../../eval-observer"]`. It sits outside `evals/`:
+  the eval runner refuses a plugin inside the eval directory unless it is
+  inside the case's own directory. At the end of the run it
   writes two files. It runs git only, never the tests or other code of the
   run: the git settings that can start a command are off, and it does not
   read a repository whose config sets a filter. When it cannot read the
