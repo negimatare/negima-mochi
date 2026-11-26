@@ -76,3 +76,8 @@ lib       -> lib, test
 When adding a layer, add its element pattern and its allowed edges, then prove
 the guard with a deliberate violation — a guard that passes vacuously is
 worthless.
+
+The preset `${CLAUDE_PLUGIN_ROOT}/presets/eslint-mochi.mjs` holds these
+layers, the `react-hooks` `recommended` rules, the size warnings and the
+Griffel shorthand rule. `/mochi:setup-project` copies it beside the package's
+ESLint config.
