@@ -2,6 +2,7 @@
 name: pr
 description: Open a pull request for the current branch — a body written from the final diff for a busy reviewer (a TL;DR and a Why that names each drift from the plan, and before and after screenshots for a UI change), plus one-line candidate self-review comments that the user picks from. Shows the draft before posting and creates the PR as a draft. Also restacks a pull request stacked on another one after its base moves or merges, through gh stack when it is set up.
 argument-hint: "[optional: base branch, tracker ID, links]"
+allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/stack-check.mjs *), Bash(node ${CLAUDE_SKILL_DIR}/scripts/pushed.mjs *)
 disable-model-invocation: true
 ---
 
@@ -29,26 +30,25 @@ The user's notes: `$ARGUMENTS`
 - No PR exists yet (`gh pr view`). If one does, its base is the PR's
   `baseRefName`, and the steps below offer to regenerate its body and its
   posted self-review comments.
-- A stacked branch is restacked (step 6), before the steps below, when one
-  of these holds after a `git fetch`:
-  - the base's PR is merged (`gh pr view <base> --json state,headRefOid`);
-  - the base has commits this branch lacks
-    (`git rev-list --count HEAD..origin/<base>`);
-  - the local base is ahead of `origin/<base>`
-    (`git rev-list --count origin/<base>..<base>` is above 0), also when
-    this branch already holds it: a review fix on the base waits for its
-    push;
-  - or this branch has diverged from its upstream (both numbers of
-    `git rev-list --left-right --count HEAD...@{u}` are above 0). A review
-    fix on the base leaves this state after its local restack. A branch
-    with no upstream (`git rev-parse @{u}` fails) has not diverged.
+- A stacked branch is restacked (step 6), before the steps below, when the
+  **stack check** finds a reason. After a `git fetch`, run
+  `node ${CLAUDE_SKILL_DIR}/scripts/stack-check.mjs <base>` on this branch.
+  It prints one JSON object:
+  - `restack` lists the reasons: the base's PR is merged (`base-merged`),
+    `origin/<base>` is gone (`base-gone`), the base has commits this branch
+    lacks (`base-moved`), the local base is ahead of `origin/<base>`
+    (`base-ahead`: a review fix on the base waits for its push), or this
+    branch and its upstream have diverged (`diverged`: a review fix on the
+    base leaves this state after its local restack). Restack when the list
+    is not empty.
+  - `merged: null` means that gh cannot tell. Ask the user whether the base
+    is merged, unless the arguments say so; `base-gone` makes a merge
+    likely. Step 6 takes the base's last commit from `headRefOid`.
+  - When `lost` is not empty, another person pushed to this branch, and the
+    restack push would delete those commits: stop, show them, and restack
+    nothing.
 
-  Before you restack a branch that has diverged, list the upstream commits
-  that this branch has no copy of
-  (`git log --cherry-pick --right-only --no-merges --oneline HEAD...@{u}`).
-  When the list is not empty, another person pushed to this branch, and the
-  restack push would delete those commits: stop, show them, and restack
-  nothing.
+  When the script exits with an error, show its message and stop.
 - When `gh` is missing or not logged in, say so once and go on: take the
   base from the argument or `git symbolic-ref refs/remotes/origin/HEAD`, and
   write the draft. Only posting needs `gh`.
@@ -230,18 +230,18 @@ restack the whole stack with `gh stack`:
 3. For each rebased branch, switch to it and run the push checks. Then switch
    back.
 4. Ask one time before you push, and name each branch that the push replaces
-   on the remote. Only after the user agrees, run `gh stack push`. Then
-   compare `git ls-remote origin <branch>` with `git rev-parse <branch>` for
-   each branch: `gh stack push` can report success and push nothing. When a
-   branch did not move, name each such branch and stop. Do not push it in a
-   different way.
+   on the remote. Only after the user agrees, run `gh stack push`. Then run
+   `node ${CLAUDE_SKILL_DIR}/scripts/pushed.mjs <branch>...` with each
+   branch of the stack: `gh stack push` can report success and push
+   nothing. When it names a branch that did not move, name each such branch
+   and stop. Do not push it in a different way.
 
 When the check fails, restack this branch with git:
 
 1. `git fetch`. Base merged:
    `git rebase --onto origin/<default> <base's last commit>`, with the
-   `headRefOid` from step 1, or `git merge-base HEAD origin/<base>` without
-   `gh`. A squash merge puts the base's commits on the default branch under
+   `headRefOid` of the stack check, or `git merge-base HEAD origin/<base>`
+   when it is null. A squash merge puts the base's commits on the default branch under
    new hashes; this replays only this branch's own commits. Base moved:
    `git rebase <base>` when the local base is ahead of `origin/<base>` (a
    review fix that is not pushed yet), else `git rebase origin/<base>`.
@@ -252,7 +252,9 @@ When the check fails, restack this branch with git:
    When the local base is ahead, the same question names its push too. Only
    after the user agrees, push the base with `git push origin <base>` (a
    fast-forward, never forced), then this branch with
-   `git push --force-with-lease -u origin <branch>`.
+   `git push --force-with-lease --force-if-includes -u origin <branch>`:
+   git then also refuses a push that would delete a commit that this branch
+   never had.
 
 After either path:
 

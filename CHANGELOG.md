@@ -17,6 +17,18 @@ The `main` branch now holds only releases, so an install gets the latest
 release and not the work in progress. A tag in the marketplace source pins
 one release.
 
+### mochi plugin
+
+- **A guard for git commands.** A push to the default branch, a force push
+  without `--force-with-lease`, `git add -A` or `git commit -a`, and
+  `--no-verify` now ask you first, with the rule that they break. The words
+  of a commit message do not count.
+- **A scripted stack check.** `/mochi:pr` finds the reasons to restack, and
+  the commits that another person pushed to your branch, with a script
+  instead of reading git itself. Without `gh`, it asks you whether the base
+  is merged. After `gh stack push`, a script names each branch that did not
+  move, and the git path pushes with `--force-if-includes`.
+
 ### For contributors
 
 - **A new integration branch.** Pull requests target `mochitsuki`. Only a
