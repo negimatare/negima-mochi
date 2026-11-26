@@ -58,8 +58,8 @@ The kit uses the Claude Code plugin layout and the
   `/mochi:setup-project` copies or merges into a project. A skill of the
   plugin names each preset as `${CLAUDE_PLUGIN_ROOT}/presets/<file>`, which
   is how setup-project finds it. The skill keeps each rule of the preset in
-  words, with every setting that the preset uses, for a project without the
-  preset; the preset holds the config. A rule whose settings the skill does
+  words, with its limits, its level and the files it applies to, for a
+  project without the preset; the preset holds the config. A rule whose settings the skill does
   not give stays prose, out of the preset.
 - **A skill is one `SKILL.md` file until it needs more.** Add the folders of
   the specification only when a file needs a location:
