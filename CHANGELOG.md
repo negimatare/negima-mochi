@@ -29,6 +29,26 @@ one release.
   is merged. After `gh stack push`, a script names each branch that did not
   move, and the git path pushes with `--force-if-includes`.
 
+### mochi-react plugin
+
+- **The stop check reports a check that hangs.** The checks share one
+  540 s deadline, and a check that runs past it is reported once, so that
+  the hook timeout does not drop the result. A deleted file, a file moved
+  out of its package, and a change to `package.json` now start the checks
+  of that package.
+- **A broken ESLint config is no longer reported as lint problems.**
+  Claude gets a note with the cause that ESLint gave. `eslint.config.mts`
+  and `.cts` are found.
+
+### mochi-python plugin
+
+- **The stop check reports a check that hangs**, as in mochi-react. A
+  deleted or moved file, and a change to `pyproject.toml`, `mypy.ini`,
+  `pyrightconfig.json` or `.importlinter`, now start the checks. mypy gets
+  only the changed files that still exist, or its own `files`.
+- **A broken Ruff config is no longer reported as lint problems.** Claude
+  gets a note with the cause that Ruff gave.
+
 ### For contributors
 
 - **A new integration branch.** Pull requests target `mochitsuki`. Only a
