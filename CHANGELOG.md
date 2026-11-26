@@ -39,6 +39,9 @@ one release.
 - **A broken ESLint config is no longer reported as lint problems.**
   Claude gets a note with the cause that ESLint gave. `eslint.config.mts`
   and `.cts` are found.
+- **The stop check runs your `CLAUDE.md` Verification block.** When the
+  package's `CLAUDE.md` has one, its commands run in place of `typecheck`
+  and `test`. To keep the scripts, set `MOCHI_VERIFY_FROM_CLAUDE_MD=0`.
 
 ### mochi-python plugin
 
@@ -48,6 +51,9 @@ one release.
   only the changed files that still exist, or its own `files`.
 - **A broken Ruff config is no longer reported as lint problems.** Claude
   gets a note with the cause that Ruff gave.
+- **The stop check runs your `CLAUDE.md` Verification block**, as in
+  mochi-react, in place of the type checker, import-linter and pytest. A
+  `uv run` in the block does not sync or install first.
 
 ### For contributors
 
