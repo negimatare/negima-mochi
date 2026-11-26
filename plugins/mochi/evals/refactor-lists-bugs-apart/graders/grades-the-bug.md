@@ -1,5 +1,9 @@
 ---
 type: regex
+target:
+  source: file
+  path: .eval/working-files.txt
 pattern: '(🔴 Critical|🟠 High)\s+\S*refund\.ts:\d+'
-target: trace
+match: contains
+arm: with-only
 ---

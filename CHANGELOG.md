@@ -28,6 +28,16 @@ one release.
 - **A `CLAUDE.md` for the kit.** It gives the verification commands, the
   integration branch, and the rules for the changelog, the pull request body
   and the README.
+- **Checks for the kit's own rules.** `node scripts/kit-rules.mjs` checks the
+  rules of `CLAUDE.md` and CONTRIBUTING that have an exact answer, such as
+  the reviewer models, the plugin versions and the eval case layout. The
+  `Hook tests` workflow runs it, and both branches now require that check.
+- **Evals grade what a run did.** A stub plugin writes the commits, the
+  pushes and the files at the end of a run, and the commit, build, fix-bug,
+  pr and review cases grade that end state instead of a reply or a command
+  line. CONTRIBUTING's Evals section gives the rules for a new grader.
+- **The eval history names the graders that failed.** Each row of
+  `history.tsv` lists them, so a flaky grader is easy to see.
 
 ## 1.3.1 — 2026-11-20
 

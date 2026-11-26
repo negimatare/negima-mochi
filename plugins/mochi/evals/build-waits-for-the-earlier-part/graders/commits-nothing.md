@@ -1,7 +1,10 @@
 ---
-type: tool_used
-tool: Bash
-input_match: 'git commit'
-min: 0
-max: 0
+type: regex
+target:
+  source: file
+  path: .eval/end-state.txt
+pattern: '^local '
+flags: m
+match: not_contains
+arm: with-only
 ---
