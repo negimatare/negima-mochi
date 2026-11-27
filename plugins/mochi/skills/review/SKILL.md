@@ -166,8 +166,9 @@ Verify in depth what would block merging; the rest waits until it is picked.
 - When a `must` finding says a test cannot fail or a guard has no test, and the
   project's `CLAUDE.md` gives a test command that runs that test without a
   build or a service, prove it. Write the source file with the change the
-  finding names (or with the guard removed) to `$TMPDIR` with the Write
-  tool, never to the source file itself. Then run
+  finding names (or with the guard removed) to `$TMPDIR` from Bash, with
+  `sed` on the source or a heredoc, never to the source file itself. The
+  Write tool asks for permission outside the project. Then run
   `node ${CLAUDE_SKILL_DIR}/scripts/prove-test.mjs <source> <mutant> -- <test command for that file>`.
   The command runs with no shell: wrap shell syntax (`cd`, `&&`, a
   variable before it) as `-- sh -c '<command>'`. The script runs the tests,
