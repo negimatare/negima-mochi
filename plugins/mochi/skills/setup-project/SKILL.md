@@ -52,7 +52,9 @@ Read, do not ask:
   write one here, and with a UI but no such script, say so once.
 - **The integration branch**, when pull requests go to a branch other than
   the one `origin/HEAD` names (for example a `develop`, while `main` holds
-  releases): ask, and write it as the line ``Integration branch: `<name>` ``.
+  releases): ask, and write it as the line ``Integration branch: `<name>` ``
+  in the `CLAUDE.md` at `git rev-parse --show-toplevel` only, as the
+  scripts read that file. For a package, propose it for the root file.
 - **Path aliases** in `tsconfig*.json` and bundler configs, and whether they
   must stay in sync across files.
 - **Lint config**: what it enforces (boundaries, hook rules, accessibility,

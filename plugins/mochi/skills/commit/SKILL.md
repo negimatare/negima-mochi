@@ -76,10 +76,11 @@ Changelogs may be generated from it, so the format is strict:
 
 ## 6. Branch, when the caller pushes
 
-Find the default branch with
-`node ${CLAUDE_PLUGIN_ROOT}/scripts/default-branch.mjs`; never assume
-`master` or `main`. If the caller asked to push and the current
-branch is the default branch, create a feature branch with
+List the branches that nothing pushes to with
+`node ${CLAUDE_PLUGIN_ROOT}/scripts/default-branch.mjs --protected`: the
+default branch first, then the branch of `origin/HEAD`. Never assume
+`master` or `main`. If the caller asked to push and the current branch is
+one of them, create a feature branch with
 `git switch -c <type>/<slug>` before committing — `<type>` from the commit,
 `<slug>` from the plan file name without its date, else from the subject: a
 `feat` commit for `.plans/20261105-member-discount.md` goes on

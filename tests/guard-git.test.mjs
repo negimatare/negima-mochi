@@ -70,6 +70,15 @@ test('the integration branch of CLAUDE.md is guarded too, and so is origin/HEAD'
   assert.match(reason('git push origin develop', dir), /default branch/);
 });
 
+test('with the line and no origin/HEAD, main and master stay guarded', () => {
+  const dir = repo('main', false);
+  sh(dir, "printf 'Integration branch: `develop`\\n' > CLAUDE.md");
+  assert.ok(asks('git push origin develop', dir));
+  assert.ok(asks('git push origin main', dir));
+  assert.ok(asks('git push origin master', dir));
+  assert.ok(!asks('git push origin feat/x', dir));
+});
+
 test('without origin/HEAD, main and master count as the default branch', () => {
   const dir = repo('main', false);
   assert.ok(asks('git push origin main', dir));

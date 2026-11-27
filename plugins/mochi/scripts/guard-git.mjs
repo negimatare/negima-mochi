@@ -191,12 +191,9 @@ const git = (cwd, args) => {
     return '';
   }
 };
-// The integration branch of CLAUDE.md and origin/HEAD's branch; main and
-// master when neither is known.
-const defaultsIn = (cwd) => {
-  const branches = defaultBranches(cwd).protected;
-  return branches.length ? branches : ['main', 'master'];
-};
+// The integration branch of CLAUDE.md and origin/HEAD's branch, or main and
+// master when origin/HEAD is not set.
+const defaultsIn = (cwd) => defaultBranches(cwd).protected;
 
 const pushProblems = (args, cwd) => {
   const problems = [];
