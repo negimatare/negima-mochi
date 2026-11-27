@@ -1,7 +1,7 @@
 {
   "name": "mochi-react",
   "displayName": "Mochi React (Fluent UI + Griffel)",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Architecture, component, styling, state, testing and i18n conventions for React apps built on Fluent UI v9 and Griffel, with matching reviewers and lint/verify hooks",
   "author": {
     "name": "negimatare"
