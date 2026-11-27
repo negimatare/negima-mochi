@@ -33,7 +33,6 @@ Small fixes after 1.4.0.
   Opus and Sonnet find each hole with and without the kit, so the kit adds
   no security reviewer. The cases, tagged `security`, guard what the kit
   adds: the hole recorded as blocking at its line in the findings file.
-- **The release evals cost about half.** 16 core cases that passed every
 - **The release evals cost a third less.** 12 core cases that passed every
   run in the last three releases, and guard no push, data or branch, leave
   the `core` tag. `eval-history.mjs --demote` now lists a case whose graders
