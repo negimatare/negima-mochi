@@ -9,9 +9,12 @@
 //     column names each scored grader that failed in a counted run.
 //   node scripts/eval-history.mjs <plugin dir> --demote
 //     Lists the core cases that passed all their runs on Opus and on
-//     Sonnet in each of the last three releases.
+//     Sonnet in each of the last three releases, and whose graders read the
+//     same at the tag of the first of them (v<release>) as now. A case
+//     whose graders changed is listed apart: its record is of an older test.
+import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, posix } from 'node:path';
 
 const COLUMNS = ['release', 'case', 'model', 'arm', 'passes', 'runs', 'cost_usd', 'seconds', 'failed'];
 const RELEASES_TO_DEMOTE = 3;
@@ -65,9 +68,46 @@ if (release === '--demote') {
         return runs.length > 0 && runs.every((row) => row.runs !== '0' && row.passes === row.runs);
       }),
     );
-  const ready = core.filter(passedEverywhere);
+  const tag = `v${releases[0]}`;
+  const git = (...args) => {
+    const result = spawnSync('git', args, { cwd: pluginDir, encoding: 'utf8' });
+    if (result.status !== 0) {
+      console.error(`Cannot read the graders at ${tag}: ${(result.stderr || result.error?.message || '').trim()}`);
+      process.exit(1);
+    }
+    return result.stdout;
+  };
+  // Each grader's text by file name. A link reads as the file it points to,
+  // so a grader that became a link to the same text has not changed.
+  const gradersAtTag = (name) => {
+    const texts = {};
+    for (const line of git('ls-tree', '-r', tag, '--', `evals/${name}/graders/`).split('\n').filter(Boolean)) {
+      const [, mode, , hash, path] = line.match(/^(\d+) (\w+) (\w+)\t(.*)$/);
+      const target = mode === '120000' ? posix.join(posix.dirname(path), git('cat-file', 'blob', hash)) : undefined;
+      texts[posix.basename(path)] = target ? git('show', `${tag}:./${target}`) : git('cat-file', 'blob', hash);
+    }
+    return texts;
+  };
+  const gradersNow = (name) => {
+    const dir = join(evalsDir, name, 'graders');
+    // A dotfile, such as Finder's .DS_Store, is no grader.
+    const files = existsSync(dir) ? readdirSync(dir).filter((file) => !file.startsWith('.')) : [];
+    return Object.fromEntries(files.map((file) => [file, readFileSync(join(dir, file), 'utf8')]));
+  };
+  const sameGraders = (name) => {
+    const [before, now] = [gradersAtTag(name), gradersNow(name)];
+    const files = new Set([...Object.keys(before), ...Object.keys(now)]);
+    return [...files].every((file) => before[file] === now[file]);
+  };
+  const passed = core.filter(passedEverywhere);
+  const ready = passed.filter(sameGraders);
+  const changed = passed.filter((name) => !ready.includes(name));
   console.log(`Core cases that passed every run on Opus and Sonnet in ${releases.join(', ')}:`);
   console.log(ready.length ? ready.map((name) => `- ${name}`).join('\n') : '(none)');
+  if (changed.length) {
+    console.log(`\nThese passed too, but their graders changed since ${tag}, so they keep core:`);
+    console.log(changed.map((name) => `* ${name}`).join('\n'));
+  }
   process.exit(0);
 }
 

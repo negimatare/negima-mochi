@@ -202,9 +202,9 @@ eval_kit() {  # eval_kit <plugin dir> [claude plugin eval options]
 M=claude-sonnet-5-5 eval_kit ./plugins/mochi --case commit-splits-unrelated-changes --runs 1 --ablation none --max-cost-usd 5
 
 # Before each release: the core cases, one time on each model, no baseline.
-# Approximately $12 on Opus and $6 on Sonnet for mochi.
-eval_kit ./plugins/mochi --tag core --runs 1 --ablation none --max-cost-usd 18 -j 4
-M=claude-sonnet-5-5 eval_kit ./plugins/mochi --tag core --runs 1 --ablation none --max-cost-usd 9 -j 4
+# Approximately $8 on Opus and $4 on Sonnet for mochi.
+eval_kit ./plugins/mochi --tag core --runs 1 --ablation none --max-cost-usd 12 -j 4
+M=claude-sonnet-5-5 eval_kit ./plugins/mochi --tag core --runs 1 --ablation none --max-cost-usd 6 -j 4
 
 # Before a major version, or when the default model changes: all cases one
 # time on each model, with the no-plugin baseline on Opus. Approximately $31
@@ -213,8 +213,9 @@ eval_kit ./plugins/mochi --runs 1 --max-cost-usd 40 -j 4
 M=claude-sonnet-5-5 eval_kit ./plugins/mochi --runs 1 --ablation none --max-cost-usd 15 -j 4
 ```
 
-The cost figures come from the 1.2.0 runs. A run that stops at its cap
-reports only part of the suite.
+The cost figures for the core cases come from the 1.4.0 runs, the others
+from the 1.2.0 runs. A run that stops at its cap reports only part of the
+suite.
 
 Add `--json` to each release run, with a new file name for each run, a
 rerun too, for example
@@ -234,8 +235,11 @@ the passes, the runs, and the graders that failed. The first command replaces th
 release, so give it every JSON of the release: then a rerun that passes
 does not hide the failure before it. A run that the cost cap cut off before
 its paid graders is not counted. `--demote` lists the core cases that
-passed every run on Opus and Sonnet in the last three releases. Remove the
-`core` tag from these cases.
+passed every run on Opus and Sonnet in the last three releases, and whose
+graders read the same as at the tag of the first of them. It lists a case
+whose graders changed apart: its record is of an older test, so it keeps
+`core`. Remove the `core` tag from the cases of the first list, except a
+case that guards a push, a force-push, data or the branch.
 
 The skill guidance from Anthropic asks for a minimum of three cases for each
 skill. It also asks you to test each case on all models that the kit
@@ -265,10 +269,11 @@ The `smoke` tag marks the case with the lowest cost in `mochi` and in
 `mochi-python`.
 
 The `core` tag marks the `mochi` cases that run before each release:
-the main path of each workflow, and each case that guards a push, a
-force-push, data or the branch. A new case that guards one of these gets
-the `core` tag too. Repeated `--tag` options select the cases that have any
-of the tags.
+the main path of each workflow until `--demote` lists it (see Evals), and
+each case that guards a push, a force-push, data or the branch. A new case
+that guards one of these gets the `core` tag too. When you change a skill,
+also run the cases of its tag that left `core`. Repeated `--tag` options
+select the cases that have any of the tags.
 
 ### Shared fixtures
 
