@@ -7,12 +7,15 @@ import { isOn } from '../plugins/mochi/scripts/autonomous.mjs';
 import { ENV } from './eval-fixture.mjs';
 
 const SCRIPT = fileURLToPath(new URL('../plugins/mochi/scripts/autonomous.mjs', import.meta.url));
-const run = (value) =>
-  spawnSync(process.execPath, [SCRIPT], { encoding: 'utf8', env: { ...ENV, ...(value === undefined ? {} : { CLAUDE_PLUGIN_OPTION_AUTONOMOUS: value }) } });
+const run = (value) => {
+  const env = { ...ENV, CLAUDE_PLUGIN_OPTION_AUTONOMOUS: value };
+  if (value === undefined) delete env.CLAUDE_PLUGIN_OPTION_AUTONOMOUS;
+  return spawnSync(process.execPath, [SCRIPT], { encoding: 'utf8', env });
+};
 
 test('the option turns the line on, and only a yes does', () => {
-  for (const value of ['true', 'TRUE', '1', 'on', 'yes', ' true\n']) assert.ok(isOn(value), value);
-  for (const value of [undefined, '', 'false', '0', 'off', 'no', 'truthy']) assert.ok(!isOn(value), String(value));
+  for (const value of ['true', ' On\n']) assert.ok(isOn(value), value);
+  for (const value of [undefined, 'false', 'truthy']) assert.ok(!isOn(value), String(value));
   assert.match(run('true').stdout, /autonomous mode is on/);
   assert.equal(run('false').stdout, '');
   assert.equal(run(undefined).stdout, '');

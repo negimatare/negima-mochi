@@ -50,14 +50,15 @@ code, the one or two behaviours that prove it works, and go on: they form a
 single slice.
 
 The plan's hand-over is the **first stop**: wait for the user to approve the
-plan. In autonomous mode, when the bar-raiser gave no `must`, say so and go
-on to step 2 without the stop; a `must` still stops. The same holds for the
-approval of a part, above. End the hand-over by offering a fresh start:
-approve here, or run `/clear` and then the command you give in full, which builds it without the
+plan. End the hand-over by offering a fresh start: approve here, or run
+`/clear` and then the command you give in full, which builds it without the
 planning in context — `/mochi:build .plans/<date>-<slug>.md`, followed by
 anything the request decided for the build, such as a step to skip. When the
 hand-over suggests `/mochi:split`, offer `/mochi:split .plans/<date>-<slug>.md`
-instead. The same command resumes it in a later session.
+instead. The same command resumes it in a later session. In autonomous
+mode, when the bar-raiser gave no `must`, say so, skip the offer, and go on
+to step 2; a `must` still stops. The same holds for the approval of a part,
+above.
 
 ## 2. Implement slice by slice
 
@@ -119,10 +120,13 @@ on this part. When the `tidy` skill ran on every slice, tell it so; not
 when the user skipped it. For a stacked part, review it against its base,
 so that the review sees only this part.
 Its report for each area is the **second stop**: the user picks which
-findings to fix. In autonomous mode, pass `autonomous` to the review, which
-fixes the Critical and High findings and goes on. Fix those, rerun the verification commands, run the `commit`
-skill with "review fixes; push", and move to the next area when the user says
-so.
+findings to fix. Fix those, rerun the verification commands, run the
+`commit` skill with "review fixes; push", and move to the next area when
+the user says so. In autonomous mode, pass `autonomous` to the review: after
+each area's fixes of its Critical and High findings, rerun the verification
+commands, run the `commit` skill with "review fixes; push", and go on to the
+next area without a stop. These pushes go to the feature branch, as each
+slice's push does.
 
 ## 4. Hand over
 

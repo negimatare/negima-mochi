@@ -39,8 +39,9 @@ error, show the message and stop. Act on each field:
   edits no file of the change (step 7).
 - **`behind`** above 0: stop before reviewing. Say by how many commits the
   branch is behind `upstream`, and ask in one question whether to pull first
-  or review the local head. In autonomous mode, run `git pull --ff-only`
-  instead and review the result; when it cannot fast-forward, ask. When
+  or review the local head. In autonomous mode, when `checkedOut` is true,
+  run `git merge --ff-only <upstream>` instead, run the script again, and
+  review the result; on any failure, ask. When
   `fetched` is false or `upstream` is null, say so in one line and review
   the local head without asking.
 - **`uncommitted`**: on the current branch, these files are part of the

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # main has a cart total; the discount-rounding branch adds a discount that
 # subtracts the percentage as an amount (a High bug), with a test that
-# cannot catch it.
+# cannot catch it, and an unused import (a Minor finding).
 set -euo pipefail
 git init -q -b main
 git config user.name eval && git config user.email eval@example.invalid
@@ -26,6 +26,7 @@ git update-ref refs/remotes/origin/main main
 git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
 git checkout -q -b discount-rounding
 cat > src/discount.ts <<'X'
+import { strictEqual } from "node:assert";
 import { total } from "./cart.ts";
 
 /** Total after a percentage discount, for example 10 for 10% off. */

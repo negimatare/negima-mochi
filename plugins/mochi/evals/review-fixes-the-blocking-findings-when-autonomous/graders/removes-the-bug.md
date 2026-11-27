@@ -1,7 +1,8 @@
 ---
 type: regex
-pattern: 'percent\s*/\s*100|/\s*100'
+pattern: 'total\(prices\)\s*-\s*percent\s*;'
 target:
   source: file
   path: src/discount.ts
+match: not_contains
 ---

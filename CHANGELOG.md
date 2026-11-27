@@ -45,8 +45,9 @@ Small fixes after 1.4.0.
   take the recommended answer at their reversible stops and report each
   choice: no plan approval when the bar-raiser gave no `must`, a fix of
   each Critical and High finding, the areas in order, a split in order, and
-  a fast-forward pull of a branch that is behind. A push, a pull request, a
-  comment, a force-push and an install still ask.
+  a fast-forward of a checked-out branch that is behind. `/mochi:build`
+  still pushes its feature branch as before; any other push, a pull
+  request, a comment, a force-push and an install still ask.
 
 ### mochi-react plugin
 
