@@ -60,6 +60,16 @@ test('the default branch is the one origin/HEAD names, read in the folder of the
   assert.ok(!asks('git push origin trunk', OUTSIDE), 'outside a repository, trunk is not main or master');
 });
 
+test('the integration branch of CLAUDE.md is guarded too, and so is origin/HEAD', () => {
+  const dir = repo();
+  sh(dir, "git switch -q -c develop && printf 'Integration branch: `develop`\\n' > CLAUDE.md");
+  assert.ok(asks('git push origin develop', dir));
+  assert.ok(asks('git push', dir), 'the current branch is develop');
+  assert.ok(asks('git push origin main', dir), 'origin/HEAD stays guarded');
+  assert.ok(!asks('git push origin feat/x', dir));
+  assert.match(reason('git push origin develop', dir), /default branch/);
+});
+
 test('without origin/HEAD, main and master count as the default branch', () => {
   const dir = repo('main', false);
   assert.ok(asks('git push origin main', dir));
