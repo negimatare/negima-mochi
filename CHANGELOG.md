@@ -47,6 +47,12 @@ one release.
   as published only when its manifest or its release workflow says so, so
   the exports of a library with no manifest no longer send a small change
   to the full panel.
+- **The review runs your typecheck and lint first.** It runs the typecheck
+  and lint lines of the package's `## Verification` block before the
+  reviewers, and gives them the output, so they leave what the tools
+  report. A failure on a changed line is a High finding. On another
+  person's pull request, it asks once first, as their lint config runs as
+  code.
 
 ### mochi-react plugin
 
