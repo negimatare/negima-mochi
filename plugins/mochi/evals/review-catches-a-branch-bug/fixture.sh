@@ -11,7 +11,37 @@ X
 cat > CLAUDE.md <<'X'
 # Shop
 
-A TypeScript cart library. No build step; tests run with `node --test`.
+A TypeScript cart library. No build step.
+
+## Verification
+
+```bash
+node tools/typecheck.mjs   # the types of src/
+node tools/lint.mjs        # the shop rules, such as money helpers for percentages
+node --test
+```
+X
+# The project's own checks. Each run writes a line to .eval/, for the graders.
+mkdir -p tools
+cat > tools/typecheck.mjs <<'X'
+import { appendFileSync, mkdirSync } from "node:fs";
+mkdirSync(".eval", { recursive: true });
+appendFileSync(".eval/typecheck-runs.log", "run\n");
+X
+cat > tools/lint.mjs <<'X'
+import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+mkdirSync(".eval", { recursive: true });
+appendFileSync(".eval/lint-runs.log", "run\n");
+const file = "src/discount.ts";
+if (existsSync(file)) {
+    const lines = readFileSync(file, "utf8").split("\n");
+    const at = lines.findIndex((line) => /- percent\b/.test(line));
+    if (at !== -1) {
+        console.log(`${file}:${at + 1}:5  error  Subtract a percentage with applyPercent() from ./money  shop/no-raw-percent`);
+        console.log("1 problem (1 error)");
+        process.exit(1);
+    }
+}
 X
 git add -A && git commit -q -m "feat: cart total"
 git remote add origin https://example.invalid/shop.git
