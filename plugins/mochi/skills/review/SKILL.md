@@ -87,8 +87,8 @@ name as still needing review.
 ## 4. Review the area
 
 Write the area's diff to one file so reviewers do not each recompute it.
-`<base ref>` is the `base` field of step 1, not the local branch, which can
-be behind:
+`<base ref>` is the `base` field of step 1, not the local base branch, which
+can be behind:
 `git diff <base ref>...HEAD -- <area files> > "$TMPDIR/review-<area>.diff"`
 (append `git diff -- <area files>` for uncommitted work).
 
@@ -191,8 +191,8 @@ Verify in depth what would block merging; the rest waits until it is picked.
   Write tool asks for permission outside the project. Then run
   `node ${CLAUDE_SKILL_DIR}/scripts/prove-test.mjs <source> <mutant> -- <test command for that file>`.
   The command runs with no shell: wrap shell syntax (`cd`, `&&`, a
-  variable before it) as `-- sh -c '<command>'`. Its JSON gives `before`
-  and `after`:
+  variable before it) as `-- sh -c '<command>'`. Its JSON gives `before`,
+  the tests as they are, and `after`, with the mutant in place:
   - `before: error`: the command did not start; fix the command and run it
     again.
   - `before: fail` or `timeout`: the tests fail as they are, so no proof.
@@ -286,9 +286,10 @@ branch), a cited line belongs to the part below when all three hold. For an
 inherited flaw, test the line of the original, not this part's copy.
 
 - `git blame -L <line>,<line> -- <path>` gives a commit that is an ancestor
-  of the base (`git merge-base --is-ancestor <sha> <base>`; use
-  `origin/<base>` when there is no local `<base>`). Exit code 1 means "not an
-  ancestor"; any other failure is an error to report, not an answer;
+  of the base: `git merge-base --is-ancestor <sha> <ref>` for `<base ref>`,
+  and for the local `<base>` when it exists, which can hold a fix not pushed
+  yet. Either one counts. Exit code 1 means "not an ancestor"; any other
+  failure is an error to report, not an answer;
 - that commit is not an ancestor of `origin/<default>`, so the line is not
   from the default branch;
 - the base's pull request is not merged (`gh pr view <base> --json state`;
