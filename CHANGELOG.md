@@ -20,8 +20,6 @@ Small fixes after 1.4.0.
 - **Pull request bodies keep each paragraph on one line.** GitHub shows
   each newline in a body as a line break, so `/mochi:pr` no longer wraps
   a paragraph or a list item.
-- **The restack reasons are named once.** `/mochi:pr` lists the reasons of
-  `stack-check.mjs` by name and leaves what each means to the script.
 
 ### mochi-react plugin
 
@@ -46,6 +44,8 @@ Small fixes after 1.4.0.
   run in the last three releases, and guard no push, data or branch, leave
   the `core` tag. `eval-history.mjs --demote` now lists a case whose graders
   changed since the first of those releases apart, as it keeps `core`.
+- **The pr skill names the restack reasons once.** Step 1 gave the meaning
+  of each reason of `stack-check.mjs`, which step 6 already acts on.
 
 ## 1.4.0 — 2026-11-27
 

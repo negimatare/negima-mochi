@@ -34,9 +34,8 @@ The user's notes: `$ARGUMENTS`
   **stack check** finds a reason. After a `git fetch`, run
   `node ${CLAUDE_SKILL_DIR}/scripts/stack-check.mjs <base>` on this branch.
   It prints one JSON object:
-  - `restack` lists the reasons (`base-merged`, `base-gone`, `base-moved`,
-    `base-ahead`, `diverged`; the script's header says what each means).
-    Restack when the list is not empty.
+  - `restack` lists the reasons: `base-merged`, `base-gone`, `base-moved`,
+    `base-ahead` or `diverged`. Restack when the list is not empty.
   - `merged: null` means that gh cannot tell. Ask the user whether the base
     is merged, unless the arguments say so; `base-gone` makes a merge
     likely. A yes counts as `base-merged`: restack. Step 6 takes the base's
