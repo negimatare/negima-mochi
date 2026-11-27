@@ -11,6 +11,23 @@ Each release has a section for each plugin that changed. **For contributors**
 lists the work on the kit itself, which does not change the installed
 plugins.
 
+## 1.4.1 — unreleased
+
+Small fixes after 1.4.0.
+
+### mochi plugin
+
+- **Pull request bodies keep each paragraph on one line.** GitHub shows
+  each newline in a body as a line break, so `/mochi:pr` no longer wraps
+  a paragraph or a list item.
+
+### For contributors
+
+- **The eval notes match the sandbox.** CONTRIBUTING says why each git
+  command in an eval trace prints two harmless lines, and what a `git-worked`
+  failure with `Failed to locate 'git'` means. It gives one fixed eval
+  folder that you trust one time, and says that `--case` takes one case.
+
 ## 1.4.0 — 2026-11-27
 
 The `main` branch now holds only releases, so an install gets the latest

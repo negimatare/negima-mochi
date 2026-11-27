@@ -103,6 +103,9 @@ add only the footer of `pr-body.md`:
 - **Footer** — the rule and the `🍁 Generated with` line of `pr-body.md`,
   at the end of each body. It replaces any other "Generated with" line.
 
+Write each paragraph and each list item of the body on one line: GitHub
+shows each newline in a body as a line break.
+
 Add no other section: no risk, reading order, review asks, test plan or
 links. An open decision is a candidate comment (step 4). Step 5 owns an open
 🟠 High or 🔴 Critical finding. Do not give a manual test checklist, in the

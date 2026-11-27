@@ -35,8 +35,7 @@ steps. When the mochi plugin is not loaded, follow
 - Keep the correctness, test, data and quick reviewers on `model: inherit`.
   Pinned to Sonnet, they cost more in each eval case.
 - A pull request body fills `plugins/mochi/skills/pr/assets/pr-body.md`, not
-  `.github/pull_request_template.md`. Write each paragraph on one line:
-  GitHub shows each newline as a line break.
+  `.github/pull_request_template.md`.
 - A `CHANGELOG.md` release: a short intro, `### Update` only when users must
   do a step, one `### <name> plugin` for each changed plugin, then `### For
   contributors`. Each item starts with a bold lead. No test details.
