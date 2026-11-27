@@ -76,8 +76,9 @@ Changelogs may be generated from it, so the format is strict:
 
 ## 6. Branch, when the caller pushes
 
-Find the default branch with `git symbolic-ref refs/remotes/origin/HEAD`;
-never assume `master` or `main`. If the caller asked to push and the current
+Find the default branch with
+`node ${CLAUDE_PLUGIN_ROOT}/scripts/default-branch.mjs`; never assume
+`master` or `main`. If the caller asked to push and the current
 branch is the default branch, create a feature branch with
 `git switch -c <type>/<slug>` before committing — `<type>` from the commit,
 `<slug>` from the plan file name without its date, else from the subject: a

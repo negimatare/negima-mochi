@@ -40,6 +40,12 @@ Small fixes after 1.4.0.
   components-and-styling skill said `perfectionist/sort-objects` enforces it,
   but the mochi preset does not set that rule: it is enforced only where
   the project sets it.
+- **A project can name its integration branch.** One line in the root
+  `CLAUDE.md`, ``Integration branch: `develop` ``, makes it the default
+  branch of the mochi skills: commit branches off it, pr targets it, and
+  review diffs against it. The git hook now also asks before a push to it,
+  not only to the branch of `origin/HEAD`. `/mochi:setup-project` asks for
+  it when pull requests do not go to the branch of `origin/HEAD`.
 
 ### For contributors
 
