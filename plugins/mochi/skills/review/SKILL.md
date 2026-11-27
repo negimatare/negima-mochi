@@ -39,8 +39,10 @@ error, show the message and stop. Act on each field:
   edits no file of the change (step 7).
 - **`behind`** above 0: stop before reviewing. Say by how many commits the
   branch is behind `upstream`, and ask in one question whether to pull first
-  or review the local head. When `fetched` is false or `upstream` is null,
-  say so in one line and review the local head without asking.
+  or review the local head. In autonomous mode, run `git pull --ff-only`
+  instead and review the result; when it cannot fast-forward, ask. When
+  `fetched` is false or `upstream` is null, say so in one line and review
+  the local head without asking.
 - **`uncommitted`**: on the current branch, these files are part of the
   change.
 - **`ahead: 0`** on the current branch: the change is only the
@@ -48,7 +50,8 @@ error, show the message and stop. Act on each field:
   whether to review those files or to audit the code as it stands with
   `/mochi:refactor <area>`.
 
-Never pull, reset, stash, or switch the user's branch without asking. Drop
+Never pull, reset, stash, or switch the user's branch without asking,
+apart from the fast-forward pull of autonomous mode. Drop
 every path the user put out of scope.
 
 ## 2. Resume before reviewing
@@ -81,6 +84,8 @@ order — server code that guards data first, shared code next, UI last — and
 confirm it with the user in one question before starting.
 
 Review **one area at a time**. Stop after each area and wait for the user.
+In autonomous mode, take the proposed order without asking, and go on to
+the next area after the fix round without a stop.
 For an area the user says was already reviewed, only look at the files they
 name as still needing review.
 
@@ -279,7 +284,8 @@ On a pull request that another person wrote, edit no file outside
 user picks.
 
 Otherwise, fix what the user picks, offering the Critical and High findings
-first.
+first. In autonomous mode, fix each open Critical and High finding without
+asking, and leave the Medium and Minor ones open in the findings file.
 
 **The owning part.** On a stacked branch (its base is not the default
 branch), a cited line belongs to the part below when all three hold. For an
@@ -317,7 +323,8 @@ Before fixing a Medium or Minor finding, confirm it as step 5 does for a
 `must`; one that does not hold is marked `[~]` with the reason. After
 the fixes, run the verification commands listed in the project's `CLAUDE.md`,
 update the checkboxes and the `Open:` line in the findings file, and move to
-the next area only when the user says so.
+the next area only when the user says so (in autonomous mode, without
+asking).
 
 ## 8. Comment on the pull request
 

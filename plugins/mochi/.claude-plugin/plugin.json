@@ -6,5 +6,16 @@
   "author": {
     "name": "negimatare"
   },
-  "keywords": ["review", "principles"]
+  "keywords": [
+    "review",
+    "principles"
+  ],
+  "userConfig": {
+    "autonomous": {
+      "type": "boolean",
+      "title": "Autonomous mode",
+      "description": "Take the recommended answer at the reversible stops of the mochi skills (plan approval, findings pick, area order, split order). Pushes, pull requests, force-pushes and installs still ask.",
+      "default": false
+    }
+  }
 }

@@ -40,6 +40,14 @@ Small fixes after 1.4.0.
   not only to the branch of `origin/HEAD`. `/mochi:setup-project` asks for
   it when pull requests do not go to the branch of `origin/HEAD`.
 
+- **Autonomous mode, off by default.** With the word `autonomous` in a
+  request, or the new plugin option `autonomous`, review, build and split
+  take the recommended answer at their reversible stops and report each
+  choice: no plan approval when the bar-raiser gave no `must`, a fix of
+  each Critical and High finding, the areas in order, a split in order, and
+  a fast-forward pull of a branch that is behind. A push, a pull request, a
+  comment, a force-push and an install still ask.
+
 ### mochi-react plugin
 
 - **The property order rule says where lint enforces it.** The

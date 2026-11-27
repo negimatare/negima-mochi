@@ -168,6 +168,16 @@ The page also shows all links in a table.
   both plugins run its block at the same time: give each package its own
   `CLAUDE.md`. To keep the plugins' own checks, set
   `MOCHI_VERIFY_FROM_CLAUDE_MD=0`.
+- Autonomous mode is off by default. Turn it on for one request with the
+  word `autonomous`, for example `/mochi:review this branch, autonomous`,
+  or for each session with the plugin option: `/plugin`, then **Configure**
+  on mochi, or
+  `claude plugin configure mochi@negima-mochi --config autonomous=true`.
+  The skills then take the recommended answer at their reversible stops:
+  they proceed when the bar-raiser gave no `must`, fix each Critical and
+  High finding, review the areas in order, and take a split in order. They
+  report each choice. A push, a pull request, a comment, a force-push and
+  an install still ask. Say `ask me` to turn it off for one request.
 
 ---
 
