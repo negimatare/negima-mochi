@@ -20,6 +20,11 @@ Small fixes after 1.4.0.
 - **Pull request bodies keep each paragraph on one line.** GitHub shows
   each newline in a body as a line break, so `/mochi:pr` no longer wraps
   a paragraph or a list item.
+- **A review diffs against the base on the remote.** Step 4 of
+  `/mochi:review` named the local base branch, which can be behind, while
+  step 1 named the ref on origin. It now uses that ref in both, and the
+  owning-part check of a stacked branch tries both the local and the
+  remote base.
 
 ### mochi-react plugin
 

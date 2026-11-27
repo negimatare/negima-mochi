@@ -27,14 +27,12 @@ current branch), and `--base` when they name a base branch (a part stacked
 on another one). It runs `git fetch` and prints JSON. When it exits with an
 error, show the message and stop. Act on each field:
 
-- **`kind`**: `pr` for a pull request, also a branch or the current branch
-  that has an open one; `branch` or `current` otherwise. With `kind: pr`
-  and `gh: false`, gh could not read the pull request: say so and stop.
-- **`base`**: diff against its merge base with this ref: for a pull
-  request its `baseRefName` on origin, never the default branch. Where a
-  later step says `<base>`, it means `baseBranch`, the name without
-  `origin/`. When `base` is null, the base is unknown (no such branch, or
-  `default: null`): ask the user for it; never assume `master` or `main`.
+- **`kind: pr` with `gh: false`**: gh could not read the pull request:
+  say so and stop.
+- **`base`**: the ref to diff against, for example `origin/main`. Where a
+  later step says `<base>`, it means `baseBranch`, the branch name. When
+  `base` is null, ask the user for the base; never assume `master` or
+  `main`.
 - **`checkedOut: false`**: reviewers read the working tree, so ask the user
   before running `gh pr checkout <n>` or `git switch <head>`.
 - **`own: false`**: another person wrote the pull request, so the fix round
@@ -88,8 +86,10 @@ name as still needing review.
 
 ## 4. Review the area
 
-Write the area's diff to one file so reviewers do not each recompute it:
-`git diff <base>...HEAD -- <area files> > "$TMPDIR/review-<area>.diff"`
+Write the area's diff to one file so reviewers do not each recompute it.
+`<base ref>` is the `base` field of step 1, not the local base branch, which
+can be behind:
+`git diff <base ref>...HEAD -- <area files> > "$TMPDIR/review-<area>.diff"`
 (append `git diff -- <area files>` for uncommitted work).
 
 Then run the project's own checks. In the `## Verification` block of the
@@ -191,13 +191,11 @@ Verify in depth what would block merging; the rest waits until it is picked.
   Write tool asks for permission outside the project. Then run
   `node ${CLAUDE_SKILL_DIR}/scripts/prove-test.mjs <source> <mutant> -- <test command for that file>`.
   The command runs with no shell: wrap shell syntax (`cd`, `&&`, a
-  variable before it) as `-- sh -c '<command>'`. The script runs the tests,
-  puts the mutant in place, runs them again, and restores the source, also
-  on a timeout or a stop. Its JSON gives `before` and `after`:
+  variable before it) as `-- sh -c '<command>'`. Its JSON gives `before`,
+  the tests as they are, and `after`, with the mutant in place:
   - `before: error`: the command did not start; fix the command and run it
     again.
-  - `before: fail` or `timeout`: the tests fail as they are, so the proof
-    is skipped.
+  - `before: fail` or `timeout`: the tests fail as they are, so no proof.
   - `after: pass`: the tests still pass, which confirms the finding.
   - `after: fail` with an assertion in `output`: the test catches it, so
     the finding is dropped. A run that errors before asserting, or
@@ -288,9 +286,10 @@ branch), a cited line belongs to the part below when all three hold. For an
 inherited flaw, test the line of the original, not this part's copy.
 
 - `git blame -L <line>,<line> -- <path>` gives a commit that is an ancestor
-  of the base (`git merge-base --is-ancestor <sha> <base>`; use
-  `origin/<base>` when there is no local `<base>`). Exit code 1 means "not an
-  ancestor"; any other failure is an error to report, not an answer;
+  of the base: `git merge-base --is-ancestor <sha> <ref>` for `<base ref>`,
+  and for the local `<base>` when it exists, which can hold a fix not pushed
+  yet. Either one counts. Exit code 1 means "not an ancestor"; any other
+  failure is an error to report, not an answer;
 - that commit is not an ancestor of `origin/<default>`, so the line is not
   from the default branch;
 - the base's pull request is not merged (`gh pr view <base> --json state`;
