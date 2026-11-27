@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: review-flags-sql-built-from-input
+context:
+  scaffold_script: fixture.sh

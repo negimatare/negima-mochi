@@ -251,7 +251,8 @@ A tag gives the subject of a case:
 
 - **`mochi`**: `plan`, `build`, `split`, `fix-bug`, `commit`, `pr`, `setup`,
   `dependencies`, `review`, `refactor`, `tidy`, `correctness`, `tests`,
-  `hygiene`, `data` and `a11y`.
+  `hygiene`, `data`, `a11y` and `security` (a planted security hole that a
+  review must find).
 - **`mochi-react`**: one tag for each convention skill (`architecture`,
   `components`, `forms`, `i18n`, `performance`, `state`, `testing`). It also
   has `conventions` and `a11y` for its two reviewers.
