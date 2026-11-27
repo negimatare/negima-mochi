@@ -27,9 +27,9 @@ steps. When the mochi plugin is not loaded, follow
 
 ## Project-specific rules
 
-- `mochitsuki` is the integration branch. When a mochi skill says "the
-  default branch", it means `mochitsuki` here: branch off it, and open each
-  pull request against it (`/mochi:pr mochitsuki`).
+- Integration branch: `mochitsuki`. The mochi skills read this line: they
+  branch off `mochitsuki` and open each pull request against it. `main`
+  gets only releases and hotfixes.
 - Examples, eval fixtures and skill text use a made-up domain, for example a
   shop. The repository is public: no names from a real codebase.
 - Keep the correctness, test, data and quick reviewers on `model: inherit`.
