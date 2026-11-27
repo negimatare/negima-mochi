@@ -17,7 +17,7 @@ A TypeScript cart library. No build step.
 
 ```bash
 node tools/typecheck.mjs   # the types of src/
-node tools/lint.mjs        # the shop rules, such as money helpers for percentages
+node tools/lint.mjs        # the shop rules, such as plain words in comments
 node --test
 ```
 X
@@ -35,9 +35,9 @@ appendFileSync(".eval/lint-runs.log", "run\n");
 const file = "src/discount.ts";
 if (existsSync(file)) {
     const lines = readFileSync(file, "utf8").split("\n");
-    const at = lines.findIndex((line) => /- percent\b/.test(line));
+    const at = lines.findIndex((line) => /\be\.g\./.test(line));
     if (at !== -1) {
-        console.log(`${file}:${at + 1}:5  error  Subtract a percentage with applyPercent() from ./money  shop/no-raw-percent`);
+        console.log(`${file}:${at + 1}:5  error  Write "for example", not "e.g."  shop/no-latin-abbreviations`);
         console.log("1 problem (1 error)");
         process.exit(1);
     }

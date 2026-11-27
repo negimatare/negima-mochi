@@ -1,5 +1,5 @@
 ---
-description: A full review of a small branch, asked for by name, runs the project's typecheck and lint first and gives their output to the reviewers, records the lint error on a changed line as High, runs the correctness, test, and hygiene reviewers instead of the quick reviewer, catches a percentage discount applied as an amount, grades it Critical or High, and records it in the findings file.
+description: A full review of a small branch, asked for by name, runs the project's typecheck and lint first and gives their output to the reviewers, records the lint error on a changed comment as High, runs the correctness, test, and hygiene reviewers instead of the quick reviewer, catches a percentage discount applied as an amount, grades it Critical or High, and records it in the findings file.
 tags: [review, correctness, tests, hygiene, core]
 max_turns: 40
 timeout_seconds: 1200
