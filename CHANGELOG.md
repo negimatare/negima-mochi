@@ -11,9 +11,11 @@ Each release has a section for each plugin that changed. **For contributors**
 lists the work on the kit itself, which does not change the installed
 plugins.
 
-## 1.4.1 — unreleased
+## 1.5.0 — 2026-11-27
 
-Small fixes after 1.4.0.
+The kit can now see a change in the running app, follow a project's
+integration branch, and, when you ask, take the recommended answer at its
+reversible stops. A review also diffs against the base on the remote.
 
 ### mochi plugin
 
@@ -39,7 +41,6 @@ Small fixes after 1.4.0.
   review diffs against it. The git hook now also asks before a push to it,
   not only to the branch of `origin/HEAD`. `/mochi:setup-project` asks for
   it when pull requests do not go to the branch of `origin/HEAD`.
-
 - **Autonomous mode, off by default.** With the word `autonomous` in a
   request, or the new plugin option `autonomous`, review, build and split
   take the recommended answer at their reversible stops and report each
