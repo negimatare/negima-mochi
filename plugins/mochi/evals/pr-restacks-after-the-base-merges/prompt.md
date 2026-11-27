@@ -1,6 +1,7 @@
 ---
 description: Restacking a part whose base was squash-merged replays only the part's own commit onto main, runs the tests, and asks before the force-push instead of pushing.
 tags: [pr, core]
+plugins: ["../..", "../../eval-observer"]
 max_turns: 40
 timeout_seconds: 1200
 allowed_tools: [Read, Glob, Grep, Skill, Agent, Bash, Write, Edit]

@@ -11,11 +11,81 @@ Each release has a section for each plugin that changed. **For contributors**
 lists the work on the kit itself, which does not change the installed
 plugins.
 
-## 1.3.2 — unreleased
+## 1.4.0 — 2026-11-27
 
 The `main` branch now holds only releases, so an install gets the latest
 release and not the work in progress. A tag in the marketplace source pins
 one release.
+
+### mochi plugin
+
+- **A guard for git commands.** A push to the default branch, a force push
+  without `--force-with-lease`, `git add -A` or `git commit -a`, and
+  `--no-verify` now ask you first, with the rule that they break. The words
+  of a commit message do not count.
+- **A scripted stack check.** `/mochi:pr` finds the reasons to restack, and
+  the commits that another person pushed to your branch, with a script
+  instead of reading git itself. Without `gh`, it asks you whether the base
+  is merged. After `gh stack push`, a script names each branch that did not
+  move, and the git path pushes with `--force-if-includes`.
+- **`/mochi:setup-project` adds the lint preset of each stack plugin.** It
+  copies the ESLint preset and spreads it in your config, and proves its
+  layer rule with a planted import, which it removes. When lint misses the
+  import, it removes the preset again and stops. It merges the Ruff
+  preset into the file that Ruff reads, and keeps your own `select`. You
+  agree before each edit.
+- **`/mochi:review` finds the change with a script.** The pull request,
+  its base, its author, and how far the branch is behind its upstream come
+  from one script instead of separate git and gh calls. A detached HEAD and
+  a pull request from a fork now resolve too. The review asks before it
+  switches to a branch that is not checked out.
+- **The test proof restores your file.** When a review proves that a test
+  cannot fail, a script puts the changed file in place, runs the tests with
+  a time limit, and puts your file back, also when the run hangs or is
+  stopped.
+- **A small change in a library gets the quick reviewer.** A package counts
+  as published only when its manifest or its release workflow says so, so
+  the exports of a library with no manifest no longer send a small change
+  to the full panel.
+- **The review runs your typecheck and lint first.** It runs the typecheck
+  and lint lines of the package's `## Verification` block before the
+  reviewers, and gives them the output, so they leave what the tools
+  report. A failure on a changed line is a High finding. On another
+  person's pull request, it asks once first, as their lint config runs as
+  code.
+
+### mochi-react plugin
+
+- **The stop check reports a check that hangs.** The checks share one
+  540 s deadline, and a check that runs past it is reported once, so that
+  the hook timeout does not drop the result. A deleted file, a file moved
+  out of its package, and a change to `package.json` now start the checks
+  of that package.
+- **A broken ESLint config is no longer reported as lint problems.**
+  Claude gets a note with the cause that ESLint gave. `eslint.config.mts`
+  and `.cts` are found.
+- **The stop check runs your `CLAUDE.md` Verification block.** When the
+  nearest `CLAUDE.md`, in the package or a folder above it, has one, its
+  commands run in place of `typecheck` and `test`. To keep the scripts,
+  set `MOCHI_VERIFY_FROM_CLAUDE_MD=0`.
+- **An ESLint preset.** `presets/eslint-mochi.mjs` holds the layers of the
+  architecture skill, with `eslint-plugin-boundaries` 7, the `react-hooks`
+  `recommended` rules, the size warnings and the Griffel shorthand rule.
+
+### mochi-python plugin
+
+- **The stop check reports a check that hangs**, as in mochi-react. A
+  deleted or moved file, and a change to `pyproject.toml`, `mypy.ini`,
+  `pyrightconfig.json` or `.importlinter`, now start the checks. mypy gets
+  only the changed files that still exist, or its own `files`.
+- **A broken Ruff config is no longer reported as lint problems.** Claude
+  gets a note with the cause that Ruff gave.
+- **The stop check runs your `CLAUDE.md` Verification block**, as in
+  mochi-react, in place of the type checker, import-linter and pytest. A
+  `uv run` in the block does not sync or install first.
+- **A Ruff preset.** `presets/ruff-lint.toml` bans the direct time and
+  environment calls outside `bootstrap.py` (`TID251`), and turns on `ASYNC`
+  and `S113`.
 
 ### For contributors
 
@@ -28,6 +98,19 @@ one release.
 - **A `CLAUDE.md` for the kit.** It gives the verification commands, the
   integration branch, and the rules for the changelog, the pull request body
   and the README.
+- **Checks for the kit's own rules.** `node scripts/kit-rules.mjs` checks the
+  rules of `CLAUDE.md` and CONTRIBUTING that have an exact answer, such as
+  the reviewer models, the plugin versions and the eval case layout. The
+  `Hook tests` workflow runs it, and both branches now require that check.
+- **Evals grade what a run did.** A stub plugin writes the commits, the
+  pushes and the files at the end of a run, and the commit, build, fix-bug,
+  pr and review cases grade that end state instead of a reply or a command
+  line. CONTRIBUTING's Evals section gives the rules for a new grader.
+- **The eval history names the graders that failed.** Each row of
+  `history.tsv` lists them, so a flaky grader is easy to see.
+- **The lint presets are proved with the real linters.** The
+  `Lint presets` workflow installs pinned Ruff, ESLint and the plugins of
+  the React preset. kit-rules checks that a skill names each preset.
 
 ## 1.3.1 — 2026-11-20
 

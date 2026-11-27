@@ -5,14 +5,15 @@
 //     Adds one row for each case, model and arm of the runs, and replaces
 //     the rows that the file already has for that release. Give every run
 //     JSON of the release. A run that the cost cap cut off before its paid
-//     graders adds its cost and time, but no pass and no run.
+//     graders adds its cost and time, but no pass and no run. The failed
+//     column names each scored grader that failed in a counted run.
 //   node scripts/eval-history.mjs <plugin dir> --demote
 //     Lists the core cases that passed all their runs on Opus and on
 //     Sonnet in each of the last three releases.
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const COLUMNS = ['release', 'case', 'model', 'arm', 'passes', 'runs', 'cost_usd', 'seconds'];
+const COLUMNS = ['release', 'case', 'model', 'arm', 'passes', 'runs', 'cost_usd', 'seconds', 'failed'];
 const RELEASES_TO_DEMOTE = 3;
 
 const [pluginDir, release, ...runFiles] = process.argv.slice(2);
@@ -77,13 +78,14 @@ for (const file of runFiles) {
   for (const testCase of run.cases) {
     for (const [arm, runs] of Object.entries(testCase.arms)) {
       const key = [testCase.name, model, arm].join('\t');
-      const total = totals.get(key) ?? { passes: 0, runs: 0, cost: 0, seconds: 0 };
+      const total = totals.get(key) ?? { passes: 0, runs: 0, cost: 0, seconds: 0, failed: new Set() };
       for (const result of runs) {
         total.cost += result.costUsd + (result.judgeCostUsd ?? 0);
         total.seconds += result.durationSeconds;
         if (result.skippedPaidGraders) continue;
         total.passes += result.passed ? 1 : 0;
         total.runs += 1;
+        for (const grader of result.graders ?? []) if (grader.scored !== false && !grader.passed) total.failed.add(grader.name);
       }
       totals.set(key, total);
     }
@@ -92,8 +94,8 @@ for (const file of runFiles) {
 
 const added = [...totals].map(([key, total]) => {
   const [name, model, arm] = key.split('\t');
-  const { passes, runs, cost, seconds } = total;
-  return { release, case: name, model, arm, passes, runs, cost_usd: cost.toFixed(2), seconds };
+  const { passes, runs, cost, seconds, failed } = total;
+  return { release, case: name, model, arm, passes, runs, cost_usd: cost.toFixed(2), seconds, failed: [...failed].sort().join(',') };
 });
 const kept = readHistory().filter((row) => row.release !== release);
 const rows = [...kept, ...added].sort(
@@ -105,6 +107,6 @@ const rows = [...kept, ...added].sort(
 );
 writeFileSync(
   historyFile,
-  [COLUMNS.join('\t'), ...rows.map((row) => COLUMNS.map((column) => row[column]).join('\t'))].join('\n') + '\n',
+  [COLUMNS.join('\t'), ...rows.map((row) => COLUMNS.map((column) => row[column] ?? '').join('\t'))].join('\n') + '\n',
 );
 console.log(`${historyFile}: ${added.length} rows for ${release}, ${rows.length} rows in all.`);

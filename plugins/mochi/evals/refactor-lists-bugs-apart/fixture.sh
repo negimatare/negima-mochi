@@ -25,3 +25,5 @@ git add -A && git commit -q -m "feat: checkout handlers"
 git remote add origin https://example.invalid/shop.git
 git update-ref refs/remotes/origin/main main
 git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
+# The eval observer writes the end state of the run here.
+mkdir -p .eval && printf '.eval/\n' >> .git/info/exclude

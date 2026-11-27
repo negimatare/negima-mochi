@@ -7,7 +7,7 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const SCRIPT = fileURLToPath(new URL('../scripts/eval-history.mjs', import.meta.url));
-const HEADER = 'release\tcase\tmodel\tarm\tpasses\truns\tcost_usd\tseconds';
+const HEADER = 'release\tcase\tmodel\tarm\tpasses\truns\tcost_usd\tseconds\tfailed';
 
 const pluginWith = (cases, history) => {
   const dir = mkdtempSync(join(tmpdir(), 'eval-history-test-'));
@@ -22,8 +22,9 @@ const pluginWith = (cases, history) => {
 
 const run = (...args) => spawnSync(process.execPath, [SCRIPT, ...args], { encoding: 'utf8' });
 
-// One row: release, case, model, arm, passes, runs.
-const row = (release, name, model, arm, passes, runs) => [release, name, model, arm, passes, runs, '0.10', '10'].join('\t');
+// One row: release, case, model, arm, passes, runs, and the graders that failed.
+const row = (release, name, model, arm, passes, runs, failed = '') =>
+  [release, name, model, arm, passes, runs, '0.10', '10', failed].join('\t');
 const cleanRows = (release, name) => [
   row(release, name, 'opus-5-5', 'with', 1, 1),
   row(release, name, 'sonnet-5-5', 'with', 1, 1),
@@ -75,10 +76,42 @@ test('the runs of a release add up, and replace only the rows of that release', 
   const first = json('sonnet-1.json', [result(false), result(false, { skippedPaidGraders: true })]);
   const rerun = json('sonnet-2.json', [result(true)]);
   assert.equal(run(dir, '1.3.0', first, rerun).status, 0);
-  const rows = readFileSync(join(dir, 'evals', 'history.tsv'), 'utf8').trim().split('\n').slice(1);
+  const rows = readFileSync(join(dir, 'evals', 'history.tsv'), 'utf8').replace(/\n$/, '').split('\n').slice(1);
   assert.deepEqual(rows, [
     row('1.2.0', 'kept', 'opus-5-5', 'with', 1, 1),
-    ['1.3.0', 'flaky', 'sonnet-5-5', 'with', 1, 2, '0.30', '30'].join('\t'),
+    ['1.3.0', 'flaky', 'sonnet-5-5', 'with', 1, 2, '0.30', '30', ''].join('\t'),
+  ]);
+});
+
+test('a row names each scored grader that failed in a counted run', () => {
+  const oldRow = ['1.2.0', 'kept', 'opus-5-5', 'with', 1, 1, '0.10', '10'].join('\t');
+  const dir = pluginWith({}, [oldRow]);
+  const grader = (name, passed, scored = true) => ({ name, passed, scored });
+  const file = join(dir, 'opus-1.json');
+  writeFileSync(
+    file,
+    JSON.stringify({
+      suite: { modelOverride: 'claude-opus-5-5' },
+      cases: [
+        {
+          name: 'push-guard',
+          arms: {
+            with: [
+              { passed: false, costUsd: 0.1, durationSeconds: 10, graders: [grader('git-worked', false), grader('used-reviewer', false, false)] },
+              { passed: false, costUsd: 0.1, durationSeconds: 10, graders: [grader('remote-stays', false), grader('git-worked', false)] },
+              { passed: false, costUsd: 0.1, durationSeconds: 10, skippedPaidGraders: true, graders: [grader('shows-the-commit', false)] },
+            ],
+          },
+        },
+      ],
+    }),
+  );
+  assert.equal(run(dir, '1.3.0', file).status, 0);
+  const rows = readFileSync(join(dir, 'evals', 'history.tsv'), 'utf8').replace(/\n$/, '').split('\n');
+  assert.equal(rows[0], HEADER);
+  assert.deepEqual(rows.slice(1), [
+    row('1.2.0', 'kept', 'opus-5-5', 'with', 1, 1),
+    ['1.3.0', 'push-guard', 'opus-5-5', 'with', 0, 2, '0.30', '30', 'git-worked,remote-stays'].join('\t'),
   ]);
 });
 

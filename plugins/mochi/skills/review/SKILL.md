@@ -2,6 +2,7 @@
 name: review
 description: Review a change (a PR, a branch, or uncommitted work) area by area — split by language or stack, one area at a time, in priority order — with parallel reviewers, a verification pass on blocking findings, and a findings file that survives across sessions. Use when the user asks to review a PR or a set of changes.
 argument-hint: "[PR number | branch | nothing for the current branch] [scope notes in plain words]"
+allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/review-target.mjs), Bash(node ${CLAUDE_SKILL_DIR}/scripts/review-target.mjs *), Bash(node ${CLAUDE_SKILL_DIR}/scripts/prove-test.mjs *)
 ---
 
 # Review
@@ -15,42 +16,42 @@ ask for what has a default.
 
 ## 1. Resolve the change
 
-- **PR number or URL**:
-  `gh pr view <n> --json number,baseRefName,headRefName,author`. Diff it
-  against its merge base with `origin/<baseRefName>`, not the default
-  branch. Reviewers read the working tree, so if the PR's head branch is not
-  checked out, ask the user before running `gh pr checkout <n>`.
-- **Branch name**: when the branch has an open pull request
-  (`gh pr view <branch> --json number,state,baseRefName,author`), review it
-  as that pull request, against `origin/<baseRefName>`. Otherwise diff it
-  against its merge base with the default branch, or with the base branch
-  the arguments name (a part stacked on another one).
-- **Nothing**: the current branch against the default branch, plus uncommitted
-  changes. When the current branch has an open pull request
-  (`gh pr view --json number,state,baseRefName,author`), review it as that
-  pull request, against `origin/<baseRefName>`. When no commit is ahead of
-  the base, the change is only the uncommitted files: before splitting them
-  into areas, ask in one question whether to review those files or to audit
-  the code as it stands with `/mochi:refactor <area>`.
-- **Code as it stands** (a folder or the whole tree, with no change to diff):
-  that is an audit, not a review. Point the user to `/mochi:refactor <area>`
-  and stop.
+When the arguments describe **code as it stands** (a folder or the whole
+tree, with no change to diff), that is an audit, not a review: point the
+user to `/mochi:refactor <area>` and stop.
 
-Find the default branch with `git symbolic-ref refs/remotes/origin/HEAD`; never
-assume `master` or `main`. Drop every path the user put out of scope.
+Otherwise run
+`node ${CLAUDE_SKILL_DIR}/scripts/review-target.mjs [<target>] [--base <branch>]`,
+with the PR number, URL or branch name the arguments give (none for the
+current branch), and `--base` when they name a base branch (a part stacked
+on another one). It runs `git fetch` and prints JSON. When it exits with an
+error, show the message and stop. Act on each field:
 
-For a pull request, compare its `author.login` with
-`gh api user --jq .login`. When `gh api user` fails, treat the pull request
-as the user's own. For a pull request that another person wrote, the fix
-round edits no file of the change (step 7).
+- **`kind`**: `pr` for a pull request, also a branch or the current branch
+  that has an open one; `branch` or `current` otherwise. With `kind: pr`
+  and `gh: false`, gh could not read the pull request: say so and stop.
+- **`base`**: diff against its merge base with this ref: for a pull
+  request its `baseRefName` on origin, never the default branch. Where a
+  later step says `<base>`, it means `baseBranch`, the name without
+  `origin/`. When `base` is null, the base is unknown (no such branch, or
+  `default: null`): ask the user for it; never assume `master` or `main`.
+- **`checkedOut: false`**: reviewers read the working tree, so ask the user
+  before running `gh pr checkout <n>` or `git switch <head>`.
+- **`own: false`**: another person wrote the pull request, so the fix round
+  edits no file of the change (step 7).
+- **`behind`** above 0: stop before reviewing. Say by how many commits the
+  branch is behind `upstream`, and ask in one question whether to pull first
+  or review the local head. When `fetched` is false or `upstream` is null,
+  say so in one line and review the local head without asking.
+- **`uncommitted`**: on the current branch, these files are part of the
+  change.
+- **`ahead: 0`** on the current branch: the change is only the
+  `uncommitted` files. Before splitting them into areas, ask in one question
+  whether to review those files or to audit the code as it stands with
+  `/mochi:refactor <area>`.
 
-Then check that the branch is current: run `git fetch` and, when the
-checked-out branch has an upstream or is the PR's head,
-`git rev-list --count HEAD..@{u}`. If it is behind, stop before reviewing:
-say by how many commits, and ask in one question whether to pull first or
-review the local head. If the fetch fails or there is no upstream, say so in
-one line and review the local head without asking. Never pull, reset, stash,
-or switch the user's branch without asking.
+Never pull, reset, stash, or switch the user's branch without asking. Drop
+every path the user put out of scope.
 
 ## 2. Resume before reviewing
 
@@ -91,13 +92,35 @@ Write the area's diff to one file so reviewers do not each recompute it:
 `git diff <base>...HEAD -- <area files> > "$TMPDIR/review-<area>.diff"`
 (append `git diff -- <area files>` for uncommitted work).
 
+Then run the project's own checks. In the `## Verification` block of the
+`CLAUDE.md` that owns the area (the nearest one above its files), take the
+typecheck and lint lines only: not tests, builds or services. Run each from
+that file's folder, one time for each `CLAUDE.md`, and reuse the output for
+each area under it. Write the command, its exit code and its output to
+`$TMPDIR/review-<area>-tools.txt`. A `CLAUDE.md` with no typecheck or lint
+line gives no file; say so in one line.
+
+On a pull request that another person wrote (`own: false`), these commands
+run their code, as a lint config is code. Ask one time, before the first
+area, and keep the answer for every area. When the user says no, run
+nothing and say so in one line.
+
+A command that fails on lines that this area adds or changes is one
+🟠 High finding. Cite the first problem on such a line, with the rule and
+the number of problems. The finding comes from the tool, not a reviewer:
+it keeps its grade, and step 5 does not merge it with a reviewer's finding.
+A failure only on other lines is one line in the report, not a finding.
+
 Then pick the tier. Count the area's changed lines, added plus removed, with
 `git diff --numstat` over the same ranges and files as the diff file,
 leaving out lockfiles and generated files. The area is **small** under 80 lines when its diff reaches
 no trust boundary: database access, auth or permissions, a route or request
-handler, or what a published package exports (as the "Libraries" item of
-`${CLAUDE_PLUGIN_ROOT}/agents/hygiene-reviewer.md` defines one). An area the user asks a full review for is never small. Say in
-one line which tier each area got, and why.
+handler, or what a published package exports. A package is published only
+as the "Libraries" item of `${CLAUDE_PLUGIN_ROOT}/agents/hygiene-reviewer.md`
+defines it. A "library" in `CLAUDE.md` with no manifest, or with
+`"private": true`, is not published. Its exports are no trust boundary.
+An area the user asks a full review for is never small. Say in one line
+which tier each area got, and why.
 
 Launch these agents in parallel, in one message, each with `subagent_type`
 set to the name shown: a general-purpose agent does not have their
@@ -127,7 +150,8 @@ instructions. Never review the area yourself instead, however small.
 
 Start each launch's task description with the reviewer's role, for example
 `correctness reviewer — Python service/`, so the transcript shows who is doing
-what. Give each reviewer: the diff file path, the area's file list, the
+what. Give each reviewer: the diff file path, the tools file path when there
+is one, with "do not report what it reports", the area's file list, the
 `CLAUDE.md` path of the package that owns the area (the nearest one above its
 files), the user's notes (inspiration feature, already-reviewed parts), and,
 for a pull request, its title and body written to
@@ -161,14 +185,26 @@ Verify in depth what would block merging; the rest waits until it is picked.
   gave a test as an optional fix.
 - When a `must` finding says a test cannot fail or a guard has no test, and the
   project's `CLAUDE.md` gives a test command that runs that test without a
-  build or a service, prove it. First run only the tests of that file as
-  they are; if they do not pass, skip the proof. Otherwise save a copy of the
-  source file in `$TMPDIR`, apply the change the finding names (or remove
-  the guard) to the file in place, run the same tests, then restore the file
-  from the copy and check with `cmp` that the two match. Tests that still
-  pass confirm the finding; an assertion that fails drops it. A run that
-  errors before asserting proves nothing. Say which findings were proven
-  this way and which were not run.
+  build or a service, prove it. Write the source file with the change the
+  finding names (or with the guard removed) to `$TMPDIR` from Bash, with
+  `sed` on the source or a heredoc, never to the source file itself. The
+  Write tool asks for permission outside the project. Then run
+  `node ${CLAUDE_SKILL_DIR}/scripts/prove-test.mjs <source> <mutant> -- <test command for that file>`.
+  The command runs with no shell: wrap shell syntax (`cd`, `&&`, a
+  variable before it) as `-- sh -c '<command>'`. The script runs the tests,
+  puts the mutant in place, runs them again, and restores the source, also
+  on a timeout or a stop. Its JSON gives `before` and `after`:
+  - `before: error`: the command did not start; fix the command and run it
+    again.
+  - `before: fail` or `timeout`: the tests fail as they are, so the proof
+    is skipped.
+  - `after: pass`: the tests still pass, which confirms the finding.
+  - `after: fail` with an assertion in `output`: the test catches it, so
+    the finding is dropped. A run that errors before asserting, or
+    `after: timeout`, proves nothing.
+  - `restored: false`: copy `copy` back over the source and tell the user.
+
+  Say which findings were proven this way and which were not run.
 - Recheck any number or fact a `must` rests on (a probability, a size, a
   call count) and re-grade the finding if it is wrong.
 - Merge findings that point at the same line and the same problem; keep the
