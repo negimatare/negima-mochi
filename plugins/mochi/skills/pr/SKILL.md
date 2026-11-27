@@ -24,7 +24,9 @@ The user's notes: `$ARGUMENTS`
   and push only when the user says so. When the `CLAUDE.md` has no such
   list, say so one time and suggest `/mochi:setup-project`.
 - The base is the argument, else the default branch
-  (`gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`), and it
+  (`node ${CLAUDE_PLUGIN_ROOT}/scripts/default-branch.mjs`; when it
+  finds none, `gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`),
+  and it
   differs from the current branch. A base other than the default branch is
   the branch of the part below: this pull request is **stacked** on it.
 - No PR exists yet (`gh pr view`). If one does, its base is the PR's
@@ -49,7 +51,7 @@ The user's notes: `$ARGUMENTS`
 
   When the script exits with an error, show its message and stop.
 - When `gh` is missing or not logged in, say so once and go on: take the
-  base from the argument or `git symbolic-ref refs/remotes/origin/HEAD`, and
+  base from the argument or the default branch, and
   write the draft. Only posting needs `gh`.
 
 When the repo has a `.github/pull_request_template.md`, use its sections: a

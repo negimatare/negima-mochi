@@ -1,6 +1,7 @@
 // PreToolUse on Bash: turn a git command that breaks a rule of the mochi
 // commit and pr skills into a permission prompt that names the rule. The
-// rules: no push to the default branch, no force push without the lease, no
+// rules: no push to the default branch (the integration branch of CLAUDE.md,
+// and origin/HEAD's), no force push without the lease, no
 // staging or committing of everything, no skipping of the git hooks. The
 // command is read as a shell reads it, so the words of a commit message, a
 // quoted string, a comment or a heredoc are not commands.
@@ -8,6 +9,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { isAbsolute, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { defaultBranches } from './default-branch.mjs';
 
 // Splits a command line into commands, each a list of words. Quotes, $(...),
 // $((...)), backticks, heredoc bodies and comments stay out of the command
@@ -189,10 +191,9 @@ const git = (cwd, args) => {
     return '';
   }
 };
-const defaultsIn = (cwd) => {
-  const head = git(cwd, ['symbolic-ref', '--short', 'refs/remotes/origin/HEAD']).replace(/^origin\//, '');
-  return head ? [head] : ['main', 'master'];
-};
+// The integration branch of CLAUDE.md and origin/HEAD's branch, or main and
+// master when origin/HEAD is not set.
+const defaultsIn = (cwd) => defaultBranches(cwd).protected;
 
 const pushProblems = (args, cwd) => {
   const problems = [];

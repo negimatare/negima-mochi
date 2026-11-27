@@ -136,6 +136,10 @@ const SCENARIOS = {
     good: [TEST, branch('feat/cart-total'), commit('feat(cart): x'), push('feat/cart-total')].join(' && '),
     bad: { 'pushes-a-feature-branch': [TEST, branch('feat/cart-total'), commit('feat(cart): x')].join(' && ') },
   },
+  'mochi/commit-branches-off-the-integration-branch': {
+    good: [TEST, branch('feat/item-count'), commit('feat(cart): x'), push('feat/item-count')].join(' && '),
+    bad: { 'pushes-a-feature-branch': [TEST, branch('feat/item-count'), commit('feat(cart): x')].join(' && ') },
+  },
   'mochi/commit-splits-unrelated-changes': {
     good: [TEST, commit('docs: readme', 'README.md'), commit('feat(cart): x')].join(' && '),
     bad: {

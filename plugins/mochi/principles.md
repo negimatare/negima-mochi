@@ -80,9 +80,12 @@ existing code starts with `/mochi:refactor <area>`, which audits the area and
 plans the refactor that build then implements. Bugs go through
 `/mochi:fix-bug`, reproduced by a failing test before any fix.
 `/mochi:review` reviews any change, and `/mochi:pr` opens the pull request.
-Nothing pushes to the default branch. Ask before you run a migration or
-change local infrastructure (a local database, containers). A project
-without a `CLAUDE.md` needs `/mochi:setup-project` first.
+The default branch is where work starts and pull requests go: the branch
+that a line ``Integration branch: `<name>` `` in the root `CLAUDE.md`
+names, else the branch of `origin/HEAD`. Nothing pushes to it, or to the
+branch of `origin/HEAD`. Ask before you run a migration or change local
+infrastructure (a local database, containers). A project without a
+`CLAUDE.md` needs `/mochi:setup-project` first.
 
 ## Writing
 
