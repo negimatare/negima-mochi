@@ -202,9 +202,9 @@ eval_kit() {  # eval_kit <plugin dir> [claude plugin eval options]
 M=claude-sonnet-5-5 eval_kit ./plugins/mochi --case commit-splits-unrelated-changes --runs 1 --ablation none --max-cost-usd 5
 
 # Before each release: the core cases, one time on each model, no baseline.
-# Approximately $12 on Opus and $6 on Sonnet for mochi.
-eval_kit ./plugins/mochi --tag core --runs 1 --ablation none --max-cost-usd 18 -j 4
-M=claude-sonnet-5-5 eval_kit ./plugins/mochi --tag core --runs 1 --ablation none --max-cost-usd 9 -j 4
+# Approximately $8 on Opus and $4 on Sonnet for mochi.
+eval_kit ./plugins/mochi --tag core --runs 1 --ablation none --max-cost-usd 12 -j 4
+M=claude-sonnet-5-5 eval_kit ./plugins/mochi --tag core --runs 1 --ablation none --max-cost-usd 6 -j 4
 
 # Before a major version, or when the default model changes: all cases one
 # time on each model, with the no-plugin baseline on Opus. Approximately $31
@@ -213,13 +213,15 @@ eval_kit ./plugins/mochi --runs 1 --max-cost-usd 40 -j 4
 M=claude-sonnet-5-5 eval_kit ./plugins/mochi --runs 1 --ablation none --max-cost-usd 15 -j 4
 ```
 
-The cost figures come from the 1.2.0 runs. A run that stops at its cap
-reports only part of the suite.
+The cost figures for the core cases come from the 1.4.0 runs, the others
+from the 1.2.0 runs. A run that stops at its cap reports only part of the
+suite.
 
 Add `--json` to each release run, with a new file name for each run, a
 rerun too, for example
 `--json ./plugins/mochi/evals/results/release-1.x.y/opus-1.json`. The tool
-writes a relative path below the current folder, not below the plugin. The
+writes a relative path below the current folder, not below the plugin; an
+absolute path works from any folder. The
 results folder is git-ignored, so then add all the runs of the release to
 the history in git:
 
@@ -233,8 +235,11 @@ the passes, the runs, and the graders that failed. The first command replaces th
 release, so give it every JSON of the release: then a rerun that passes
 does not hide the failure before it. A run that the cost cap cut off before
 its paid graders is not counted. `--demote` lists the core cases that
-passed every run on Opus and Sonnet in the last three releases. Remove the
-`core` tag from these cases.
+passed every run on Opus and Sonnet in the last three releases, and whose
+graders read the same as at the tag of the first of them. It lists a case
+whose graders changed apart: its record is of an older test, so it keeps
+`core`. Remove the `core` tag from the cases of the first list, except a
+case that guards a push, a force-push, data or the branch.
 
 The skill guidance from Anthropic asks for a minimum of three cases for each
 skill. It also asks you to test each case on all models that the kit
@@ -250,7 +255,8 @@ A tag gives the subject of a case:
 
 - **`mochi`**: `plan`, `build`, `split`, `fix-bug`, `commit`, `pr`, `setup`,
   `dependencies`, `review`, `refactor`, `tidy`, `correctness`, `tests`,
-  `hygiene`, `data` and `a11y`.
+  `hygiene`, `data`, `a11y` and `security` (a planted security hole that a
+  review must find).
 - **`mochi-react`**: one tag for each convention skill (`architecture`,
   `components`, `forms`, `i18n`, `performance`, `state`, `testing`). It also
   has `conventions` and `a11y` for its two reviewers.
@@ -263,10 +269,11 @@ The `smoke` tag marks the case with the lowest cost in `mochi` and in
 `mochi-python`.
 
 The `core` tag marks the `mochi` cases that run before each release:
-the main path of each workflow, and each case that guards a push, a
-force-push, data or the branch. A new case that guards one of these gets
-the `core` tag too. Repeated `--tag` options select the cases that have any
-of the tags.
+the main path of each workflow until `--demote` lists it (see Evals), and
+each case that guards a push, a force-push, data or the branch. A new case
+that guards one of these gets the `core` tag too. When you change a skill,
+also run the cases of its tag that left `core`. Repeated `--tag` options
+select the cases that have any of the tags.
 
 ### Shared fixtures
 
@@ -363,10 +370,15 @@ steps before these calls, and the behaviour of the kit when the calls fail.
   in the Claude Code sandbox.
 - `--no-publish` keeps the HTML report on your machine. Without this option,
   a claude.ai login publishes the report as a private artifact.
-- On macOS, `/usr/bin/git` is a shim that the sandbox blocks. Put a git that
-  the sandbox can read, for example the git from Homebrew, at the start of
-  `PATH`. The
-  `git-worked` grader fails a run that used the shim.
+- On macOS, a run finds only `/usr/bin/git`, the `xcrun` shim. This is
+  also so when the git from Homebrew is first on `PATH`. The shim works,
+  but it cannot write its cache in the sandbox:
+  each git command prints a `couldn't create cache file` line and a
+  `DVTFilePathFSEvents` line. These lines do no harm. A run that tries to
+  remove them by setting `DEVELOPER_DIR` to a folder that does not exist
+  breaks git: the shim then gives `Failed to locate 'git'`, and the
+  `git-worked` grader fails the run. Read such a failure as the
+  environment, not the kit.
 - The cases need Node 22.18 or later to run the `.ts` tests. Below your home
   folder, the sandbox can read only the folders on `PATH`. A Node from a
   version manager, for example mise or nvm, keeps npm in `lib/`. Its
@@ -381,8 +393,20 @@ steps before these calls, and the behaviour of the kit when the calls fail.
   other characters in its name, Claude puts quotes around the paths in the
   commands that it runs. This breaks graders that look for a command line, for example
   `renders-part-1` in `split-writes-the-parts-and-an-index`. Also, the
-  sandbox can prevent access to the plugin. Copy `plugins/` to `$TMPDIR`.
-  Then use the copy with `eval_kit`.
+  sandbox can prevent access to the plugin. Copy `plugins/` to one fixed
+  folder in `$TMPDIR`, and refresh it before each run:
+
+  ```bash
+  rsync -a --delete --exclude 'evals/results/' plugins/ "$TMPDIR/negima-eval/plugins/"
+  eval_kit "$TMPDIR/negima-eval/plugins/mochi" ...
+  ```
+
+  Plugin trust is for each folder. Run `claude plugin eval` on the copy
+  one time in a terminal and trust it there. Then a run with `--json`, or in
+  the background, does not stop at the trust prompt, and needs no
+  `--trust-plugin`.
+- `--case` takes one case. When you give it more than one time, only the
+  last one runs: run one command for each case.
 
 ## Branches
 

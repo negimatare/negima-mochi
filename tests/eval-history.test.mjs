@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -9,8 +9,9 @@ import { fileURLToPath } from 'node:url';
 const SCRIPT = fileURLToPath(new URL('../scripts/eval-history.mjs', import.meta.url));
 const HEADER = 'release\tcase\tmodel\tarm\tpasses\truns\tcost_usd\tseconds\tfailed';
 
+// The plugin sits in plugins/shop below the repository root, as in the kit.
 const pluginWith = (cases, history) => {
-  const dir = mkdtempSync(join(tmpdir(), 'eval-history-test-'));
+  const dir = join(mkdtempSync(join(tmpdir(), 'eval-history-test-')), 'plugins', 'shop');
   for (const [name, tags] of Object.entries(cases)) {
     mkdirSync(join(dir, 'evals', name), { recursive: true });
     writeFileSync(join(dir, 'evals', name, 'prompt.md'), `---\ndescription: x\ntags: [${tags}]\n---\n\nx\n`);
@@ -21,6 +22,24 @@ const pluginWith = (cases, history) => {
 };
 
 const run = (...args) => spawnSync(process.execPath, [SCRIPT, ...args], { encoding: 'utf8' });
+
+// --demote compares each case's graders with the tag of the first release.
+const git = (dir, ...args) => {
+  const result = spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+};
+const tagged = (dir, tag) => {
+  const root = join(dir, '..', '..');
+  git(root, 'init', '-q');
+  git(root, 'add', '-A');
+  git(root, '-c', 'user.name=t', '-c', 'user.email=t@example.invalid', 'commit', '-q', '--allow-empty', '-m', 'graders');
+  git(root, 'tag', tag);
+  return dir;
+};
+const grader = (dir, name, file, text) => {
+  mkdirSync(join(dir, 'evals', name, 'graders'), { recursive: true });
+  writeFileSync(join(dir, 'evals', name, 'graders', file), text);
+};
 
 // One row: release, case, model, arm, passes, runs, and the graders that failed.
 const row = (release, name, model, arm, passes, runs, failed = '') =>
@@ -48,10 +67,48 @@ test('--demote lists only core cases that passed every run on both models in thr
     { clean: 'pr, core', 'not-core': 'pr', rerun: 'pr, core', 'no-sonnet': 'pr, core', 'cut-off': 'pr, core' },
     history,
   );
-  const result = run(dir, '--demote');
+  const result = run(tagged(dir, 'v1.9.0'), '--demote');
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /1\.9\.0, 1\.10\.0, 1\.11\.0/);
   assert.deepEqual(result.stdout.match(/^- .*$/gm), ['- clean']);
+});
+
+test('--demote lists apart a case whose graders changed since the first release', () => {
+  const releases = ['1.9.0', '1.10.0', '1.11.0'];
+  const names = ['same', 'edited', 'added', 'removed', 'linked', 'still-linked'];
+  const dir = pluginWith(
+    Object.fromEntries(names.map((name) => [name, 'pr, core'])),
+    releases.flatMap((release) => names.flatMap((name) => cleanRows(release, name))),
+  );
+  for (const name of names) grader(dir, name, 'finds-it.md', '---\ntype: llm\n---\n\nPASS if x.\n');
+  grader(dir, 'removed', 'also.md', 'y\n');
+  mkdirSync(join(dir, 'evals', '_shared'));
+  writeFileSync(join(dir, 'evals', '_shared', 'finds-it.md'), '---\ntype: llm\n---\n\nPASS if x.\n');
+  rmSync(join(dir, 'evals', 'still-linked', 'graders', 'finds-it.md'));
+  symlinkSync('../../_shared/finds-it.md', join(dir, 'evals', 'still-linked', 'graders', 'finds-it.md'));
+  tagged(dir, 'v1.9.0');
+  grader(dir, 'edited', 'finds-it.md', '---\ntype: llm\n---\n\nPASS if z.\n');
+  grader(dir, 'added', 'more.md', 'z\n');
+  rmSync(join(dir, 'evals', 'removed', 'graders', 'also.md'));
+  // A file that git does not track, such as one from Finder, is no grader.
+  writeFileSync(join(dir, 'evals', 'same', 'graders', '.DS_Store'), 'x');
+  // A grader that became a link to the same text has not changed.
+  rmSync(join(dir, 'evals', 'linked', 'graders', 'finds-it.md'));
+  symlinkSync('../../_shared/finds-it.md', join(dir, 'evals', 'linked', 'graders', 'finds-it.md'));
+  const result = run(dir, '--demote');
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(result.stdout.match(/^- .*$/gm), ['- linked', '- same', '- still-linked']);
+  assert.deepEqual(result.stdout.match(/^\* .*$/gm), ['* added', '* edited', '* removed']);
+  assert.match(result.stdout, /changed since v1\.9\.0/);
+});
+
+test('--demote stops when it cannot read the tag of the first release', () => {
+  const releases = ['1.9.0', '1.10.0', '1.11.0'];
+  const dir = pluginWith({ clean: 'pr, core' }, releases.flatMap((release) => cleanRows(release, 'clean')));
+  const result = run(tagged(dir, 'v1.8.0'), '--demote');
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /Cannot read the graders at v1\.9\.0/);
+  assert.doesNotMatch(result.stdout, /^- /m);
 });
 
 test('--demote waits for three releases', () => {

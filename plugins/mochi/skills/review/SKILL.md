@@ -27,22 +27,23 @@ current branch), and `--base` when they name a base branch (a part stacked
 on another one). It runs `git fetch` and prints JSON. When it exits with an
 error, show the message and stop. Act on each field:
 
-- **`kind`**: `pr` for a pull request, also a branch or the current branch
-  that has an open one; `branch` or `current` otherwise. With `kind: pr`
-  and `gh: false`, gh could not read the pull request: say so and stop.
-- **`base`**: diff against its merge base with this ref: for a pull
-  request its `baseRefName` on origin, never the default branch. Where a
-  later step says `<base>`, it means `baseBranch`, the name without
-  `origin/`. When `base` is null, the base is unknown (no such branch, or
-  `default: null`): ask the user for it; never assume `master` or `main`.
+- **`kind: pr` with `gh: false`**: gh could not read the pull request:
+  say so and stop.
+- **`base`**: the ref to diff against, for example `origin/main`. Where a
+  later step says `<base>`, it means `baseBranch`, the branch name. When
+  `base` is null, ask the user for the base; never assume `master` or
+  `main`.
 - **`checkedOut: false`**: reviewers read the working tree, so ask the user
   before running `gh pr checkout <n>` or `git switch <head>`.
 - **`own: false`**: another person wrote the pull request, so the fix round
   edits no file of the change (step 7).
 - **`behind`** above 0: stop before reviewing. Say by how many commits the
   branch is behind `upstream`, and ask in one question whether to pull first
-  or review the local head. When `fetched` is false or `upstream` is null,
-  say so in one line and review the local head without asking.
+  or review the local head. In autonomous mode, when `checkedOut` is true,
+  run `git merge --ff-only <upstream>` instead, run the script again, and
+  review the result; on any failure, ask. When
+  `fetched` is false or `upstream` is null, say so in one line and review
+  the local head without asking.
 - **`uncommitted`**: on the current branch, these files are part of the
   change.
 - **`ahead: 0`** on the current branch: the change is only the
@@ -50,7 +51,8 @@ error, show the message and stop. Act on each field:
   whether to review those files or to audit the code as it stands with
   `/mochi:refactor <area>`.
 
-Never pull, reset, stash, or switch the user's branch without asking. Drop
+Never pull, reset, stash, or switch the user's branch without asking,
+apart from the fast-forward pull of autonomous mode. Drop
 every path the user put out of scope.
 
 ## 2. Resume before reviewing
@@ -83,13 +85,17 @@ order — server code that guards data first, shared code next, UI last — and
 confirm it with the user in one question before starting.
 
 Review **one area at a time**. Stop after each area and wait for the user.
+In autonomous mode, take the proposed order without asking, and go on to
+the next area after the fix round without a stop.
 For an area the user says was already reviewed, only look at the files they
 name as still needing review.
 
 ## 4. Review the area
 
-Write the area's diff to one file so reviewers do not each recompute it:
-`git diff <base>...HEAD -- <area files> > "$TMPDIR/review-<area>.diff"`
+Write the area's diff to one file so reviewers do not each recompute it.
+`<base ref>` is the `base` field of step 1, not the local base branch, which
+can be behind:
+`git diff <base ref>...HEAD -- <area files> > "$TMPDIR/review-<area>.diff"`
 (append `git diff -- <area files>` for uncommitted work).
 
 Then run the project's own checks. In the `## Verification` block of the
@@ -191,13 +197,11 @@ Verify in depth what would block merging; the rest waits until it is picked.
   Write tool asks for permission outside the project. Then run
   `node ${CLAUDE_SKILL_DIR}/scripts/prove-test.mjs <source> <mutant> -- <test command for that file>`.
   The command runs with no shell: wrap shell syntax (`cd`, `&&`, a
-  variable before it) as `-- sh -c '<command>'`. The script runs the tests,
-  puts the mutant in place, runs them again, and restores the source, also
-  on a timeout or a stop. Its JSON gives `before` and `after`:
+  variable before it) as `-- sh -c '<command>'`. Its JSON gives `before`,
+  the tests as they are, and `after`, with the mutant in place:
   - `before: error`: the command did not start; fix the command and run it
     again.
-  - `before: fail` or `timeout`: the tests fail as they are, so the proof
-    is skipped.
+  - `before: fail` or `timeout`: the tests fail as they are, so no proof.
   - `after: pass`: the tests still pass, which confirms the finding.
   - `after: fail` with an assertion in `output`: the test catches it, so
     the finding is dropped. A run that errors before asserting, or
@@ -281,16 +285,18 @@ On a pull request that another person wrote, edit no file outside
 user picks.
 
 Otherwise, fix what the user picks, offering the Critical and High findings
-first.
+first. In autonomous mode, fix each open Critical and High finding without
+asking, and leave the Medium and Minor ones open in the findings file.
 
 **The owning part.** On a stacked branch (its base is not the default
 branch), a cited line belongs to the part below when all three hold. For an
 inherited flaw, test the line of the original, not this part's copy.
 
 - `git blame -L <line>,<line> -- <path>` gives a commit that is an ancestor
-  of the base (`git merge-base --is-ancestor <sha> <base>`; use
-  `origin/<base>` when there is no local `<base>`). Exit code 1 means "not an
-  ancestor"; any other failure is an error to report, not an answer;
+  of the base: `git merge-base --is-ancestor <sha> <ref>` for `<base ref>`,
+  and for the local `<base>` when it exists, which can hold a fix not pushed
+  yet. Either one counts. Exit code 1 means "not an ancestor"; any other
+  failure is an error to report, not an answer;
 - that commit is not an ancestor of `origin/<default>`, so the line is not
   from the default branch;
 - the base's pull request is not merged (`gh pr view <base> --json state`;
@@ -318,7 +324,8 @@ Before fixing a Medium or Minor finding, confirm it as step 5 does for a
 `must`; one that does not hold is marked `[~]` with the reason. After
 the fixes, run the verification commands listed in the project's `CLAUDE.md`,
 update the checkboxes and the `Open:` line in the findings file, and move to
-the next area only when the user says so.
+the next area only when the user says so (in autonomous mode, without
+asking).
 
 ## 8. Comment on the pull request
 

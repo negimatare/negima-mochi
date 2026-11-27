@@ -1,6 +1,6 @@
 ---
 description: Planning a converted checkout total, where the request says to load the exchange rate the same way the handler loads the tax rates and CLAUDE.md says handlers stay thin, names the disagreement and asks the user which to follow before deciding, and writes no code. Opus asks without the kit too; Sonnet, with or without the kit, picked a side in the plan until the plan skill's step 2 said to stop and ask.
-tags: [plan, core]
+tags: [plan]
 max_turns: 40
 timeout_seconds: 1200
 allowed_tools: [Read, Glob, Grep, Skill, Agent, Bash, Write, Edit]

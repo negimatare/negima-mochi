@@ -17,7 +17,7 @@ const AGENT_ID = String.raw`\d+(?:-\d+)?-[a-z]+-[a-z]+`;
 // CONTRIBUTING's Tags section: the subject tags of each suite, then the
 // tags that any case can have.
 const SUBJECT_TAGS = {
-  mochi: 'plan build split fix-bug commit pr setup dependencies review refactor tidy correctness tests hygiene data a11y',
+  mochi: 'plan build split fix-bug commit pr setup dependencies review refactor tidy correctness tests hygiene data a11y security',
   'mochi-react': 'architecture components forms i18n performance state testing conventions a11y',
   'mochi-python': 'architecture domain service-layer api-design openapi persistence testing conventions api-contract',
 };

@@ -24,7 +24,9 @@ The user's notes: `$ARGUMENTS`
   and push only when the user says so. When the `CLAUDE.md` has no such
   list, say so one time and suggest `/mochi:setup-project`.
 - The base is the argument, else the default branch
-  (`gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`), and it
+  (`node ${CLAUDE_PLUGIN_ROOT}/scripts/default-branch.mjs`; when it
+  finds none, `gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`),
+  and it
   differs from the current branch. A base other than the default branch is
   the branch of the part below: this pull request is **stacked** on it.
 - No PR exists yet (`gh pr view`). If one does, its base is the PR's
@@ -34,13 +36,8 @@ The user's notes: `$ARGUMENTS`
   **stack check** finds a reason. After a `git fetch`, run
   `node ${CLAUDE_SKILL_DIR}/scripts/stack-check.mjs <base>` on this branch.
   It prints one JSON object:
-  - `restack` lists the reasons: the base's PR is merged (`base-merged`),
-    `origin/<base>` is gone (`base-gone`), the base has commits this branch
-    lacks (`base-moved`), the local base is ahead of `origin/<base>`
-    (`base-ahead`: a review fix on the base waits for its push), or this
-    branch and its upstream have diverged (`diverged`: a review fix on the
-    base leaves this state after its local restack). Restack when the list
-    is not empty.
+  - `restack` lists the reasons: `base-merged`, `base-gone`, `base-moved`,
+    `base-ahead` or `diverged`. Restack when the list is not empty.
   - `merged: null` means that gh cannot tell. Ask the user whether the base
     is merged, unless the arguments say so; `base-gone` makes a merge
     likely. A yes counts as `base-merged`: restack. Step 6 takes the base's
@@ -54,7 +51,7 @@ The user's notes: `$ARGUMENTS`
 
   When the script exits with an error, show its message and stop.
 - When `gh` is missing or not logged in, say so once and go on: take the
-  base from the argument or `git symbolic-ref refs/remotes/origin/HEAD`, and
+  base from the argument or the default branch, and
   write the draft. Only posting needs `gh`.
 
 When the repo has a `.github/pull_request_template.md`, use its sections: a
@@ -81,7 +78,7 @@ Then read what the branch already decided, when the files exist:
 ## 3. Write the body
 
 For a reviewer who arrives from a notification, the body has two sections,
-and a Screenshots table after them when the user gives images. Without a
+and a Screenshots table after them when there are images (step 5). Without a
 repo template, fill `${CLAUDE_SKILL_DIR}/assets/pr-body.md`, and keep its
 headings and its footer. With a repo template, fill the repo template, and
 add only the footer of `pr-body.md`:
@@ -94,14 +91,18 @@ add only the footer of `pr-body.md`:
   plan, say so, and give the reason from the commits or the plan. A drift
   is, for example, a different module, a different design, or a step that
   the code does not do. When neither gives a reason, ask the user in step 5.
-- **Screenshots** — only when the user gives a before image and an after
-  image: a table after the Why, with a Before column and an After column.
+- **Screenshots** — only when the user gives, or step 5 makes, a before
+  and an after image: a table after the Why, with a Before column and an
+  After column.
   Each image reference uses the absolute path of its image, in `<...>` when
   the path has a space: `![Before](</path/to/before.png>)`. In a
   regenerated body, keep the image URLs from `gh pr view --json body`.
   Without images, remove the section.
 - **Footer** — the rule and the `🍁 Generated with` line of `pr-body.md`,
   at the end of each body. It replaces any other "Generated with" line.
+
+Write each paragraph and each list item of the body on one line: GitHub
+shows each newline in a body as a line break.
 
 Add no other section: no risk, reading order, review asks, test plan or
 links. An open decision is a candidate comment (step 4). Step 5 owns an open
@@ -153,10 +154,30 @@ offer to fix it before the pull request goes out. Until the user declines
 the fix, the body does not mention it. When they decline, add one line to
 the Why that names the known gap, and show the body again before you post.
 
-When the diff changes markup or styles (templates, components, HTML, CSS)
+When the diff changes the UI (templates, components, widgets, HTML, CSS)
 and the user gave no images, offer in the reply to add a before and an
-after screenshot. With that offer, and whenever the body has screenshots,
-tell the user to check that the images show no customer data.
+after screenshot. When the project's `CLAUDE.md` has a `## Runtime check`
+command, offer to make them with it, and after a yes:
+
+1. Start clean: `rm -rf "$TMPDIR/pr-<slug>"`. Run the command on this
+   branch with `OUT="$TMPDIR/pr-<slug>/after"`.
+2. Run it on a copy of the base where this branch forked, so that the
+   checkout and `.git` stay as they are: after a `git fetch`,
+   `mkdir -p "$TMPDIR/pr-<slug>/base"` and
+   `git archive "$(git merge-base origin/<base> HEAD)" | tar -x -C "$TMPDIR/pr-<slug>/base"`.
+   From there, run the base's own `## Runtime check` command with
+   `OUT="$TMPDIR/pr-<slug>/before"`; when the base has none, give only
+   the After image and say why. The copy has no installed dependencies
+   and no ignored files: when its lockfile is the same as this branch's,
+   link the checkout's installed folder (`node_modules`, `.venv`) into it;
+   otherwise ask before installing anything, and with a no, give only the
+   After image. Remove the copy after, also when the command fails. Never
+   switch the checkout to the base for it.
+3. Put the screen that the diff changes, from each folder, in the
+   Screenshots table, and show the body again.
+
+With that offer, and whenever the body has screenshots, tell the user to
+check that the images show no customer data.
 
 Show the title, the body word for word with its image references, and the
 candidate comments in the reply. Ask which candidates to post, and ask the

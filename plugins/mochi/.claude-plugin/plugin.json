@@ -1,10 +1,21 @@
 {
   "name": "mochi",
   "displayName": "Mochi",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Language-agnostic working principles and the /mochi:* workflows — setup-project, build, refactor, fix-bug, review, pr — with the reviewers that apply to any stack",
   "author": {
     "name": "negimatare"
   },
-  "keywords": ["review", "principles"]
+  "keywords": [
+    "review",
+    "principles"
+  ],
+  "userConfig": {
+    "autonomous": {
+      "type": "boolean",
+      "title": "Autonomous mode",
+      "description": "Take the recommended answer at the reversible stops of the mochi skills (plan approval, findings pick, area order, split order). Build still pushes its feature branch; other pushes, pull requests, force-pushes and installs still ask.",
+      "default": false
+    }
+  }
 }

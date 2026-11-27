@@ -9,7 +9,8 @@
 //                branch, or the current branch, with an open pull request
 //                is that pull request.
 //   gh           false when gh is missing or failed; then pr is null
-//   default      the default branch from origin/HEAD, or null when unset
+//   default      the default branch: the integration branch of CLAUDE.md,
+//                else origin/HEAD's; null when neither is known
 //   base         the ref to diff against: origin/<baseRefName> for a pull
 //                request, else the --base branch (origin/<base> when it
 //                exists), else origin/<default>; null when that branch is
@@ -32,6 +33,7 @@
 //                else null
 // Any other git failure exits 1 with git's message.
 import { execFileSync } from 'node:child_process';
+import { defaultBranches } from '../../../scripts/default-branch.mjs';
 
 const args = process.argv.slice(2);
 let baseArg = null;
@@ -89,8 +91,7 @@ try {
     throw new Error(`no branch ${head}, here or on origin`);
   }
 
-  const originHead = attempt(() => git('symbolic-ref', '--short', 'refs/remotes/origin/HEAD'));
-  const defaultBranch = originHead ? originHead.replace(/^origin\//, '') : null;
+  const defaultBranch = defaultBranches(process.cwd()).integration;
   const baseName = pr ? pr.baseRefName : (baseArg ?? defaultBranch);
   const base = !baseName ? null : exists(`refs/remotes/origin/${baseName}`) ? `origin/${baseName}` : exists(baseName) ? baseName : null;
 

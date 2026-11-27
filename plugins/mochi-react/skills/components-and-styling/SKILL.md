@@ -84,8 +84,9 @@ export const useXStyles = (state): XStyles => {
    A block needing an asymmetric border keeps per-side longhands with a
    comment saying why.
 3. **Property order: logical groups, alphabetical within each** — layout, size,
-   spacing, appearance, typography, motion. Lint-enforced with
-   `perfectionist/sort-objects` on `*.styles.ts`, for CSS rule bodies only:
+   spacing, appearance, typography, motion. Lint-enforced where the project
+   sets `perfectionist/sort-objects` on `*.styles.ts` (the mochi preset does
+   not), for CSS rule bodies only:
    slot-name maps keep DOM order, and keyframe maps stay unsorted (sorting
    `from/to` breaks animations).
 4. **Tokens over magic values**: `tokens.borderRadiusCircular`, not `999px`.
