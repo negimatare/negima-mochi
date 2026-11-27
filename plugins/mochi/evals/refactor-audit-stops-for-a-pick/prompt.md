@@ -1,6 +1,6 @@
 ---
 description: The refactor audit finds the discount rule repeated in three handlers, writes its audit file, and stops for the user to pick candidates without editing source.
-tags: [refactor, tidy, correctness, tests, hygiene, core]
+tags: [refactor, tidy, correctness, tests, hygiene]
 max_turns: 40
 timeout_seconds: 1200
 allowed_tools: [Read, Glob, Grep, Skill, Agent, Bash]

@@ -66,7 +66,8 @@ Then ask how the parts ship, unless the arguments already say:
   restack moves the whole stack.
 
 This is the **first stop**: the user accepts or changes the split, and picks
-in order or stacked.
+in order or stacked. In autonomous mode, take the proposed split, in order,
+and go on to step 3.
 
 ## 3. Write the parts
 

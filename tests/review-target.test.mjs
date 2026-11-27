@@ -186,6 +186,14 @@ test('a base named in the arguments, and a repo with no origin/HEAD', () => {
   assert.equal(json.ahead, null);
 });
 
+test('the integration branch of CLAUDE.md is the default and the base', () => {
+  const dir = scaffold(BEHIND);
+  sh(dir, "git branch -q develop main && git update-ref refs/remotes/origin/develop main && printf '# Shop\\n\\nIntegration branch: `develop`\\n' > CLAUDE.md");
+  const { json } = target(dir, ['recent-export']);
+  assert.equal(json.default, 'develop');
+  assert.equal(json.base, 'origin/develop');
+});
+
 test('a branch with no upstream has behind null', () => {
   const dir = scaffold(BEHIND);
   sh(dir, 'git branch -q --unset-upstream');

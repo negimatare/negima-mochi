@@ -3,6 +3,10 @@
 <One paragraph: what it is, its stack, and what sits next to it that has its own
 conventions.>
 
+Integration branch: `<name>` <Only in the root CLAUDE.md, and only when
+pull requests go to a branch other than the one origin/HEAD names; one
+line, which the mochi scripts read.>
+
 ## Scope override
 
 <Only when an ancestor CLAUDE.md describes another stack or contradicts this
@@ -19,6 +23,16 @@ Run from this folder before calling a change done:
 ```
 
 <Build targets, if there is no single build command.>
+
+## Runtime check
+
+<Only when the project has a UI and a driver for it.> Opens the app with
+nothing real behind it (<the fakes: a device, a service, a sample config>)
+and saves a screenshot of each screen and a log to `$OUT`:
+
+```bash
+<driver command> --out "$OUT"
+```
 
 ## Before a push to an open PR
 

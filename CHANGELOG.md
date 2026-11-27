@@ -11,6 +11,77 @@ Each release has a section for each plugin that changed. **For contributors**
 lists the work on the kit itself, which does not change the installed
 plugins.
 
+## 1.5.0 — 2026-11-27
+
+The kit can now see a change in the running app, follow a project's
+integration branch, and, when you ask, take the recommended answer at its
+reversible stops. A review also diffs against the base on the remote.
+
+### mochi plugin
+
+- **Pull request bodies keep each paragraph on one line.** GitHub shows
+  each newline in a body as a line break, so `/mochi:pr` no longer wraps
+  a paragraph or a list item.
+- **A review diffs against the base on the remote.** Step 4 of
+  `/mochi:review` named the local base branch, which can be behind, while
+  step 1 named the ref on origin. It now uses that ref in both, and the
+  owning-part check of a stacked branch tries both the local and the
+  remote base.
+- **A runtime check shows the change in the running app.** A project can
+  name, in a `## Runtime check` section of its `CLAUDE.md`, a command that
+  opens the app on fakes and saves its screens and a log. `/mochi:build`
+  runs it after the last slice that changes the UI and looks at the
+  changed screens. `/mochi:pr` offers to make the before and after
+  screenshots with it, the base from a `git archive` copy, so the checkout
+  stays as it is. `/mochi:setup-project` names such a command when the
+  project has one.
+- **A project can name its integration branch.** One line in the root
+  `CLAUDE.md`, ``Integration branch: `develop` ``, makes it the default
+  branch of the mochi skills: commit branches off it, pr targets it, and
+  review diffs against it. The git hook now also asks before a push to it,
+  not only to the branch of `origin/HEAD`. `/mochi:setup-project` asks for
+  it when pull requests do not go to the branch of `origin/HEAD`.
+- **Autonomous mode, off by default.** With the word `autonomous` in a
+  request, or the new plugin option `autonomous`, review, build and split
+  take the recommended answer at their reversible stops and report each
+  choice: no plan approval when the bar-raiser gave no `must`, a fix of
+  each Critical and High finding, the areas in order, a split in order, and
+  a fast-forward of a checked-out branch that is behind. `/mochi:build`
+  still pushes its feature branch as before; any other push, a pull
+  request, a comment, a force-push and an install still ask.
+
+### mochi-react plugin
+
+- **The property order rule says where lint enforces it.** The
+  components-and-styling skill said `perfectionist/sort-objects` enforces it,
+  but the mochi preset does not set that rule: it is enforced only where
+  the project sets it.
+
+### For contributors
+
+- **The eval notes match the sandbox.** CONTRIBUTING says why each git
+  command in an eval trace prints two harmless lines, and what a `git-worked`
+  failure with `Failed to locate 'git'` means. It gives one fixed eval
+  folder that you trust one time, and says that `--case` takes one case.
+- **Five review cases plant a security hole.** An order read with no owner
+  check, a path from the query, SQL from an f-string, a secret in a `VITE_`
+  variable and a fetch of a URL from the request, each beside a safe decoy.
+  Opus and Sonnet find each hole with and without the kit, so the kit adds
+  no security reviewer. The cases, tagged `security`, guard what the kit
+  adds: the hole recorded as blocking at its line in the findings file.
+- **The release evals cost a third less.** 12 core cases that passed every
+  run in the last three releases, and guard no push, data or branch, leave
+  the `core` tag. `eval-history.mjs --demote` now lists a case whose graders
+  changed since the first of those releases apart, as it keeps `core`.
+- **The pr skill names the restack reasons once.** Step 1 gave the meaning
+  of each reason of `stack-check.mjs`, which step 6 already acts on.
+- **More graders check what a run did.** The plan cases fail an edit of
+  `src/`, the review case fails a switch to the part below, and the commit
+  and pr cases check that the failing command ran. Four reply checks of an
+  exact command or commit subject are regexes now, and one duplicate of a
+  findings-file grader is gone. The other llm graders judge meaning, and
+  stay.
+
 ## 1.4.0 — 2026-11-27
 
 The `main` branch now holds only releases, so an install gets the latest

@@ -6,6 +6,10 @@
           {
             "type": "command",
             "command": "cat \"${CLAUDE_PLUGIN_ROOT}\"/principles.md"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}\"/scripts/autonomous.mjs"
           }
         ]
       },

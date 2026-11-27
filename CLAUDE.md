@@ -27,16 +27,15 @@ steps. When the mochi plugin is not loaded, follow
 
 ## Project-specific rules
 
-- `mochitsuki` is the integration branch. When a mochi skill says "the
-  default branch", it means `mochitsuki` here: branch off it, and open each
-  pull request against it (`/mochi:pr mochitsuki`).
+- Integration branch: `mochitsuki`. The mochi skills read this line: they
+  branch off `mochitsuki` and open each pull request against it. `main`
+  gets only releases and hotfixes.
 - Examples, eval fixtures and skill text use a made-up domain, for example a
   shop. The repository is public: no names from a real codebase.
 - Keep the correctness, test, data and quick reviewers on `model: inherit`.
   Pinned to Sonnet, they cost more in each eval case.
 - A pull request body fills `plugins/mochi/skills/pr/assets/pr-body.md`, not
-  `.github/pull_request_template.md`. Write each paragraph on one line:
-  GitHub shows each newline as a line break.
+  `.github/pull_request_template.md`.
 - A `CHANGELOG.md` release: a short intro, `### Update` only when users must
   do a step, one `### <name> plugin` for each changed plugin, then `### For
   contributors`. Each item starts with a bold lead. No test details.

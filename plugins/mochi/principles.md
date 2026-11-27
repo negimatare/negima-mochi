@@ -80,9 +80,26 @@ existing code starts with `/mochi:refactor <area>`, which audits the area and
 plans the refactor that build then implements. Bugs go through
 `/mochi:fix-bug`, reproduced by a failing test before any fix.
 `/mochi:review` reviews any change, and `/mochi:pr` opens the pull request.
-Nothing pushes to the default branch. Ask before you run a migration or
-change local infrastructure (a local database, containers). A project
-without a `CLAUDE.md` needs `/mochi:setup-project` first.
+The default branch is where work starts and pull requests go: the branch
+that a line ``Integration branch: `<name>` `` in the root `CLAUDE.md`
+names, else the branch of `origin/HEAD`. Nothing pushes to it, or to the
+branch of `origin/HEAD`. Ask before you run a migration or change local
+infrastructure (a local database, containers). A project without a
+`CLAUDE.md` needs `/mochi:setup-project` first.
+
+## Autonomous mode
+
+Autonomous mode is on for a request that has the word `autonomous` on its
+own (not in a branch, path or file name), or when the session start says
+the plugin option is on, unless the request says `ask me`. A skill that
+runs another skill passes on `autonomous` or `ask me`. It changes only the
+stops for which a skill gives an autonomous answer: take that answer, say
+in one line what you chose, and list each choice in the final report.
+Every other ask stays: a push that the skill does not already make, a pull
+request or a comment, a force-push, an install, a switch of the branch,
+another person's pull request, a migration or a change of local
+infrastructure, a question on intent or scope, and a conflict with
+`CLAUDE.md`.
 
 ## Writing
 
