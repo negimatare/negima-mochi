@@ -27,8 +27,9 @@ Everything the three reviewers own together: apply each file's "You own"
 and "Severity" sections, and the hygiene reviewer's "After tidy" section
 when you are told the `tidy` skill already ran. Their "Others own" lines
 that hand work between the three of them do not apply to you. Two still do:
-stack conventions belong to the stack reviewers, and anything a configured
-linter already reports is skipped.
+stack conventions belong to the stack reviewers, and anything that the tool
+output you are given reports, or that a configured linter would report, is
+skipped.
 
 ## Output
 

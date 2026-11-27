@@ -92,6 +92,25 @@ Write the area's diff to one file so reviewers do not each recompute it:
 `git diff <base>...HEAD -- <area files> > "$TMPDIR/review-<area>.diff"`
 (append `git diff -- <area files>` for uncommitted work).
 
+Then run the project's own checks. In the `## Verification` block of the
+`CLAUDE.md` that owns the area (the nearest one above its files), take the
+typecheck and lint lines only: not tests, builds or services. Run each from
+that file's folder, one time for each `CLAUDE.md`, and reuse the output for
+each area under it. Write the command, its exit code and its output to
+`$TMPDIR/review-<area>-tools.txt`. A `CLAUDE.md` with no typecheck or lint
+line gives no file; say so in one line.
+
+On a pull request that another person wrote (`own: false`), these commands
+run their code, as a lint config is code. Ask one time, before the first
+area, and keep the answer for every area. When the user says no, run
+nothing and say so in one line.
+
+A command that fails on lines that this area adds or changes is one
+🟠 High finding. Cite the first problem on such a line, with the rule and
+the number of problems. The finding comes from the tool, not a reviewer:
+it keeps its grade, and step 5 does not merge it with a reviewer's finding.
+A failure only on other lines is one line in the report, not a finding.
+
 Then pick the tier. Count the area's changed lines, added plus removed, with
 `git diff --numstat` over the same ranges and files as the diff file,
 leaving out lockfiles and generated files. The area is **small** under 80 lines when its diff reaches
@@ -131,7 +150,8 @@ instructions. Never review the area yourself instead, however small.
 
 Start each launch's task description with the reviewer's role, for example
 `correctness reviewer — Python service/`, so the transcript shows who is doing
-what. Give each reviewer: the diff file path, the area's file list, the
+what. Give each reviewer: the diff file path, the tools file path when there
+is one, with "do not report what it reports", the area's file list, the
 `CLAUDE.md` path of the package that owns the area (the nearest one above its
 files), the user's notes (inspiration feature, already-reviewed parts), and,
 for a pull request, its title and body written to

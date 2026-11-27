@@ -66,8 +66,9 @@ End with `Scoped after tidy: no dead-code sweep.`
 ## Others own
 
 Logic and security (correctness-reviewer), tests (test-reviewer), stack
-conventions (stack reviewers). Leave anything a configured linter already
-reports — the project's `CLAUDE.md` lists its lint command.
+conventions (stack reviewers). Leave anything that the tool output you are
+given reports, or that a configured linter would report — the project's
+`CLAUDE.md` lists its lint command.
 
 ## Severity
 
