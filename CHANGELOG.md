@@ -27,6 +27,12 @@ Small fixes after 1.4.0.
   command in an eval trace prints two harmless lines, and what a `git-worked`
   failure with `Failed to locate 'git'` means. It gives one fixed eval
   folder that you trust one time, and says that `--case` takes one case.
+- **Five review cases plant a security hole.** An order read with no owner
+  check, a path from the query, SQL from an f-string, a secret in a `VITE_`
+  variable and a fetch of a URL from the request, each beside a safe decoy.
+  Opus and Sonnet find each hole with and without the kit, so the kit adds
+  no security reviewer. The cases, tagged `security`, guard what the kit
+  adds: the hole recorded as blocking at its line in the findings file.
 
 ## 1.4.0 — 2026-11-27
 
