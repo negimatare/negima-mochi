@@ -67,7 +67,7 @@ Small fixes after 1.4.0.
   of each reason of `stack-check.mjs`, which step 6 already acts on.
 - **More graders check what a run did.** The plan cases fail an edit of
   `src/`, the review case fails a switch to the part below, and the commit
-  and pr cases check that the failing command ran. Three reply checks of an
+  and pr cases check that the failing command ran. Four reply checks of an
   exact command or commit subject are regexes now, and one duplicate of a
   findings-file grader is gone. The other llm graders judge meaning, and
   stay.
