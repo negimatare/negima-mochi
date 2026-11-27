@@ -31,8 +31,8 @@ Small fixes after 1.4.0.
   check, a path from the query, SQL from an f-string, a secret in a `VITE_`
   variable and a fetch of a URL from the request, each beside a safe decoy.
   Opus and Sonnet find each hole with and without the kit, so the kit adds
-  no security reviewer; the cases, tagged `security`, guard the review's
-  trust-boundary checks.
+  no security reviewer. The cases, tagged `security`, guard what the kit
+  adds: the hole recorded as blocking at its line in the findings file.
 
 ## 1.4.0 — 2026-11-27
 

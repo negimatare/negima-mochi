@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: '\[[ x]\][^\n]*?(🔴 Critical|🟠 High)\s+src/downloads\.ts:1[1-3](?![\d-])'
+pattern: '\[[ x]\][^\n]*?(🔴 Critical|🟠 High)\??\s+src/downloads\.ts:1[1-3](?!\d)'
 target:
   source: file
   path: .eval/review.md
