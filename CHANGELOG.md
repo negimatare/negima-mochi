@@ -34,6 +34,19 @@ one release.
   import, it removes the preset again and stops. It merges the Ruff
   preset into the file that Ruff reads, and keeps your own `select`. You
   agree before each edit.
+- **`/mochi:review` finds the change with a script.** The pull request,
+  its base, its author, and how far the branch is behind its upstream come
+  from one script instead of separate git and gh calls. A detached HEAD and
+  a pull request from a fork now resolve too. The review asks before it
+  switches to a branch that is not checked out.
+- **The test proof restores your file.** When a review proves that a test
+  cannot fail, a script puts the changed file in place, runs the tests with
+  a time limit, and puts your file back, also when the run hangs or is
+  stopped.
+- **A small change in a library gets the quick reviewer.** A package counts
+  as published only when its manifest or its release workflow says so, so
+  the exports of a library with no manifest no longer send a small change
+  to the full panel.
 
 ### mochi-react plugin
 
