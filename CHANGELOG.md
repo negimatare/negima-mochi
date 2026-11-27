@@ -25,13 +25,6 @@ Small fixes after 1.4.0.
   step 1 named the ref on origin. It now uses that ref in both, and the
   owning-part check of a stacked branch tries both the local and the
   remote base.
-
-### mochi-react plugin
-
-- **The property order rule says where lint enforces it.** The
-  components-and-styling skill said `perfectionist/sort-objects` enforces it,
-  but the mochi preset does not set that rule: it is enforced only where
-  the project sets it.
 - **A runtime check shows the change in the running app.** A project can
   name, in a `## Runtime check` section of its `CLAUDE.md`, a command that
   opens the app on fakes and saves its screens and a log. `/mochi:build`
@@ -40,6 +33,13 @@ Small fixes after 1.4.0.
   screenshots with it, the base from a `git archive` copy, so the checkout
   stays as it is. `/mochi:setup-project` names such a command when the
   project has one.
+
+### mochi-react plugin
+
+- **The property order rule says where lint enforces it.** The
+  components-and-styling skill said `perfectionist/sort-objects` enforces it,
+  but the mochi preset does not set that rule: it is enforced only where
+  the project sets it.
 
 ### For contributors
 
