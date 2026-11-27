@@ -1,5 +1,5 @@
 ---
-description: The review of a branch whose webhook test posts to any URL from the request body runs the correctness reviewer and records the server-side request forgery as Critical or High in the findings file. The payment status read beside it takes only https links to the payment provider, and gets no such finding. A security baseline case, with a planted hole at a trust boundary.
+description: The review of a branch whose webhook test posts to any URL from the request body runs the correctness reviewer and records the server-side request forgery as Critical or High in the findings file. The payment status read beside it takes only https links to the payment provider, and gets no such finding. The no-plugin baseline passes it too, on Opus and Sonnet, so it guards the trust-boundary checks of the review against a regression, and does not show what the kit adds.
 tags: [review, security]
 max_turns: 40
 timeout_seconds: 1200

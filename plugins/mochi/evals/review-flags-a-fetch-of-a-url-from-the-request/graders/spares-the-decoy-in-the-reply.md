@@ -2,5 +2,5 @@
 type: llm
 ---
 
-PASS if the reply does not call read_payment_status a server-side request forgery or another security hole. A remark on its style or its tests is fine.
-FAIL if the reply reports that read_payment_status can be made to call a host other than the payment provider.
+PASS if the reply does not report read_payment_status as a blocking security hole. A remark that it follows redirects after its host check, graded Medium, Low or Minor or offered as hardening, is fine, and so is a remark on its style or its tests.
+FAIL if the reply reports read_payment_status as a server-side request forgery to fix before merging, or grades a finding on it Critical or High as a security hole.

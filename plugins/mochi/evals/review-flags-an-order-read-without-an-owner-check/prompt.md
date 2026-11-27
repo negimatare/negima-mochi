@@ -1,5 +1,5 @@
 ---
-description: The review of a branch that adds an order route with no check that the order belongs to the signed-in customer runs the correctness reviewer and records the hole as Critical or High in the findings file. The invoice route beside it checks the owner, and gets no such finding. A security baseline case, with a planted hole at a trust boundary.
+description: The review of a branch that adds an order route with no check that the order belongs to the signed-in customer runs the correctness reviewer and records the hole as Critical or High in the findings file. The invoice route beside it checks the owner, and gets no such finding. The no-plugin baseline passes it too, on Opus and Sonnet, so it guards the trust-boundary checks of the review against a regression, and does not show what the kit adds.
 tags: [review, security]
 max_turns: 40
 timeout_seconds: 1200

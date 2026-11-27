@@ -1,5 +1,5 @@
 ---
-description: The review of a branch that reads the payment provider's secret key from a VITE_ variable, which Vite builds into the browser bundle, runs a reviewer and records the leak as Critical or High in the findings file. The publishable key beside it is meant for the browser, and gets no such finding. A security baseline case, with a planted hole. The tier rule names no secret as a trust boundary, so the quick reviewer may take it.
+description: The review of a branch that reads the payment provider's secret key from a VITE_ variable, which Vite builds into the browser bundle, runs a reviewer and records the leak as Critical or High in the findings file. The publishable key beside it is meant for the browser, and gets no such finding. The tier rule names no secret as a trust boundary, so the quick reviewer may take it. The no-plugin baseline passes it too, on Opus and Sonnet, so it guards the trust-boundary checks of the review against a regression, and does not show what the kit adds.
 tags: [review, security]
 max_turns: 40
 timeout_seconds: 1200
