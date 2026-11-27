@@ -24,7 +24,7 @@ Small fixes after 1.4.0.
 ### For contributors
 
 - **The eval notes match the sandbox.** CONTRIBUTING says why each git
-  command in an eval trace prints two cache lines, and what a `git-worked`
+  command in an eval trace prints two harmless lines, and what a `git-worked`
   failure with `Failed to locate 'git'` means. It gives one fixed eval
   folder that you trust one time, and says that `--case` takes one case.
 

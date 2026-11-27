@@ -219,7 +219,8 @@ reports only part of the suite.
 Add `--json` to each release run, with a new file name for each run, a
 rerun too, for example
 `--json ./plugins/mochi/evals/results/release-1.x.y/opus-1.json`. The tool
-writes a relative path below the current folder, not below the plugin. The
+writes a relative path below the current folder, not below the plugin; an
+absolute path works from any folder. The
 results folder is git-ignored, so then add all the runs of the release to
 the history in git:
 
@@ -363,9 +364,9 @@ steps before these calls, and the behaviour of the kit when the calls fail.
   in the Claude Code sandbox.
 - `--no-publish` keeps the HTML report on your machine. Without this option,
   a claude.ai login publishes the report as a private artifact.
-- On macOS, the sandbox cannot read `/opt/homebrew`, so a run finds only
-  `/usr/bin/git`, the `xcrun` shim, also when the git from Homebrew is first
-  on `PATH`. The shim works, but it cannot write its cache in the sandbox:
+- On macOS, a run finds only `/usr/bin/git`, the `xcrun` shim. This is
+  also so when the git from Homebrew is first on `PATH`. The shim works,
+  but it cannot write its cache in the sandbox:
   each git command prints a `couldn't create cache file` line and a
   `DVTFilePathFSEvents` line. These lines do no harm. A run that tries to
   remove them by setting `DEVELOPER_DIR` to a folder that does not exist
@@ -390,7 +391,7 @@ steps before these calls, and the behaviour of the kit when the calls fail.
   folder in `$TMPDIR`, and refresh it before each run:
 
   ```bash
-  rsync -a --delete plugins/ "$TMPDIR/negima-eval/plugins/"
+  rsync -a --delete --exclude 'evals/results/' plugins/ "$TMPDIR/negima-eval/plugins/"
   eval_kit "$TMPDIR/negima-eval/plugins/mochi" ...
   ```
 
@@ -399,8 +400,7 @@ steps before these calls, and the behaviour of the kit when the calls fail.
   the background, does not stop at the trust prompt, and needs no
   `--trust-plugin`.
 - `--case` takes one case. When you give it more than one time, only the
-  last one runs: run one command for each case. A relative `--json` path
-  is below the current folder; an absolute path works from any folder.
+  last one runs: run one command for each case.
 
 ## Branches
 
