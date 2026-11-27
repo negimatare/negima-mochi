@@ -35,8 +35,17 @@ const target = (dir, args = [], gh) => {
   const result = spawnSync(process.execPath, [SCRIPT, ...args], { cwd: dir, encoding: 'utf8', env: { ...ENV, PATH: pathWith(gh) } });
   return { ...result, json: result.status === 0 ? JSON.parse(result.stdout) : undefined };
 };
-const FIELDS = 'number,state,baseRefName,headRefName,author';
-const pr = (number, base, head, author, state = 'OPEN') => ({ number, state, baseRefName: base, headRefName: head, author: { login: author } });
+const FIELDS = 'number,state,baseRefName,headRefName,headRefOid,isCrossRepository,author';
+const NO_OID = '0'.repeat(40);
+const pr = (number, base, head, author, state = 'OPEN', fork = {}) => ({
+  number,
+  state,
+  baseRefName: base,
+  headRefName: head,
+  headRefOid: fork.oid ?? NO_OID,
+  isCrossRepository: fork.cross ?? false,
+  author: { login: author },
+});
 
 test('a branch one commit behind its upstream gives behind 1', () => {
   const dir = scaffold(BEHIND);
@@ -47,6 +56,7 @@ test('a branch one commit behind its upstream gives behind 1', () => {
     gh: false,
     default: 'main',
     base: 'origin/main',
+    baseBranch: 'main',
     head: 'recent-export',
     checkedOut: true,
     own: true,
@@ -60,10 +70,11 @@ test('a branch one commit behind its upstream gives behind 1', () => {
 
 test('a failed fetch leaves behind unknown, and the current branch is the target', () => {
   const dir = scaffold(SMALL);
+  sh(dir, 'git remote set-url origin "$PWD/no-such-origin.git"');
   const { json } = target(dir);
   assert.equal(json.kind, 'current');
   assert.equal(json.head, 'discount-rounding');
-  assert.equal(json.fetched, false, 'origin is https://example.invalid');
+  assert.equal(json.fetched, false);
   assert.equal(json.behind, null);
   assert.equal(json.base, 'origin/main');
   assert.equal(json.ahead, 1);
@@ -73,30 +84,42 @@ test('a failed fetch leaves behind unknown, and the current branch is the target
 
 test('a pull request by another person names its base and its author', () => {
   const dir = scaffold(BEHIND);
-  const gh = { [`pr view 7 --json ${FIELDS}`]: pr(7, 'main', 'recent-export', 'ana'), 'api user --jq .login': 'me' };
+  sh(dir, 'git push -q origin main:release');
+  const gh = { [`pr view 7 --json ${FIELDS}`]: pr(7, 'release', 'recent-export', 'ana'), 'api user --jq .login': 'me' };
   const { json } = target(dir, ['7'], gh);
   assert.equal(json.kind, 'pr');
-  assert.deepEqual(json.pr, { number: 7, baseRefName: 'main', headRefName: 'recent-export', author: 'ana' });
-  assert.equal(json.base, 'origin/main');
+  assert.deepEqual(json.pr, { number: 7, baseRefName: 'release', headRefName: 'recent-export', author: 'ana' });
+  assert.equal(json.base, 'origin/release', 'the base of the pull request, not the default branch');
+  assert.equal(json.baseBranch, 'release');
   assert.equal(json.own, false);
   assert.equal(json.checkedOut, true);
   assert.equal(json.behind, 1);
   gh['api user --jq .login'] = 'ana';
   assert.equal(target(dir, ['7'], gh).json.own, true);
   delete gh['api user --jq .login'];
-  assert.equal(target(dir, ['7'], gh).json.own, true, 'gh api user fails: the pull request is the user\'s own');
+  assert.equal(target(dir, ['7'], gh).json.own, true, "gh api user fails: the pull request is the user's own");
+  const merged = { [`pr view 7 --json ${FIELDS}`]: pr(7, 'release', 'recent-export', 'ana', 'MERGED') };
+  assert.equal(target(dir, ['7'], merged).json.pr?.number, 7, 'a pull request named by number is the target, merged or not');
+});
+
+test('a pull request number without a working gh gives gh false', () => {
+  const { json } = target(scaffold(BEHIND), ['7']);
+  assert.equal(json.kind, 'pr');
+  assert.equal(json.gh, false);
+  assert.equal(json.pr, null);
 });
 
 test('a pull request URL works as its number, and a head that is not checked out says so', () => {
   const dir = scaffold(BEHIND);
-  sh(dir, 'git switch -q main');
+  sh(dir, 'git switch -q main && git branch -q --unset-upstream recent-export');
   const gh = { [`pr view https://github.com/o/r/pull/7 --json ${FIELDS}`]: pr(7, 'main', 'recent-export', 'ana') };
   const { json } = target(dir, ['https://github.com/o/r/pull/7'], gh);
   assert.equal(json.kind, 'pr');
   assert.equal(json.head, 'recent-export');
   assert.equal(json.checkedOut, false);
   assert.equal(json.uncommitted, null, 'the working tree is not the change');
-  assert.equal(json.behind, 1, 'the local head branch is still compared with its upstream');
+  assert.equal(json.upstream, 'origin/recent-export', 'with no upstream set, the head branch on origin');
+  assert.equal(json.behind, 1, 'the local head branch is still compared with origin');
 });
 
 test('a branch or the current branch with an open pull request is reviewed as that pull request', () => {
@@ -113,11 +136,49 @@ test('a branch or the current branch with an open pull request is reviewed as th
   assert.equal(none.gh, true, 'no pull request is an answer, not a gh failure');
 });
 
+test('a pull request from a fork is checked out only when HEAD is on its line', () => {
+  const dir = scaffold(BEHIND);
+  sh(dir, 'git switch -q main');
+  const fork = (oid) => ({ [`pr view 8 --json ${FIELDS}`]: pr(8, 'main', 'main', 'ana', 'OPEN', { cross: true, oid }) });
+  let { json } = target(dir, ['8'], fork(NO_OID));
+  assert.equal(json.head, 'main');
+  assert.equal(json.checkedOut, false, "your own main is not the fork's main");
+  assert.equal(json.upstream, null, "origin/main is not the fork's branch");
+  assert.equal(json.behind, null);
+  assert.equal(json.uncommitted, null);
+  ({ json } = target(dir, ['8'], fork(sh(dir, 'git rev-parse HEAD').trim())));
+  assert.equal(json.checkedOut, true, "gh pr checkout put the fork's commits here");
+});
+
+test('a branch only on origin is reviewed from origin', () => {
+  const dir = scaffold(BEHIND);
+  sh(dir, 'git switch -q main && git branch -q -D recent-export');
+  const { json } = target(dir, ['recent-export']);
+  assert.equal(json.head, 'recent-export');
+  assert.equal(json.checkedOut, false);
+  assert.equal(json.upstream, null);
+  assert.equal(json.ahead, 2, "origin has the teammate's commit too");
+});
+
+test('a detached HEAD is the current change', () => {
+  const dir = scaffold(BEHIND);
+  sh(dir, 'git switch -q --detach && echo "// wip" >> src/translation.ts');
+  const { json } = target(dir);
+  assert.equal(json.kind, 'current');
+  assert.equal(json.head, null);
+  assert.equal(json.checkedOut, true);
+  assert.equal(json.ahead, 1);
+  assert.deepEqual(json.uncommitted, [' M src/translation.ts']);
+});
+
 test('a base named in the arguments, and a repo with no origin/HEAD', () => {
   const dir = scaffold(BEHIND);
   sh(dir, 'git branch -q stacked-base main');
   assert.equal(target(dir, ['recent-export', '--base', 'stacked-base']).json.base, 'stacked-base');
   assert.equal(target(dir, ['recent-export', '--base', 'main']).json.base, 'origin/main', 'origin/<base> first');
+  const missing = target(dir, ['recent-export', '--base', 'nope']).json;
+  assert.equal(missing.base, null, 'a base that does not exist is unknown');
+  assert.equal(missing.baseBranch, null);
   sh(dir, 'git symbolic-ref -d refs/remotes/origin/HEAD');
   const { json } = target(dir, ['recent-export']);
   assert.equal(json.default, null);

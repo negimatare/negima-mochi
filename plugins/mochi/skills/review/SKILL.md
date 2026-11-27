@@ -31,9 +31,10 @@ error, show the message and stop. Act on each field:
   that has an open one; `branch` or `current` otherwise. With `kind: pr`
   and `gh: false`, gh could not read the pull request: say so and stop.
 - **`base`**: diff against its merge base with this ref: for a pull
-  request its `baseRefName` on origin, never the default branch. When it
-  is null, no default branch is known (`default: null`): ask the user for
-  the base; never assume `master` or `main`.
+  request its `baseRefName` on origin, never the default branch. Where a
+  later step says `<base>`, it means `baseBranch`, the name without
+  `origin/`. When `base` is null, the base is unknown (no such branch, or
+  `default: null`): ask the user for it; never assume `master` or `main`.
 - **`checkedOut: false`**: reviewers read the working tree, so ask the user
   before running `gh pr checkout <n>` or `git switch <head>`.
 - **`own: false`**: another person wrote the pull request, so the fix round
@@ -42,11 +43,12 @@ error, show the message and stop. Act on each field:
   branch is behind `upstream`, and ask in one question whether to pull first
   or review the local head. When `fetched` is false or `upstream` is null,
   say so in one line and review the local head without asking.
+- **`uncommitted`**: on the current branch, these files are part of the
+  change.
 - **`ahead: 0`** on the current branch: the change is only the
   `uncommitted` files. Before splitting them into areas, ask in one question
   whether to review those files or to audit the code as it stands with
-  `/mochi:refactor <area>`. On the current branch, the `uncommitted` files
-  are part of the change.
+  `/mochi:refactor <area>`.
 
 Never pull, reset, stash, or switch the user's branch without asking. Drop
 every path the user put out of scope.
@@ -96,8 +98,8 @@ leaving out lockfiles and generated files. The area is **small** under 80 lines 
 no trust boundary: database access, auth or permissions, a route or request
 handler, or what a published package exports. A package is published only
 as the "Libraries" item of `${CLAUDE_PLUGIN_ROOT}/agents/hygiene-reviewer.md`
-defines it, from its manifest: a "library" in `CLAUDE.md` with no manifest,
-or with `"private": true`, is not, and its exports are no trust boundary.
+defines it. A "library" in `CLAUDE.md` with no manifest, or with
+`"private": true`, is not published. Its exports are no trust boundary.
 An area the user asks a full review for is never small. Say in one line
 which tier each area got, and why.
 
@@ -167,10 +169,14 @@ Verify in depth what would block merging; the rest waits until it is picked.
   finding names (or with the guard removed) to `$TMPDIR` with the Write
   tool, never to the source file itself. Then run
   `node ${CLAUDE_SKILL_DIR}/scripts/prove-test.mjs <source> <mutant> -- <test command for that file>`.
-  It runs the tests, puts the mutant in place, runs them again, and always
-  restores the source. Its JSON gives `before` and `after`:
-  - `before` not `pass`: the tests fail as they are, so the proof is
-    skipped.
+  The command runs with no shell: wrap shell syntax (`cd`, `&&`, a
+  variable before it) as `-- sh -c '<command>'`. The script runs the tests,
+  puts the mutant in place, runs them again, and restores the source, also
+  on a timeout or a stop. Its JSON gives `before` and `after`:
+  - `before: error`: the command did not start; fix the command and run it
+    again.
+  - `before: fail` or `timeout`: the tests fail as they are, so the proof
+    is skipped.
   - `after: pass`: the tests still pass, which confirms the finding.
   - `after: fail` with an assertion in `output`: the test catches it, so
     the finding is dropped. A run that errors before asserting, or
