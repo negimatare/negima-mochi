@@ -21,6 +21,13 @@ Small fixes after 1.4.0.
   each newline in a body as a line break, so `/mochi:pr` no longer wraps
   a paragraph or a list item.
 
+### mochi-react plugin
+
+- **The property order rule says where lint enforces it.** The
+  components-and-styling skill said `perfectionist/sort-objects` enforces it,
+  but the mochi preset does not set that rule: it is enforced only where
+  the project sets it.
+
 ### For contributors
 
 - **The eval notes match the sandbox.** CONTRIBUTING says why each git
@@ -37,6 +44,8 @@ Small fixes after 1.4.0.
   run in the last three releases, and guard no push, data or branch, leave
   the `core` tag. `eval-history.mjs --demote` now lists a case whose graders
   changed since the first of those releases apart, as it keeps `core`.
+- **The pr skill names the restack reasons once.** Step 1 gave the meaning
+  of each reason of `stack-check.mjs`, which step 6 already acts on.
 
 ## 1.4.0 — 2026-11-27
 
