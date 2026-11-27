@@ -46,6 +46,10 @@ Read, do not ask:
   deploy steps, steps that need a secret, and steps that need a service, and
   note each job that cannot run locally.
 - **Build targets** when there is no single build command.
+- **A runtime check**: a script that opens the app on fakes and saves its
+  screens (for example a `drive` script, or a Playwright run on a mock
+  server). Name it in the Runtime check section only when it exists; never
+  write one here, and with a UI but no such script, say so once.
 - **Path aliases** in `tsconfig*.json` and bundler configs, and whether they
   must stay in sync across files.
 - **Lint config**: what it enforces (boundaries, hook rules, accessibility,

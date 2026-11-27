@@ -20,6 +20,16 @@ Run from this folder before calling a change done:
 
 <Build targets, if there is no single build command.>
 
+## Runtime check
+
+<Only when the project has a UI and a driver for it.> Opens the app with
+nothing real behind it (<the fakes: a device, a service, a sample config>)
+and saves a screenshot of each screen and a log to `$OUT`:
+
+```bash
+<driver command> --out "$OUT"
+```
+
 ## Before a push to an open PR
 
 The commands of the `pull_request` CI jobs that Verification does not run.

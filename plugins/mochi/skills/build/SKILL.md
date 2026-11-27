@@ -73,7 +73,15 @@ Take the slices in the plan's order. For each one:
    has screens, the UI matches their `after` views and reuses the components
    they name.
 3. **Verify.** Run the project's verification commands from its `CLAUDE.md`,
-   all passing.
+   all passing. On the last slice that changes the UI or how the app
+   starts (its entry point, its startup config or wiring), also run the
+   `## Runtime check` command of that `CLAUDE.md`, when it has one, with
+   `OUT="$TMPDIR/runtime-<slug>"`. Read the log, look at the screenshots
+   of the screens the change touches, and say in one line what they show.
+   A failing exit, an error in the log, or a screen that shows the change
+   wrong fails the slice. When the driver cannot reach the changed state
+   (an error state, a dialog, a hover), say so in one line; that does not
+   fail the slice, and the driver is not changed to reach it.
 4. **Tidy.** Run the `tidy` skill with the plan path. If it stops to ask
    about a cross-subsystem refactor, that question goes to the user before
    continuing.
