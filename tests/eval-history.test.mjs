@@ -9,8 +9,9 @@ import { fileURLToPath } from 'node:url';
 const SCRIPT = fileURLToPath(new URL('../scripts/eval-history.mjs', import.meta.url));
 const HEADER = 'release\tcase\tmodel\tarm\tpasses\truns\tcost_usd\tseconds\tfailed';
 
+// The plugin sits in plugins/shop below the repository root, as in the kit.
 const pluginWith = (cases, history) => {
-  const dir = mkdtempSync(join(tmpdir(), 'eval-history-test-'));
+  const dir = join(mkdtempSync(join(tmpdir(), 'eval-history-test-')), 'plugins', 'shop');
   for (const [name, tags] of Object.entries(cases)) {
     mkdirSync(join(dir, 'evals', name), { recursive: true });
     writeFileSync(join(dir, 'evals', name, 'prompt.md'), `---\ndescription: x\ntags: [${tags}]\n---\n\nx\n`);
@@ -28,10 +29,11 @@ const git = (dir, ...args) => {
   assert.equal(result.status, 0, result.stderr);
 };
 const tagged = (dir, tag) => {
-  git(dir, 'init', '-q');
-  git(dir, 'add', '-A');
-  git(dir, '-c', 'user.name=t', '-c', 'user.email=t@example.invalid', 'commit', '-q', '--allow-empty', '-m', 'graders');
-  git(dir, 'tag', tag);
+  const root = join(dir, '..', '..');
+  git(root, 'init', '-q');
+  git(root, 'add', '-A');
+  git(root, '-c', 'user.name=t', '-c', 'user.email=t@example.invalid', 'commit', '-q', '--allow-empty', '-m', 'graders');
+  git(root, 'tag', tag);
   return dir;
 };
 const grader = (dir, name, file, text) => {
@@ -88,6 +90,8 @@ test('--demote lists apart a case whose graders changed since the first release'
   grader(dir, 'edited', 'finds-it.md', '---\ntype: llm\n---\n\nPASS if z.\n');
   grader(dir, 'added', 'more.md', 'z\n');
   rmSync(join(dir, 'evals', 'removed', 'graders', 'also.md'));
+  // A file that git does not track, such as one from Finder, is no grader.
+  writeFileSync(join(dir, 'evals', 'same', 'graders', '.DS_Store'), 'x');
   // A grader that became a link to the same text has not changed.
   rmSync(join(dir, 'evals', 'linked', 'graders', 'finds-it.md'));
   symlinkSync('../../_shared/finds-it.md', join(dir, 'evals', 'linked', 'graders', 'finds-it.md'));

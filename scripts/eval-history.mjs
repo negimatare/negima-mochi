@@ -90,7 +90,9 @@ if (release === '--demote') {
   };
   const gradersNow = (name) => {
     const dir = join(evalsDir, name, 'graders');
-    return existsSync(dir) ? Object.fromEntries(readdirSync(dir).map((file) => [file, readFileSync(join(dir, file), 'utf8')])) : {};
+    // A dotfile, such as Finder's .DS_Store, is no grader.
+    const files = existsSync(dir) ? readdirSync(dir).filter((file) => !file.startsWith('.')) : [];
+    return Object.fromEntries(files.map((file) => [file, readFileSync(join(dir, file), 'utf8')]));
   };
   const sameGraders = (name) => {
     const [before, now] = [gradersAtTag(name), gradersNow(name)];
