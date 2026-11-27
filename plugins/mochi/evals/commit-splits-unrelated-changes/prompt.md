@@ -1,6 +1,6 @@
 ---
 description: Committing two unrelated changes makes two commits, one per concern, staged by explicit path.
-tags: [commit, core]
+tags: [commit]
 plugins: ["../..", "../../eval-observer"]
 max_turns: 30
 timeout_seconds: 900

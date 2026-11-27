@@ -1,6 +1,6 @@
 ---
 description: Fixing a reported rounding bug writes a test that fails on the unchanged code, reports the cause and the proposed fix, and waits instead of fixing it.
-tags: [fix-bug, core]
+tags: [fix-bug]
 plugins: ["../..", "../../eval-observer"]
 max_turns: 60
 timeout_seconds: 1800

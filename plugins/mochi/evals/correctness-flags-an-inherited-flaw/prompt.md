@@ -1,6 +1,6 @@
 ---
 description: Calls the correctness reviewer on a branch that copies an export's row builder, which takes the status from the published text while exporting the draft, and promises the dashboard format.
-tags: [correctness, core]
+tags: [correctness]
 max_turns: 30
 timeout_seconds: 900
 allowed_tools: [Read, Glob, Grep, Agent, Bash]
