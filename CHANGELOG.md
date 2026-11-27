@@ -34,8 +34,10 @@ Small fixes after 1.4.0.
   no security reviewer. The cases, tagged `security`, guard what the kit
   adds: the hole recorded as blocking at its line in the findings file.
 - **The release evals cost about half.** 16 core cases that passed every
+- **The release evals cost a third less.** 12 core cases that passed every
   run in the last three releases, and guard no push, data or branch, leave
-  the `core` tag. A case whose graders changed in those releases keeps it.
+  the `core` tag. `eval-history.mjs --demote` now lists a case whose graders
+  changed since the first of those releases apart, as it keeps `core`.
 
 ## 1.4.0 — 2026-11-27
 
