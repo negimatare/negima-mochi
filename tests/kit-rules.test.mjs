@@ -124,7 +124,7 @@ test('a CHANGELOG release off the shape is named', () => {
     'CHANGELOG.md: in 1.1.0, "### Notes" is not Update, a "<plugin> plugin" or For contributors.',
     'CHANGELOG.md: in 1.3.0, "### For contributors" appears twice.',
     'CHANGELOG.md: in 1.3.0, "### mochi plugin" comes after For contributors, which is last.',
-    'CHANGELOG.md: in 1.3.2, the item "- A new integration branch. Pull requests target `mochitsuki`. Only a" has no bold lead.',
+    'CHANGELOG.md: in 1.4.0, the item "- A new integration branch. Pull requests target `mochitsuki`. Only a" has no bold lead.',
   ]);
 });
 

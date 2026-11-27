@@ -1,7 +1,7 @@
 {
   "name": "mochi",
   "displayName": "Mochi",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "description": "Language-agnostic working principles and the /mochi:* workflows — setup-project, build, refactor, fix-bug, review, pr — with the reviewers that apply to any stack",
   "author": {
     "name": "negimatare"

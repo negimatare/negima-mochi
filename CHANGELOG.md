@@ -11,7 +11,7 @@ Each release has a section for each plugin that changed. **For contributors**
 lists the work on the kit itself, which does not change the installed
 plugins.
 
-## 1.3.2 — unreleased
+## 1.4.0 — 2026-11-27
 
 The `main` branch now holds only releases, so an install gets the latest
 release and not the work in progress. A tag in the marketplace source pins
