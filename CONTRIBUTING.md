@@ -363,10 +363,15 @@ steps before these calls, and the behaviour of the kit when the calls fail.
   in the Claude Code sandbox.
 - `--no-publish` keeps the HTML report on your machine. Without this option,
   a claude.ai login publishes the report as a private artifact.
-- On macOS, `/usr/bin/git` is a shim that the sandbox blocks. Put a git that
-  the sandbox can read, for example the git from Homebrew, at the start of
-  `PATH`. The
-  `git-worked` grader fails a run that used the shim.
+- On macOS, the sandbox cannot read `/opt/homebrew`, so a run finds only
+  `/usr/bin/git`, the `xcrun` shim, also when the git from Homebrew is first
+  on `PATH`. The shim works, but it cannot write its cache in the sandbox:
+  each git command prints a `couldn't create cache file` line and a
+  `DVTFilePathFSEvents` line. These lines do no harm. A run that tries to
+  remove them by setting `DEVELOPER_DIR` to a folder that does not exist
+  breaks git: the shim then gives `Failed to locate 'git'`, and the
+  `git-worked` grader fails the run. Read such a failure as the
+  environment, not the kit.
 - The cases need Node 22.18 or later to run the `.ts` tests. Below your home
   folder, the sandbox can read only the folders on `PATH`. A Node from a
   version manager, for example mise or nvm, keeps npm in `lib/`. Its
@@ -381,8 +386,21 @@ steps before these calls, and the behaviour of the kit when the calls fail.
   other characters in its name, Claude puts quotes around the paths in the
   commands that it runs. This breaks graders that look for a command line, for example
   `renders-part-1` in `split-writes-the-parts-and-an-index`. Also, the
-  sandbox can prevent access to the plugin. Copy `plugins/` to `$TMPDIR`.
-  Then use the copy with `eval_kit`.
+  sandbox can prevent access to the plugin. Copy `plugins/` to one fixed
+  folder in `$TMPDIR`, and refresh it before each run:
+
+  ```bash
+  rsync -a --delete plugins/ "$TMPDIR/negima-eval/plugins/"
+  eval_kit "$TMPDIR/negima-eval/plugins/mochi" ...
+  ```
+
+  Plugin trust is for each folder. Run `claude plugin eval` on the copy
+  one time in a terminal and trust it there. Then a run with `--json`, or in
+  the background, does not stop at the trust prompt, and needs no
+  `--trust-plugin`.
+- `--case` takes one case. When you give it more than one time, only the
+  last one runs: run one command for each case. A relative `--json` path
+  is below the current folder; an absolute path works from any folder.
 
 ## Branches
 
