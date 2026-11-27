@@ -52,8 +52,17 @@ list in `CLAUDE.md`:
   command. You can still tell Claude to push. Without `gh`, the commit step
   cannot see the pull request: it says so, and pushes without the list.
 
-**Lint rules.** When a stack plugin needs a lint rule that the project does not
-have, setup proposes the rule. First, it runs lint with the rule and
+**Lint presets.** When a stack plugin ships a lint preset, setup proposes it
+first. For ESLint, it copies the preset beside your config and spreads it
+there. It then adds an import from one feature slice into another, and
+checks that lint reports it. When lint does not, setup removes the preset
+again and stops. For Ruff, it runs the preset's rules once without a write,
+then merges them into the file that Ruff uses. Ruff has no warnings: you
+select, for each rule that the current code breaks, to turn it on with an
+ignore for each such file, or to leave it out.
+
+**Lint rules.** When a stack plugin needs a lint rule that is not in its
+preset and not in the project, setup proposes the rule. First, it runs lint with the rule and
 tells you the number of violations in the current code:
 
 - If there are no violations, it proposes the rule as an error.

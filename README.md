@@ -86,7 +86,8 @@ To move a pinned install to a different release:
 Then run `/mochi:setup-project` one time. This command writes a short
 `CLAUDE.md` with the commands that your project really uses for verification,
 and the commands of your pull request CI to run before a push. It also makes
-sure that each command works.
+sure that each command works. With a stack plugin, it adds that plugin's lint
+preset to your ESLint or Ruff config, after you agree.
 
 | Plugin | Contents |
 |---|---|
@@ -147,11 +148,26 @@ The page also shows all links in a table.
 - In a React + Fluent UI package, `mochi-react` adds its conventions to the
   context. It does this when a session starts in the package, or when Claude
   reads, writes or edits a file that a convention covers. It runs ESLint `--fix`
-  after each edit. Before Claude ends a turn, it runs `typecheck` and `test`.
+  after each edit. Before Claude ends a turn, it runs the verification of the
+  package: the commands of its `CLAUDE.md` Verification block, or, without a
+  block, `typecheck` and `test`.
 - In a FastAPI package, `mochi-python` does the same with the tools in the
   virtualenv of your project. It runs Ruff `--fix` after each edit. Before
-  Claude ends a turn, it runs the type checker (pyright or mypy), the
-  import-linter contracts and pytest.
+  Claude ends a turn, it runs the commands of the Verification block, or,
+  without a block, the type checker (pyright or mypy), the import-linter
+  contracts and pytest.
+- The Verification block is the first `bash` block under
+  `## Verification` in the nearest `CLAUDE.md`, as `/mochi:setup-project`
+  writes it. Each command runs from the folder of that `CLAUDE.md`. Only the
+  nearest `CLAUDE.md` counts: when it has no block, the stack plugin runs its
+  own checks. Each command must end, and exit 0 when the checks pass: a
+  watcher is stopped at the deadline and reported as not finished, and
+  pytest with no tests exits 5, so write `pytest || [ $? -eq 5 ]` for a
+  project that has no tests yet. A `uv run` in the block does not sync or install
+  first. When a React package and a FastAPI package share one `CLAUDE.md`,
+  both plugins run its block at the same time: give each package its own
+  `CLAUDE.md`. To keep the plugins' own checks, set
+  `MOCHI_VERIFY_FROM_CLAUDE_MD=0`.
 
 ---
 
@@ -206,12 +222,13 @@ plugins/                one folder for each plugin: mochi, mochi-react, mochi-py
   */agents/             the reviewers
   */hooks/, */scripts/  hooks.json and its Node scripts: they load conventions, run lint and
                         verification, check new dependencies and show the session banner
+  */presets/            the lint presets of a stack plugin, which /mochi:setup-project adds
   */evals/              claude plugin eval cases, each with a fixture.sh and graders
 docs/                   workflows.md and the skill map (svg, html, notes)
 docs/readme/            the images of this README
 extras/                 an optional context status line
 scripts/                skill-map.mjs: draws and checks the skill map
-.github/                the Skill map and CodeQL workflows, Dependabot, issue and pull request templates
+.github/                the Hook tests, Lint presets, Skill map and CodeQL workflows, Dependabot, issue and pull request templates
 ```
 
 </details>

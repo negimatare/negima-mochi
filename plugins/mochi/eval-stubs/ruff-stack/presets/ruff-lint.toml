@@ -1,0 +1,19 @@
+# mochi-python lint preset: the rules of the service-layer skill that Ruff
+# enforces. setup-project merges these keys into the file Ruff reads: as
+# written in pyproject.toml, or without the `tool.ruff.` prefix in ruff.toml.
+# Each key adds to the project's own rules; none replaces its `select`.
+
+[tool.ruff.lint]
+extend-select = ["ASYNC", "S113", "TID251"]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"datetime.datetime.now".msg = "Take the time from the injected clock (Clock); only the composition root builds it."
+"datetime.datetime.utcnow".msg = "Take the time from the injected clock (Clock); only the composition root builds it."
+"datetime.datetime.today".msg = "Take the time from the injected clock (Clock); only the composition root builds it."
+"datetime.date.today".msg = "Take the time from the injected clock (Clock); only the composition root builds it."
+"os.environ".msg = "Read the injected settings object; only the settings class reads the environment."
+"os.getenv".msg = "Read the injected settings object; only the settings class reads the environment."
+
+[tool.ruff.lint.extend-per-file-ignores]
+# The composition root builds the default clock and the settings.
+"**/bootstrap.py" = ["TID251"]

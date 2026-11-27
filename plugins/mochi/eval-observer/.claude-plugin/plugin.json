@@ -1,0 +1,5 @@
+{
+  "name": "eval-observer",
+  "version": "0.0.1",
+  "description": "Eval stub: a Stop hook that writes the end state of a case (commits, pushes, uncommitted changes, whether the final tree passed its tests) to .eval/end-state.txt for the graders. Loaded by mochi's eval cases that grade an outcome."
+}

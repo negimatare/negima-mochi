@@ -44,8 +44,8 @@ useEffect(() => setLabel(`${first} ${last}`), [first, last]);
 const label = `${first} ${last}`;
 ```
 
-`react-hooks/set-state-in-effect`, in the `recommended` preset of
-`eslint-plugin-react-hooks` v7, catches the first two rows.
+The `react-hooks` v7 `recommended` rules catch the first two rows. The
+preset `${CLAUDE_PLUGIN_ROOT}/presets/eslint-mochi.mjs` turns them on.
 
 ## Async state
 

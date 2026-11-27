@@ -3,7 +3,7 @@
     "command": ["setup-project", "build", "fix-bug", "refactor", "review", "pr", "split"],
     "shared": ["plan", "tidy", "commit", "dependencies"],
     "agent": ["bar-raiser", "quick-reviewer", "correctness-reviewer", "test-reviewer", "hygiene-reviewer", "data-reviewer", "markup-a11y-reviewer", "mochi-react:conventions-reviewer", "mochi-react:a11y-reviewer", "mochi-python:conventions-reviewer", "mochi-python:api-contract-reviewer"],
-    "hook": ["ask-before-adding-dependency", "mochi-react:inject-matching-skills", "mochi-python:inject-matching-skills"]
+    "hook": ["ask-before-adding-dependency", "guard-git", "mochi-react:inject-matching-skills", "mochi-python:inject-matching-skills"]
   },
   "nodes": {
     "setup-project": { "sub": "Prepare a project" },
@@ -28,6 +28,7 @@
     "mochi-python:conventions-reviewer": { "sub": "Slices, domain, layers" },
     "mochi-python:api-contract-reviewer": { "sub": "REST + OpenAPI" },
     "ask-before-adding-dependency": { "title": "Install guard", "sub": "Asks before any install" },
+    "guard-git": { "title": "Git guard", "sub": "Asks before a push to main or a force" },
     "mochi-react:inject-matching-skills": { "title": "React convention loader", "sub": "At session start, or on reading .tsx…" },
     "mochi-python:inject-matching-skills": { "title": "Python convention loader", "sub": "At session start, or on reading .py…" },
     "split": { "sub": "Cut a big plan into parts" }
@@ -77,6 +78,8 @@
     "mochi-python:api-contract-reviewer -> mochi-python:openapi": {},
     "mochi-react:performance -> dependencies": { "when": "adding the virtualizer package" },
     "ask-before-adding-dependency -> dependencies": { "note": "points the install at it" },
+    "guard-git -> commit": { "note": "enforces its staging and push rules" },
+    "guard-git -> pr": { "note": "enforces its push rules" },
     "mochi-react:inject-matching-skills -> @mochi-react": { "note": "injects each one, up front or when its paths match" },
     "mochi-python:inject-matching-skills -> @mochi-python": { "note": "injects each one, up front or when its paths match" },
     "split -> plan": { "note": "its plan format, challenge, and view" }

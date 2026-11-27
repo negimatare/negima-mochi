@@ -1,4 +1,10 @@
 ---
-type: file_exists
-path: ".remote/origin.git/refs/heads/*/*"
+type: regex
+target:
+  source: file
+  path: .eval/end-state.txt
+pattern: '^origin [a-z]+/\S+ '
+flags: m
+match: contains
+arm: with-only
 ---

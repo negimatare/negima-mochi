@@ -115,3 +115,10 @@ the index it needs, see the `api-design` skill.
   thread pool, or wrap the call in `anyio.to_thread.run_sync`.
 - Every outbound call has a timeout, and every client is built once so its
   connection pool is shared.
+
+## Lint
+
+Ruff holds the clock, the settings, the blocking calls and the timeouts
+above: the preset `${CLAUDE_PLUGIN_ROOT}/presets/ruff-lint.toml` bans the
+direct time and environment calls outside `bootstrap.py` (`TID251`), and
+turns on `ASYNC` and `S113`. `/mochi:setup-project` adds it to the project.

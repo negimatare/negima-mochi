@@ -1,41 +1,75 @@
 // Stop: before Claude ends a turn with uncommitted TypeScript changes, run the
-// typecheck and test scripts of every React + Fluent package those changes touch.
+// verification of every React + Fluent package those changes touch: the
+// commands of its CLAUDE.md Verification block, else its typecheck and test
+// scripts. MOCHI_VERIFY_FROM_CLAUDE_MD=0 keeps the scripts. A change to a
+// package.json counts, and so does a deleted or renamed file.
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { closeSync, existsSync, mkdtempSync, openSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
+import { runVerificationCommands, verificationCommands } from './claude-md.mjs';
 import { isReactFluentPackage } from './stack.mjs';
 
 const input = JSON.parse(readFileSync(0, 'utf8'));
+
+// Claude Code cancels the hook at its 600 s timeout and drops its output, so
+// the checks share a shorter deadline and report a check that runs past it.
+const DEADLINE_SECONDS = Number(process.env.MOCHI_VERIFY_DEADLINE_SECONDS) || 540;
+const deadline = Date.now() + DEADLINE_SECONDS * 1000;
 
 const git = (args) => spawnSync('git', args, { cwd: input.cwd, encoding: 'utf8' });
 const root = git(['rev-parse', '--show-toplevel']).stdout?.trim();
 if (!root) process.exit(0);
 
-const changed = git(['status', '--porcelain', '-z', '--untracked-files=all'])
-  .stdout.split('\0')
-  .filter(Boolean)
-  .map((entry) => entry.slice(3))
-  .filter((path) => /\.(c|m)?(j|t)sx?$/.test(path))
-  .map((path) => join(root, path))
-  .filter((path) => existsSync(path));
+// `git status --porcelain -z` gives "XY path" for each entry, and after a
+// rename or a copy (R, C) one more entry with the original path. The
+// original of a rename is gone, so its package lost a file: it counts.
+const entries = git(['status', '--porcelain', '-z', '--untracked-files=all']).stdout.split('\0');
+const changed = [];
+for (let k = 0; k < entries.length; k += 1) {
+  const entry = entries[k];
+  if (!entry) continue;
+  const status = entry.slice(0, 2);
+  const paths = [entry.slice(3)];
+  if (/[RC]/.test(status)) {
+    k += 1;
+    if (status.includes('R')) paths.push(entries[k]);
+  }
+  for (const path of paths.map((name) => join(root, name)))
+    if (/\.(c|m)?(j|t)sx?$/.test(path) || basename(path) === 'package.json') changed.push(path);
+}
 if (changed.length === 0) process.exit(0);
 
-// Only re-run when the changed files differ from the last run, so an unfixable
-// failure is reported once instead of blocking every turn.
-const fingerprint = changed.map((path) => `${path}:${statSync(path).mtimeMs}`).sort().join('|');
+// Only re-run when the changed files differ from the last run, so a failure
+// is reported once instead of blocking every turn.
+const fingerprint = changed
+  .map((path) => `${path}:${existsSync(path) ? statSync(path).mtimeMs : 'deleted'}`)
+  .sort()
+  .join('|');
 const stateFile = join(tmpdir(), `negima-verify-${input.session_id}.txt`);
 if (existsSync(stateFile) && readFileSync(stateFile, 'utf8') === fingerprint) process.exit(0);
-writeFileSync(stateFile, fingerprint);
 
 const scriptsOf = (dir) => JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).scripts ?? {};
+const fromClaudeMd = process.env.MOCHI_VERIFY_FROM_CLAUDE_MD !== '0';
+const blockOfDir = new Map();
+const blockOf = (dir) => {
+  if (!fromClaudeMd) return undefined;
+  if (!blockOfDir.has(dir)) blockOfDir.set(dir, verificationCommands(dir, root));
+  return blockOfDir.get(dir);
+};
 const packages = new Set();
+const failures = [];
 for (const path of changed) {
   let dir = dirname(path);
   while (dir.startsWith(root)) {
     if (existsSync(join(dir, 'package.json'))) {
-      const scripts = scriptsOf(dir);
-      if ((scripts.typecheck || scripts.test) && isReactFluentPackage(dir)) packages.add(dir);
+      try {
+        const scripts = scriptsOf(dir);
+        if ((blockOf(dir) || scripts.typecheck || scripts.test) && isReactFluentPackage(dir)) packages.add(dir);
+      } catch (error) {
+        const failure = `\`package.json\` in ${dir} is not valid JSON: ${error.message}`;
+        if (!failures.includes(failure)) failures.push(failure);
+      }
       break;
     }
     dir = dirname(dir);
@@ -55,7 +89,12 @@ const lockfiles = [
 const runner = (dir) => {
   for (let current = dir; ; current = dirname(current)) {
     const manifest = join(current, 'package.json');
-    const declared = existsSync(manifest) && JSON.parse(readFileSync(manifest, 'utf8')).packageManager;
+    let declared;
+    try {
+      declared = existsSync(manifest) && JSON.parse(readFileSync(manifest, 'utf8')).packageManager;
+    } catch {
+      declared = undefined;
+    }
     if (declared) return declared.split('@')[0];
     const lockfile = lockfiles.find(([name]) => existsSync(join(current, name)));
     if (lockfile) return lockfile[1];
@@ -63,20 +102,42 @@ const runner = (dir) => {
   }
 };
 
-const failures = [];
+// Runs one check into a file, not a pipe: a child process that the check
+// leaves behind could hold a pipe open after the deadline. SIGTERM, which
+// npm, pnpm and yarn pass on to the script, stops the check itself too.
+const check = (label, command, args, dir) => {
+  const left = deadline - Date.now();
+  if (left < 1000) return `\`${label}\` not run: no time left before the deadline (${dir}).`;
+  const logDir = mkdtempSync(join(tmpdir(), 'negima-verify-'));
+  const log = join(logDir, 'output.txt');
+  const fd = openSync(log, 'wx');
+  const result = spawnSync(command, args, { cwd: dir, stdio: ['ignore', fd, fd], timeout: left, killSignal: 'SIGTERM' });
+  closeSync(fd);
+  const output = readFileSync(log, 'utf8').split('\n').slice(-60).join('\n');
+  rmSync(logDir, { recursive: true, force: true });
+  if (result.error?.code === 'ETIMEDOUT') return `\`${label}\` did not finish in ${Math.round(left / 1000)} s in ${dir}:\n${output}`;
+  if (result.error) return `Could not run \`${command} ${args.join(' ')}\` in ${dir}: ${result.error.message}`;
+  if (result.status !== 0) return `\`${label}\` failed in ${dir}:\n${output}`;
+  return undefined;
+};
+
+// Packages that share one CLAUDE.md run its block one time.
+const blocks = new Map();
 for (const dir of packages) {
+  const block = blockOf(dir);
+  if (block) {
+    blocks.set(block.dir, block);
+    continue;
+  }
   const scripts = scriptsOf(dir);
   const command = runner(dir);
   for (const script of ['typecheck', 'test'].filter((name) => scripts[name])) {
-    const result = spawnSync(command, ['run', script], { cwd: dir, encoding: 'utf8' });
-    if (result.error) {
-      failures.push(`Could not run \`${command} run ${script}\` in ${dir}: ${result.error.message}`);
-    } else if (result.status !== 0) {
-      const output = `${result.stdout}${result.stderr}`.split('\n').slice(-60).join('\n');
-      failures.push(`\`${script}\` failed in ${dir}:\n${output}`);
-    }
+    const failure = check(script, command, ['run', script], dir);
+    if (failure) failures.push(failure);
   }
 }
+for (const block of blocks.values()) failures.push(...(await runVerificationCommands(block, deadline)));
+writeFileSync(stateFile, fingerprint);
 if (failures.length === 0) process.exit(0);
 
 process.stderr.write(`Verification failed. Fix these before finishing:\n\n${failures.join('\n\n')}`);

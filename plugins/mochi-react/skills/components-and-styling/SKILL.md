@@ -42,25 +42,11 @@ several. Single-component folders stay flat.
   hook, or passes about 40 lines, it gets its own folder beside the parent.
 - **Size limits are warnings**, not errors, so the mochi-react lint-on-edit
   hook never blocks a cohesive file; reviews and `tidy` look for a seam past
-  the limit. This `max-lines` replaces the generic 250-line default of
-  `tidy`; test files are exempt, one file per behaviour suite. In the
-  project's ESLint config:
-
-  ```js
-  {
-    files: ['src/**/*.{ts,tsx}'],
-    rules: {
-      'max-lines': ['warn', { max: 200, skipBlankLines: true, skipComments: true }],
-      'react/jsx-max-depth': ['warn', { max: 6 }],
-    },
-  },
-  {
-    files: ['src/**/*.test.{ts,tsx}'],
-    rules: { 'max-lines': 'off' },
-  },
-  ```
-
-  `jsx-max-depth` counts through JSX held in variables, so hoisting a branch
+  the limit. The limits are 200 non-blank, non-comment lines for a source
+  file and a JSX depth of 6. The line limit replaces the 250-line default of
+  `tidy`. Test files are exempt, one file per behaviour suite. The preset
+  `${CLAUDE_PLUGIN_ROOT}/presets/eslint-mochi.mjs` holds this config. The
+  depth limit counts through JSX held in variables, so hoisting a branch
   into a `const` does not hide it.
 
 ## Naming
@@ -91,10 +77,12 @@ export const useXStyles = (state): XStyles => {
 1. **One `useStyles` map per file**, not a hook per slot — Fluent's own
    dominant convention.
 2. **Native CSS shorthands** (`border: '...'`), not the deprecated
-   `shorthands.*` helpers. Lint with `@griffel/no-deprecated-shorthands`, not
-   `@griffel/no-shorthands`. Non-directional `borderWidth`/`overflow`
-   shorthands are not typed — write `border: '0'`. A block needing an
-   asymmetric border keeps per-side longhands with a comment saying why.
+   `shorthands.*` helpers. The preset's Griffel rule enforces this as a lint
+   error on `*.styles.ts`. `@griffel/no-shorthands` contradicts it: in a
+   config that sets it, say so and ask which rule to keep. Non-directional
+   `borderWidth`/`overflow` shorthands are not typed — write `border: '0'`.
+   A block needing an asymmetric border keeps per-side longhands with a
+   comment saying why.
 3. **Property order: logical groups, alphabetical within each** — layout, size,
    spacing, appearance, typography, motion. Lint-enforced with
    `perfectionist/sort-objects` on `*.styles.ts`, for CSS rule bodies only:
